@@ -6,54 +6,44 @@
     <title>ลงเวลาทำงาน - TAS-SPB</title>
     
     <style>
-        body { font-family: sans-serif; background-color: #f3f4f6; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
-        .header { width: 100%; max-width: 400px; display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 0.9rem; color: #4b5563; }
-        .logout { color: #ef4444; cursor: pointer; text-decoration: underline; border: none; background: none; font-size: 0.9rem; }
+        body { font-family: 'Sarabun', sans-serif; background-color: #f3f4f6; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        .header { width: 100%; max-width: 400px; display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 1rem; color: #4b5563; align-items: center; }
+        .logout { color: #ef4444; cursor: pointer; text-decoration: none; border: 1px solid #ef4444; background: none; font-size: 0.85rem; padding: 5px 10px; border-radius: 20px; transition: all 0.3s; }
+        .logout:hover { background-color: #ef4444; color: white; }
         
-        .card { background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        .card { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); width: 100%; max-width: 400px; text-align: center; }
         
-        .date-display { font-size: 1.1rem; color: #374151; margin-bottom: 0.5rem; font-weight: bold; }
-        .db-date-format { font-size: 0.8rem; color: #9ca3af; margin-bottom: 1.5rem; font-family: monospace; }
+        .date-display { font-size: 1.2rem; color: #1f2937; margin-bottom: 0.5rem; font-weight: bold; }
+        .db-date-format { font-size: 0.85rem; color: #9ca3af; margin-bottom: 1.5rem; font-family: monospace; background: #f9fafb; display: inline-block; padding: 2px 8px; border-radius: 4px; }
         
-        .clock-box { background-color: #f3f4f6; border-radius: 12px; padding: 1rem; margin-bottom: 2rem; }
-        .clock { font-size: 3rem; font-family: monospace; font-weight: bold; color: #1f2937; letter-spacing: 2px; }
+        .clock-box { background: linear-gradient(145deg, #f3f4f6, #ffffff); border-radius: 15px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: inset 5px 5px 10px #e1e2e4, inset -5px -5px 10px #ffffff; }
+        .clock { font-size: 3.5rem; font-family: 'Courier New', monospace; font-weight: bold; color: #2563eb; letter-spacing: 2px; text-shadow: 2px 2px 4px rgba(0,0,0,0.1); }
         
         .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        .btn { padding: 1.2rem; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; color: white; cursor: pointer; transition: transform 0.1s; }
-        .btn:active { transform: scale(0.98); }
-        .btn-in { background-color: #22c55e; } 
-        .btn-in:hover { background-color: #16a34a; }
-        .btn-out { background-color: #f97316; }
-        .btn-out:hover { background-color: #ea580c; }
+        .btn { padding: 1.2rem; border: none; border-radius: 15px; font-size: 1.1rem; font-weight: bold; color: white; cursor: pointer; transition: transform 0.1s, box-shadow 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn:active { transform: scale(0.95); }
+        .btn-in { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); } 
+        .btn-in:hover { box-shadow: 0 6px 15px rgba(34, 197, 94, 0.4); }
+        .btn-out { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
+        .btn-out:hover { box-shadow: 0 6px 15px rgba(249, 115, 22, 0.4); }
         
-        .status-area { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e5e7eb; font-size: 0.9rem; color: #4b5563; }
-        .status-row { display: flex; justify-content: space-between; align-items: center; margin-top: 0.8rem; }
-        .time-val { font-weight: bold; color: #111827; font-family: monospace; font-size: 1.1rem; }
+        .status-area { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px dashed #e5e7eb; font-size: 0.95rem; color: #4b5563; }
+        .status-row { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; background: #f9fafb; padding: 10px; border-radius: 10px; }
+        .time-val { font-weight: bold; color: #111827; font-family: monospace; font-size: 1.2rem; }
         
-        /* 🔥 สไตล์ปุ่มแก้ไข */
         .btn-edit {
-            background-color: #fff;
-            border: 1px solid #d1d5db;
-            color: #4b5563;
-            font-size: 0.8rem;
-            padding: 2px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-left: 10px;
+            background-color: white; border: 1px solid #d1d5db; color: #4b5563;
+            font-size: 0.8rem; padding: 5px 10px; border-radius: 8px; cursor: pointer; margin-left: 10px; transition: all 0.2s;
         }
-        .btn-edit:hover { background-color: #f3f4f6; border-color: #9ca3af; }
-        
-        #msg { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 30px; opacity: 0; transition: opacity 0.5s; pointer-events: none; z-index: 100; }
+        .btn-edit:hover { background-color: #2563eb; color: white; border-color: #2563eb; }
     </style>
 
     <script src="supabase.js"></script>
-</head>
+    <script src="sweetalert2.js"></script> </head>
 <body>
 
-    <div id="msg">บันทึกสำเร็จ</div>
-
     <div class="header">
-        <div>สวัสดี, <span id="userName" style="color: #2563eb; font-weight: bold;">...</span></div>
+        <div>สวัสดี, <span id="userName" style="color: #2563eb; font-weight: bold; font-size: 1.1rem;">...</span></div>
         <button class="logout" onclick="logout()">ออกจากระบบ</button>
     </div>
 
@@ -71,10 +61,10 @@
         </div>
 
         <div class="status-area">
-            <div>สถานะวันนี้ (จาก DB):</div>
+            <div style="font-weight: bold; margin-bottom: 10px;">📊 สถานะวันนี้</div>
             
             <div class="status-row">
-                <span>เวลาเข้า:</span>
+                <span>เข้า:</span>
                 <div>
                     <span id="timeInDisplay" class="time-val">-</span>
                     <button class="btn-edit" onclick="editTime('time_in')">✏️ แก้ไข</button>
@@ -82,7 +72,7 @@
             </div>
 
             <div class="status-row">
-                <span>เวลาออก:</span>
+                <span>ออก:</span>
                 <div>
                     <span id="timeOutDisplay" class="time-val">-</span>
                     <button class="btn-edit" onclick="editTime('time_out')">✏️ แก้ไข</button>
@@ -97,15 +87,20 @@
         
         let client = null;
         let userData = null;
-        let currentRecord = null; // เก็บข้อมูล Record ปัจจุบันไว้ใช้ตอนแก้ไข
+        let currentRecord = null;
 
-        function showToast(text, isError = false) {
-            const msg = document.getElementById('msg');
-            msg.innerText = text;
-            msg.style.backgroundColor = isError ? '#ef4444' : '#22c55e';
-            msg.style.opacity = '1';
-            setTimeout(() => { msg.style.opacity = '0'; }, 3000);
-        }
+        // 🔥 สร้าง Toast Notification (แจ้งเตือนมุมขวาบน)
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+        });
 
         function generateID() {
             const now = new Date();
@@ -129,8 +124,8 @@
                 userData = JSON.parse(stored);
                 document.getElementById('userName').innerText = userData.name || userData.personnel_id;
 
-                if (typeof window.supabase === 'undefined') {
-                    alert("ไม่พบไฟล์ supabase.js");
+                if (typeof window.supabase === 'undefined' || typeof Swal === 'undefined') {
+                    alert("ไม่พบไฟล์ supabase.js หรือ sweetalert2.js");
                     return;
                 }
                 client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -149,7 +144,6 @@
             const year = now.getFullYear();
             const month = String(now.getMonth() + 1).padStart(2, '0');
             const day = String(now.getDate()).padStart(2, '0');
-            
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const seconds = String(now.getSeconds()).padStart(2, '0');
@@ -189,7 +183,7 @@
                     .single();
 
                 if (data) {
-                    currentRecord = data; // เก็บข้อมูลลงตัวแปร Global
+                    currentRecord = data;
                     document.getElementById('timeInDisplay').innerText = data.time_in || "-";
                     document.getElementById('timeOutDisplay').innerText = data.time_out || "-";
                     return data;
@@ -206,41 +200,37 @@
             }
         }
 
-        // 🔥 ฟังก์ชันแก้ไขเวลา (Manual Edit)
+        // 🔥 ฟังก์ชันแก้ไขเวลา (ใช้ Time Picker)
         async function editTime(field) {
             if (!client) return;
             
-            // ต้องมี Record ก่อนถึงจะแก้ไขได้
             if (!currentRecord) {
-                alert("กรุณากดปุ่ม 'เข้างาน' หรือ 'เลิกงาน' เพื่อสร้างข้อมูลก่อน จึงจะแก้ไขได้");
+                Swal.fire('แจ้งเตือน', 'กรุณากดลงเวลาก่อน จึงจะแก้ไขได้', 'warning');
                 return;
             }
 
-            // ดึงค่าเดิมมาแสดงใน Prompt
             const oldVal = field === 'time_in' ? currentRecord.time_in : currentRecord.time_out;
-            const defaultVal = oldVal || "08:00:00"; // ถ้าไม่มีค่าเดิม ให้แนะนำ 08:00:00
+            
+            // 🔥 ใช้ SweetAlert แบบ input time (สวยและใช้ง่ายกว่าเดิม)
+            const { value: newVal } = await Swal.fire({
+                title: `แก้ไขเวลา${field === 'time_in' ? 'เข้า' : 'ออก'}`,
+                input: 'time',
+                inputLabel: 'เลือกเวลาที่ถูกต้อง',
+                inputValue: oldVal || '08:00',
+                showCancelButton: true,
+                confirmButtonText: 'บันทึก',
+                cancelButtonText: 'ยกเลิก',
+                confirmButtonColor: '#2563eb'
+            });
 
-            // ให้ผู้ใช้กรอก
-            const newVal = prompt(`แก้ไขเวลา ${field === 'time_in' ? 'เข้างาน' : 'ออกงาน'} (HH:MM:SS)`, defaultVal);
+            if (!newVal) return; // กดยกเลิก
 
-            // ถ้ากด Cancel หรือไม่กรอกอะไร
-            if (newVal === null) return;
-            if (newVal.trim() === "") {
-                alert("กรุณากรอกเวลา");
-                return;
-            }
-
-            // ตรวจสอบ Format เวลาคร่าวๆ (HH:MM:SS)
-            const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/;
-            if (!timeRegex.test(newVal)) {
-                alert("รูปแบบเวลาไม่ถูกต้อง กรุณากรอกแบบ HH:MM:SS (เช่น 08:30:00)");
-                return;
-            }
+            // แปลงค่าจาก HH:MM เป็น HH:MM:00 (เติมวินาทีให้)
+            const timeToSave = newVal.length === 5 ? newVal + ":00" : newVal;
 
             try {
-                // สร้าง object ที่จะ update
                 const updateData = {};
-                updateData[field] = newVal; // เช่น { time_in: '09:00:00' }
+                updateData[field] = timeToSave;
 
                 const { error } = await client
                     .from('TimeStampPlus')
@@ -249,82 +239,85 @@
 
                 if (error) throw error;
 
-                showToast("แก้ไขเวลาสำเร็จ!");
-                loadTodayRecord(); // โหลดข้อมูลใหม่มาแสดง
+                Toast.fire({ icon: 'success', title: 'แก้ไขเวลาสำเร็จ' });
+                loadTodayRecord();
 
             } catch (err) {
                 console.error(err);
-                showToast("แก้ไขไม่สำเร็จ: " + err.message, true);
+                Swal.fire('Error', 'แก้ไขไม่สำเร็จ: ' + err.message, 'error');
             }
         }
 
         async function recordTime(type) {
             if (!client) return;
-            if (!confirm(`ยืนยันการลงเวลา ${type === 'in' ? 'เข้างาน' : 'เลิกงาน'} ?`)) return;
+
+            // 🔥 ใช้ Popup ยืนยันแบบสวย
+            const result = await Swal.fire({
+                title: 'ยืนยันการลงเวลา?',
+                text: `ต้องการลงเวลา ${type === 'in' ? 'เข้างาน' : 'เลิกงาน'} ใช่หรือไม่?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: type === 'in' ? '#22c55e' : '#f97316',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'ใช่, ลงเวลาเลย',
+                cancelButtonText: 'ยกเลิก'
+            });
+
+            if (!result.isConfirmed) return;
 
             const val = getDBFormatValues();
             const todayDB = val.date;
             const timeDB = val.time; 
+            const newID = generateID();
 
             try {
                 const existing = await loadTodayRecord();
                 let error = null;
-                const newID = generateID();
 
                 if (type === 'in') {
                     if (existing) {
-                        const { error: upError } = await client
-                            .from('TimeStampPlus')
-                            .update({ time_in: timeDB })
-                            .eq('id', existing.id);
+                        const { error: upError } = await client.from('TimeStampPlus').update({ time_in: timeDB }).eq('id', existing.id);
                         error = upError;
                     } else {
-                        const { error: insError } = await client
-                            .from('TimeStampPlus')
-                            .insert([{
-                                id: newID,
-                                personnel_id: userData.personnel_id,
-                                full_name: userData.name,
-                                work_date: todayDB,
-                                time_in: timeDB
-                            }]);
+                        const { error: insError } = await client.from('TimeStampPlus').insert([{ id: newID, personnel_id: userData.personnel_id, full_name: userData.name, work_date: todayDB, time_in: timeDB }]);
                         error = insError;
                     }
-                } else { // type === 'out'
+                } else { 
                     if (existing) {
-                        const { error: upError } = await client
-                            .from('TimeStampPlus')
-                            .update({ time_out: timeDB })
-                            .eq('id', existing.id);
+                        const { error: upError } = await client.from('TimeStampPlus').update({ time_out: timeDB }).eq('id', existing.id);
                         error = upError;
                     } else {
-                        const { error: insError } = await client
-                            .from('TimeStampPlus')
-                            .insert([{
-                                id: newID,
-                                personnel_id: userData.personnel_id,
-                                full_name: userData.name,
-                                work_date: todayDB,
-                                time_out: timeDB
-                            }]);
+                        const { error: insError } = await client.from('TimeStampPlus').insert([{ id: newID, personnel_id: userData.personnel_id, full_name: userData.name, work_date: todayDB, time_out: timeDB }]);
                         error = insError;
                     }
                 }
 
                 if (error) throw error;
 
-                showToast("บันทึกสำเร็จ!");
+                // 🔥 ใช้ Toast แทนแถบดำ
+                Toast.fire({ icon: 'success', title: 'บันทึกเวลาสำเร็จ!' });
                 loadTodayRecord();
 
             } catch (err) {
                 console.error(err);
-                showToast("เกิดข้อผิดพลาด: " + err.message, true);
+                Swal.fire('Error', 'บันทึกไม่สำเร็จ: ' + err.message, 'error');
             }
         }
 
         function logout() {
-            localStorage.removeItem('tas_user');
-            window.location.href = 'login.html';
+            Swal.fire({
+                title: 'ออกจากระบบ?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'ออก',
+                cancelButtonText: 'ยกเลิก'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    localStorage.removeItem('tas_user');
+                    window.location.href = 'login.html';
+                }
+            });
         }
 
         init();
