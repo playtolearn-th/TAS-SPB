@@ -4,7 +4,7 @@
 const TAS_CONFIG = {
     // ⚠️ ใส่ KEY ใหม่ของคุณที่นี่
     SUPABASE_URL: "https://tdcmbskmlrwhbjrjyjkk.supabase.co",
-    SUPABASE_KEY: "ใส่_KEY_ANON_ของคุณที่นี่", 
+    SUPABASE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkY21ic2ttbHJ3aGJqcmp5amtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2MTY4NTYsImV4cCI6MjA3ODE5Mjg1Nn0.FeYe75J8X_2LoQgG_JWyPNCKcuCL_otsmSW0s5bijAg", 
     
     // ชื่อตาราง
     TABLE_USER: "Personnel",
