@@ -2,310 +2,150 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ลงเวลาทำงาน - TAS-SPB</title>
     <link rel="icon" type="image/png" href="favicon.png">
     
     <style>
-        /* สไตล์หลัก */
+        /* สไตล์เดิมที่สวยอยู่แล้ว (ย่อ) */
         body { font-family: 'Sarabun', sans-serif; background-color: #f3f4f6; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
-        
-        /* ส่วนหัวแบบใหม่ (มีปุ่มย้อนกลับ) */
         .nav-bar { width: 100%; max-width: 400px; display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center; }
-        .back-btn { 
-            background: white; color: #4338ca; border: 1px solid #e0e7ff; 
-            padding: 8px 15px; border-radius: 20px; cursor: pointer; 
-            text-decoration: none; font-weight: bold; font-size: 0.9rem; 
-            transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        .back-btn:hover { background: #e0e7ff; transform: translateY(-2px); }
-        .user-display { font-weight: bold; color: #4b5563; display: flex; align-items: center; gap: 5px; }
-
-        /* การ์ดหลัก */
+        .back-btn { background: white; color: #4338ca; border: 1px solid #e0e7ff; padding: 8px 15px; border-radius: 20px; cursor: pointer; text-decoration: none; font-weight: bold; }
         .card { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); width: 100%; max-width: 400px; text-align: center; }
-        
-        /* วันที่และนาฬิกา */
-        .date-display { font-size: 1.2rem; color: #1f2937; margin-bottom: 0.5rem; font-weight: bold; }
-        .db-date-format { font-size: 0.85rem; color: #9ca3af; margin-bottom: 1.5rem; font-family: monospace; background: #f9fafb; display: inline-block; padding: 2px 8px; border-radius: 4px; }
-        
-        .clock-box { background: linear-gradient(145deg, #f3f4f6, #ffffff); border-radius: 15px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: inset 5px 5px 10px #e1e2e4, inset -5px -5px 10px #ffffff; }
-        .clock { font-size: 3.5rem; font-family: 'Courier New', monospace; font-weight: bold; color: #2563eb; letter-spacing: 2px; text-shadow: 2px 2px 4px rgba(0,0,0,0.1); }
-        
-        /* ปุ่มกดเข้า-ออก */
+        .clock { font-size: 3.5rem; font-family: monospace; font-weight: bold; color: #2563eb; }
         .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        .btn { padding: 1.2rem; border: none; border-radius: 15px; font-size: 1.1rem; font-weight: bold; color: white; cursor: pointer; transition: transform 0.1s, box-shadow 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .btn:active { transform: scale(0.95); }
-        .btn-in { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); } 
-        .btn-in:hover { box-shadow: 0 6px 15px rgba(34, 197, 94, 0.4); }
-        .btn-out { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
-        .btn-out:hover { box-shadow: 0 6px 15px rgba(249, 115, 22, 0.4); }
-        
-        /* ส่วนแสดงสถานะ */
-        .status-area { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px dashed #e5e7eb; font-size: 0.95rem; color: #4b5563; }
-        .status-title { font-weight: bold; margin-bottom: 10px; color: #374151; text-align: left; }
-        .status-row { display: flex; justify-content: space-between; align-items: center; margin-top: 0.8rem; background: #f9fafb; padding: 10px 15px; border-radius: 10px; }
-        .time-val { font-weight: bold; color: #111827; font-family: monospace; font-size: 1.1rem; }
-        
-        /* ปุ่มแก้ไข */
-        .btn-edit {
-            background-color: white; border: 1px solid #d1d5db; color: #4b5563;
-            font-size: 0.8rem; padding: 4px 10px; border-radius: 6px; cursor: pointer; margin-left: 10px; transition: all 0.2s;
-        }
-        .btn-edit:hover { background-color: #2563eb; color: white; border-color: #2563eb; }
+        .btn { padding: 1.2rem; border: none; border-radius: 15px; font-weight: bold; color: white; cursor: pointer; }
+        .btn-in { background: #22c55e; } .btn-out { background: #f97316; }
+        .status-row { display: flex; justify-content: space-between; margin-top: 1rem; background: #f9fafb; padding: 10px; border-radius: 10px; }
+        .btn-edit { background: white; border: 1px solid #ddd; padding: 2px 8px; cursor: pointer; border-radius: 5px; }
     </style>
 
     <script src="supabase.js"></script>
     <script src="sweetalert2.js"></script>
-</head>
+    <script src="config.js"></script> </head>
 <body>
-
     <div class="nav-bar">
         <a href="menu.html" class="back-btn">⬅ เมนูหลัก</a>
-        <div class="user-display">
-            👤 <span id="userName">...</span>
-        </div>
+        <div>👤 <span id="userName">...</span></div>
     </div>
 
     <div class="card">
-        <div class="date-display" id="humanDate">-</div>
-        <div class="db-date-format">Work Date: <span id="dbDateDisplay">-</span></div>
-        
-        <div class="clock-box">
-            <div class="clock" id="clockDisplay">00:00:00</div>
-        </div>
+        <div id="humanDate">-</div>
+        <div class="clock" id="clockDisplay">00:00:00</div>
 
         <div class="btn-group">
             <button class="btn btn-in" onclick="recordTime('in')">🕒 เข้างาน</button>
             <button class="btn btn-out" onclick="recordTime('out')">🏠 เลิกงาน</button>
         </div>
 
-        <div class="status-area">
-            <div class="status-title">📊 สถานะวันนี้ (จาก DB)</div>
-            
+        <div style="margin-top: 20px; text-align: left;">
+            <b>สถานะวันนี้:</b>
             <div class="status-row">
-                <span>เวลาเข้า:</span>
-                <div style="display: flex; align-items: center;">
-                    <span id="timeInDisplay" class="time-val">-</span>
-                    <button class="btn-edit" onclick="editTime('time_in')">✏️ แก้ไข</button>
-                </div>
+                <span>เข้า: <span id="timeInDisplay">-</span></span>
+                <button class="btn-edit" onclick="editTime('time_in')">✏️</button>
             </div>
-
             <div class="status-row">
-                <span>เวลาออก:</span>
-                <div style="display: flex; align-items: center;">
-                    <span id="timeOutDisplay" class="time-val">-</span>
-                    <button class="btn-edit" onclick="editTime('time_out')">✏️ แก้ไข</button>
-                </div>
+                <span>ออก: <span id="timeOutDisplay">-</span></span>
+                <button class="btn-edit" onclick="editTime('time_out')">✏️</button>
             </div>
         </div>
     </div>
 
     <script>
-        // --- CONFIG ---
-        const SUPABASE_URL = "https://tdcmbskmlrwhbjrjyjkk.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkY21ic2ttbHJ3aGJqcmp5amtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2MTY4NTYsImV4cCI6MjA3ODE5Mjg1Nn0.FeYe75J8X_2LoQgG_JWyPNCKcuCL_otsmSW0s5bijAg"; // ⚠️ อย่าลืมใส่ Key
-        
-        let client = null;
-        let userData = null;
+        const user = checkAuth();
         let currentRecord = null;
+        
+        const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
 
-        const Toast = typeof Swal !== 'undefined' ? Swal.mixin({
-            toast: true, position: 'top-end', showConfirmButton: false, timer: 3000,
-            timerProgressBar: true,
-            didOpen: (toast) => {
-                toast.addEventListener('mouseenter', Swal.stopTimer)
-                toast.addEventListener('mouseleave', Swal.resumeTimer)
-            }
-        }) : null;
-
-        // ฟังก์ชันสร้าง ID (YYYYMMDDHHmmss + สุ่ม 4 หลัก)
-        function generateID() {
-            const now = new Date();
-            const yy = String(now.getFullYear());
-            const mm = String(now.getMonth() + 1).padStart(2, '0');
-            const dd = String(now.getDate()).padStart(2, '0');
-            const h = String(now.getHours()).padStart(2, '0');
-            const m = String(now.getMinutes()).padStart(2, '0');
-            const s = String(now.getSeconds()).padStart(2, '0');
-            const r = Math.floor(Math.random() * 9999).toString().padStart(4, '0');
-            return `${yy}${mm}${dd}${h}${m}${s}${r}`;
-        }
-
-        function init() {
-            try {
-                // ตรวจสอบ Login
-                const stored = localStorage.getItem('tas_user');
-                if (!stored) { window.location.href = 'login.html'; return; }
-                userData = JSON.parse(stored);
-
-                // 🔒 ตรวจสอบสิทธิ์ Level 1
-                if (String(userData.level) !== '1') {
-                    alert('คุณไม่มีสิทธิ์เข้าถึงหน้านี้ (เฉพาะ Level 1)');
-                    window.location.href = 'menu.html';
-                    return;
-                }
-
-                document.getElementById('userName').innerText = userData.name;
-
-                // ตรวจสอบ Library
-                if (typeof window.supabase === 'undefined' || typeof Swal === 'undefined') {
-                    alert("❌ ไม่พบไฟล์ supabase.js หรือ sweetalert2.js"); return;
-                }
-                
-                client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                startClock();
-                loadTodayRecord();
-
-            } catch (e) {
-                console.error(e); window.location.href = 'login.html';
-            }
-        }
-
-        // จัดการเรื่องเวลา (Local Time)
-        function getDBFormatValues() {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            return {
-                date: `${year}-${month}-${day}`, 
-                time: `${hours}:${minutes}:${seconds}`, 
-                obj: now
-            };
+        if(user) {
+            document.getElementById('userName').innerText = user.name;
+            startClock();
+            loadTodayRecord();
         }
 
         function startClock() {
             setInterval(() => {
-                const val = getDBFormatValues();
-                document.getElementById('clockDisplay').innerText = val.time;
-                document.getElementById('dbDateDisplay').innerText = val.date;
-                document.getElementById('humanDate').innerText = val.obj.toLocaleDateString('th-TH', {
-                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-                });
+                const now = new Date();
+                document.getElementById('clockDisplay').innerText = now.toLocaleTimeString('th-TH', { hour12: false });
+                document.getElementById('humanDate').innerText = now.toLocaleDateString('th-TH');
             }, 1000);
-            const val = getDBFormatValues();
-            document.getElementById('clockDisplay').innerText = val.time;
         }
 
-        // โหลดข้อมูลจาก TimeStampPlus
         async function loadTodayRecord() {
-            if (!client) return;
-            const val = getDBFormatValues();
-            try {
-                const { data, error } = await client
-                    .from('TimeStampPlus')
-                    .select('*')
-                    .eq('personnel_id', userData.personnel_id)
-                    .eq('work_date', val.date)
-                    .single();
-
-                if (data) {
-                    currentRecord = data;
-                    document.getElementById('timeInDisplay').innerText = data.time_in || "-";
-                    document.getElementById('timeOutDisplay').innerText = data.time_out || "-";
-                } else {
-                    currentRecord = null;
-                    document.getElementById('timeInDisplay').innerText = "-";
-                    document.getElementById('timeOutDisplay').innerText = "-";
-                }
-            } catch (err) {
-                if (err.code !== 'PGRST116') console.error(err);
+            const today = getDBDateString();
+            const { data } = await sbClient.from(TAS_CONFIG.TABLE_TIME)
+                .select('*').eq('personnel_id', user.personnel_id).eq('work_date', today).single();
+            
+            if (data) {
+                currentRecord = data;
+                document.getElementById('timeInDisplay').innerText = data.time_in || "-";
+                document.getElementById('timeOutDisplay').innerText = data.time_out || "-";
+            } else {
                 currentRecord = null;
+                document.getElementById('timeInDisplay').innerText = "-";
+                document.getElementById('timeOutDisplay').innerText = "-";
             }
         }
 
-        // แก้ไขเวลา (รองรับวินาที)
-        async function editTime(field) {
-            if (!client) return;
-            if (!currentRecord) {
-                Swal.fire('แจ้งเตือน', 'กรุณากดลงเวลาก่อน จึงจะแก้ไขได้', 'warning'); return;
-            }
-
-            const oldVal = field === 'time_in' ? currentRecord.time_in : currentRecord.time_out;
-            const { value: newVal } = await Swal.fire({
-                title: `แก้ไข${field === 'time_in' ? 'เวลาเข้า' : 'เวลาออก'}`,
-                input: 'time',
-                inputLabel: 'ระบุเวลาใหม่ (HH:MM:SS)',
-                inputValue: oldVal || '08:00:00',
-                inputAttributes: { step: 1 }, // 🔥 สำคัญ: ให้เลือกวินาทีได้
-                showCancelButton: true,
-                confirmButtonText: 'บันทึก',
-                confirmButtonColor: '#2563eb'
-            });
-
-            if (!newVal) return; 
-            const timeToSave = newVal.length === 5 ? newVal + ":00" : newVal;
-
-            try {
-                const updateData = {}; updateData[field] = timeToSave;
-                const { error } = await client.from('TimeStampPlus').update(updateData).eq('id', currentRecord.id);
-                if (error) throw error;
-                Toast.fire({ icon: 'success', title: 'แก้ไขเวลาสำเร็จ' });
-                loadTodayRecord();
-            } catch (err) {
-                Swal.fire('Error', err.message, 'error');
-            }
-        }
-
-        // บันทึกเวลา
         async function recordTime(type) {
-            if (!client) return;
-            const result = await Swal.fire({
-                title: 'ยืนยันการลงเวลา?',
-                text: `ต้องการลงเวลา ${type === 'in' ? 'เข้างาน' : 'เลิกงาน'} ใช่หรือไม่?`,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: type === 'in' ? '#22c55e' : '#f97316',
-                confirmButtonText: 'ใช่, ลงเวลาเลย'
-            });
+            if(!await confirmAction(`ยืนยันการลงเวลา ${type=='in'?'เข้า':'ออก'}?`)) return;
 
-            if (!result.isConfirmed) return;
-
-            const val = getDBFormatValues();
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('th-TH', { hour12: false });
+            const today = getDBDateString();
             const newID = generateID();
 
-            try {
-                // เช็คอีกครั้งเผื่อมีข้อมูลเข้ามาใหม่
-                await loadTodayRecord();
-                let error = null;
+            let error = null;
+            
+            // เช็คข้อมูลล่าสุดก่อนบันทึก
+            await loadTodayRecord();
 
-                if (type === 'in') {
-                    if (currentRecord) {
-                        const { error: upError } = await client.from('TimeStampPlus').update({ time_in: val.time }).eq('id', currentRecord.id);
-                        error = upError;
-                    } else {
-                        const { error: insError } = await client.from('TimeStampPlus').insert([{
-                            id: newID, personnel_id: userData.personnel_id, full_name: userData.name,
-                            work_date: val.date, time_in: val.time
-                        }]);
-                        error = insError;
-                    }
-                } else { 
-                    if (currentRecord) {
-                        const { error: upError } = await client.from('TimeStampPlus').update({ time_out: val.time }).eq('id', currentRecord.id);
-                        error = upError;
-                    } else {
-                        const { error: insError } = await client.from('TimeStampPlus').insert([{
-                            id: newID, personnel_id: userData.personnel_id, full_name: userData.name,
-                            work_date: val.date, time_out: val.time
-                        }]);
-                        error = insError;
-                    }
+            if (type === 'in') {
+                if (currentRecord) {
+                    const { error: e } = await sbClient.from(TAS_CONFIG.TABLE_TIME).update({ time_in: timeStr }).eq('id', currentRecord.id);
+                    error = e;
+                } else {
+                    const { error: e } = await sbClient.from(TAS_CONFIG.TABLE_TIME).insert([{
+                        id: newID, personnel_id: user.personnel_id, full_name: user.name, work_date: today, time_in: timeStr
+                    }]);
+                    error = e;
                 }
+            } else {
+                if (currentRecord) {
+                    const { error: e } = await sbClient.from(TAS_CONFIG.TABLE_TIME).update({ time_out: timeStr }).eq('id', currentRecord.id);
+                    error = e;
+                } else {
+                    const { error: e } = await sbClient.from(TAS_CONFIG.TABLE_TIME).insert([{
+                        id: newID, personnel_id: user.personnel_id, full_name: user.name, work_date: today, time_out: timeStr
+                    }]);
+                    error = e;
+                }
+            }
 
-                if (error) throw error;
-                Toast.fire({ icon: 'success', title: 'บันทึกเวลาสำเร็จ!' });
+            if(error) Swal.fire('Error', error.message, 'error');
+            else { Toast.fire({ icon: 'success', title: 'บันทึกสำเร็จ' }); loadTodayRecord(); }
+        }
+
+        async function editTime(field) {
+            if(!currentRecord) return Swal.fire('Warn', 'ต้องลงเวลาก่อนถึงจะแก้ไขได้', 'warning');
+            
+            const { value: newVal } = await Swal.fire({
+                title: 'แก้ไขเวลา', input: 'time', inputLabel: 'HH:MM:SS',
+                inputValue: field==='time_in' ? currentRecord.time_in : currentRecord.time_out,
+                inputAttributes: { step: 1 }, showCancelButton: true
+            });
+
+            if(newVal) {
+                const timeToSave = newVal.length === 5 ? newVal+":00" : newVal;
+                await sbClient.from(TAS_CONFIG.TABLE_TIME).update({ [field]: timeToSave }).eq('id', currentRecord.id);
+                Toast.fire({ icon: 'success', title: 'แก้ไขสำเร็จ' });
                 loadTodayRecord();
-
-            } catch (err) {
-                console.error(err); Swal.fire('Error', err.message, 'error');
             }
         }
 
-        init();
+        async function confirmAction(text) {
+            const res = await Swal.fire({ title: text, icon: 'question', showCancelButton: true, confirmButtonText: 'ตกลง' });
+            return res.isConfirmed;
+        }
     </script>
 </body>
 </html>
