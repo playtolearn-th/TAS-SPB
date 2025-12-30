@@ -24,7 +24,7 @@
         th { background-color: #e2e8f0; font-weight: 600; white-space: nowrap; }
         tr:hover { background-color: #f8fafc; }
 
-        /* 🔥 CSS สำหรับ Search Dropdown */
+        /* Search Dropdown */
         .search-container { position: relative; width: 100%; }
         .search-results {
             position: absolute; top: 100%; left: 0; right: 0;
@@ -37,6 +37,12 @@
         
         .modal-form { display: grid; gap: 15px; text-align: left; }
         .readonly-input { background-color: #f1f5f9; color: #64748b; cursor: not-allowed; border-color: #e2e8f0; }
+        
+        /* Radio Button Group */
+        .radio-group { display: flex; gap: 20px; align-items: center; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; }
+        .radio-item { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+        .radio-item input { width: 18px; height: 18px; cursor: pointer; }
+        .radio-item label { cursor: pointer; font-weight: bold; }
     </style>
 
     <script src="supabase.js"></script>
@@ -92,7 +98,6 @@
             return `${year}-${month}-${day}`;
         }
 
-        // เอาเวลาปัจจุบัน HH:MM
         function getCurrentTime() {
             const now = new Date();
             const hh = String(now.getHours()).padStart(2, '0');
@@ -157,19 +162,19 @@
             }
         }
 
-        // --- 🔥 เพิ่มข้อมูลใหม่ (Real-time Search + Auto Time) ---
+        // --- 🔥 เพิ่มข้อมูลแบบใหม่ (Search + Single Time Input) ---
         async function openAddModal() {
             const curDate = document.getElementById('filterDate').value;
-            const curTime = getCurrentTime(); // ดึงเวลาปัจจุบัน 14:30
+            const curTime = getCurrentTime();
             
             await Swal.fire({
-                title: 'เพิ่มข้อมูลลงเวลา',
+                title: 'เพิ่มข้อมูลลงเวลา (Manual)',
                 width: '600px',
                 html: `
                     <div class="modal-form">
                         <div class="search-container">
                             <label style="font-weight:bold; color:#3b82f6;">🔍 ค้นหาพนักงาน (พิมพ์ชื่อ):</label>
-                            <input id="search-box" class="swal2-input" placeholder="พิมพ์ชื่อ เช่น 'สม'..." autocomplete="off">
+                            <input id="search-box" class="swal2-input" placeholder="พิมพ์ชื่อ (เช่น 'ส')..." autocomplete="off">
                             <div id="search-results" class="search-results"></div>
                         </div>
 
@@ -186,20 +191,28 @@
                         
                         <hr style="border:0; border-top:1px dashed #ddd; width:100%;">
 
-                        <label>วันที่ทำงาน:</label>
+                        <label>วันที่:</label>
                         <input type="date" id="swal-date" class="swal2-input" value="${curDate}">
                         
                         <div style="display:flex; gap:10px; align-items:center;">
-                            <div style="flex:1">
-                                <label style="color:green; font-weight:bold;">เวลาเข้า:</label>
-                                <input type="time" id="swal-in" class="swal2-input" value="${curTime}">
+                             <div style="flex:1">
+                                <label>ระบุเวลา:</label>
+                                <input type="time" id="swal-time" class="swal2-input" value="${curTime}">
                             </div>
                             <div style="flex:1">
-                                <label style="color:red; font-weight:bold;">เวลาออก:</label>
-                                <input type="time" id="swal-out" class="swal2-input" value="">
+                                <label>ประเภท:</label>
+                                <div class="radio-group">
+                                    <div class="radio-item" onclick="document.getElementById('type-in').click()">
+                                        <input type="radio" id="type-in" name="time-type" value="in" checked>
+                                        <label for="type-in" style="color:green;">เข้างาน</label>
+                                    </div>
+                                    <div class="radio-item" onclick="document.getElementById('type-out').click()">
+                                        <input type="radio" id="type-out" name="time-type" value="out">
+                                        <label for="type-out" style="color:red;">เลิกงาน</label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <small style="color:gray;">* เวลาตั้งต้นเป็นเวลาปัจจุบัน</small>
                     </div>
                 `,
                 focusConfirm: false,
@@ -207,14 +220,13 @@
                 confirmButtonText: '💾 บันทึก',
                 cancelButtonText: 'ยกเลิก',
                 
-                // --- Logic ค้นหา ---
+                // Logic ค้นหา
                 didOpen: () => {
                     const searchBox = Swal.getPopup().querySelector('#search-box');
                     const resultsBox = Swal.getPopup().querySelector('#search-results');
                     const pidInput = Swal.getPopup().querySelector('#swal-pid');
                     const nameInput = Swal.getPopup().querySelector('#swal-name');
 
-                    // ดักจับการพิมพ์
                     searchBox.addEventListener('input', async (e) => {
                         const keyword = e.target.value.trim();
                         if (keyword.length < 1) { 
@@ -222,11 +234,10 @@
                             return; 
                         }
 
-                        // ค้นหาใน Supabase Table: Personnel
                         const { data } = await sbClient
                             .from('Personnel')
                             .select('personnel_id, name')
-                            .ilike('name', `%${keyword}%`) // ค้นหาชื่อที่มีคำนี้
+                            .ilike('name', `%${keyword}%`)
                             .limit(5);
 
                         resultsBox.innerHTML = '';
@@ -236,13 +247,11 @@
                                 const item = document.createElement('div');
                                 item.className = 'search-item';
                                 item.innerHTML = `<b>${p.name}</b> <small>(${p.personnel_id})</small>`;
-                                
-                                // เมื่อคลิกเลือกชื่อ
                                 item.onclick = () => {
                                     pidInput.value = p.personnel_id;
                                     nameInput.value = p.name;
-                                    searchBox.value = ''; // ล้างช่องค้นหา
-                                    resultsBox.style.display = 'none'; // ซ่อน
+                                    searchBox.value = '';
+                                    resultsBox.style.display = 'none';
                                 };
                                 resultsBox.appendChild(item);
                             });
@@ -254,15 +263,19 @@
                 preConfirm: () => {
                     const pid = document.getElementById('swal-pid').value;
                     const date = document.getElementById('swal-date').value;
-                    if (!pid) return Swal.showValidationMessage('⚠️ กรุณาค้นหาและเลือกพนักงานก่อน');
+                    const timeVal = document.getElementById('swal-time').value;
+                    const typeVal = document.querySelector('input[name="time-type"]:checked').value;
+
+                    if (!pid) return Swal.showValidationMessage('⚠️ กรุณาเลือกพนักงาน');
                     if (!date) return Swal.showValidationMessage('⚠️ กรุณาระบุวันที่');
+                    if (!timeVal) return Swal.showValidationMessage('⚠️ กรุณาระบุเวลา');
                     
                     return {
                         pid: pid,
                         name: document.getElementById('swal-name').value,
                         date: date,
-                        in: document.getElementById('swal-in').value,
-                        out: document.getElementById('swal-out').value
+                        time: timeVal,
+                        type: typeVal
                     }
                 }
             }).then(async (result) => {
@@ -272,22 +285,26 @@
             });
         }
 
+        // ฟังก์ชันบันทึก (แปลง เข้า/ออก ให้ถูกช่อง)
         async function saveData(f) {
             try {
-                // สร้าง ID แบบ 18 หลัก
                 const newID = generateLongID();
+                
+                // กำหนดค่า time_in / time_out ตามที่เลือก
+                const timeIn = (f.type === 'in') ? f.time : null;
+                const timeOut = (f.type === 'out') ? f.time : null;
 
                 const { error } = await sbClient.from(TAS_CONFIG.TABLE_SOURCE).insert([{
                     id: newID,
                     personnel_id: f.pid,
                     full_name: f.name,
                     work_date: f.date,
-                    time_in: f.in || null,
-                    time_out: f.out || null
+                    time_in: timeIn,
+                    time_out: timeOut
                 }]);
 
                 if (error) throw error;
-                Swal.fire('สำเร็จ', 'บันทึกข้อมูลเรียบร้อย', 'success');
+                Swal.fire('สำเร็จ', `บันทึกเวลา ${f.type === 'in' ? 'เข้า' : 'ออก'} เรียบร้อย`, 'success');
                 loadData();
             } catch (err) {
                 Swal.fire('Error', err.message, 'error');
