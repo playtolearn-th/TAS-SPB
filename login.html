@@ -6,6 +6,7 @@
     <title>เข้าสู่ระบบ - TAS-SPB</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
     <style> body { font-family: 'Sarabun', sans-serif; } </style>
 </head>
@@ -17,61 +18,104 @@
         <form id="loginForm" class="space-y-4">
             <div>
                 <label class="block text-gray-700 text-sm font-bold mb-2">รหัสพนักงาน (User ID)</label>
-                <input type="text" id="username" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                <input type="text" id="username" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="กรอกรหัสพนักงาน" required>
             </div>
             <div>
                 <label class="block text-gray-700 text-sm font-bold mb-2">รหัสผ่าน (Password)</label>
-                <input type="password" id="password" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                <input type="password" id="password" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="กรอกรหัสผ่าน" required>
             </div>
             
             <button type="submit" id="btnSubmit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-300">
                 เข้าสู่ระบบ
             </button>
         </form>
-        <p id="errorMsg" class="text-red-500 text-center mt-4 text-sm hidden"></p>
+        
+        <div id="debugArea" class="mt-4 p-2 bg-red-100 text-red-700 text-xs rounded hidden"></div>
     </div>
 
     <script>
-        // --- การตั้งค่า Supabase (ดึงค่ามาจาก secure_config.py ของคุณ) ---
+        // --- การตั้งค่า Supabase ---
+        // (ค่านี้ดึงมาจาก secure_config.py ของคุณ)
         const SUPABASE_URL = "https://tdcmbskmlrwhbjrjyjkk.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkY21ic2ttbHJ3aGJqcmp5amtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2MTY4NTYsImV4cCI6MjA3ODE5Mjg1Nn0.FeYe75J8X_2LoQgG_JWyPNCKcuCL_otsmSW0s5bijAg";
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        const debugArea = document.getElementById('debugArea');
+
+        function showDebug(msg) {
+            console.error(msg);
+            debugArea.innerText = "Debug: " + JSON.stringify(msg);
+            debugArea.classList.remove('hidden');
+        }
+
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnSubmit');
-            const errorMsg = document.getElementById('errorMsg');
             const user = document.getElementById('username').value.trim();
             const pass = document.getElementById('password').value;
 
             btn.disabled = true;
             btn.innerText = "กำลังตรวจสอบ...";
-            errorMsg.classList.add('hidden');
+            debugArea.classList.add('hidden');
 
             try {
-                // ตรวจสอบข้อมูลจากตาราง Personnel
+                // 1. ลองค้นหา User
+                console.log("Searching for:", user);
                 const { data, error } = await supabase
-                    .from('Personnel')
-                    .select('personnel_id, name, Password')
+                    .from('Personnel') // ตรวจสอบชื่อตาราง (ตัวพิมพ์เล็กใหญ่ต้องตรงเป๊ะ)
+                    .select('*')       // ดึงมาทุกคอลัมน์เพื่อกันพลาดเรื่องชื่อ
                     .eq('personnel_id', user)
-                    .single();
+                    .single(); // ดึงรายการเดียว
 
-                if (error || !data) {
-                    throw new Error("ไม่พบผู้ใช้งานนี้");
+                if (error) {
+                    // ถ้า Error เป็น PGRST116 แปลว่าหาไม่เจอ
+                    if (error.code === 'PGRST116') {
+                        throw new Error("ไม่พบรหัสพนักงานนี้ในระบบ");
+                    }
+                    // Error อื่นๆ (เช่น RLS permission denied)
+                    throw new Error("Database Error: " + error.message);
                 }
 
-                // ตรวจสอบรหัสผ่าน (แบบ Plain text ตามระบบ Python เดิม)
-                if (data.Password !== pass) {
+                if (!data) {
+                    throw new Error("ไม่พบข้อมูลผู้ใช้งาน");
+                }
+
+                console.log("User found:", data);
+
+                // 2. ตรวจสอบรหัสผ่าน (รองรับทั้ง Password ตัวใหญ่และ password ตัวเล็ก)
+                // ดึงค่าจาก DB โดยไม่สนชื่อคอลัมน์
+                const dbPass = data.Password || data.password || ""; 
+
+                // เปรียบเทียบเป็น String ทั้งคู่เพื่อความชัวร์
+                if (String(dbPass) !== String(pass)) {
                     throw new Error("รหัสผ่านไม่ถูกต้อง");
                 }
 
-                // บันทึกข้อมูลลง LocalStorage แล้วไปหน้าลงเวลา
-                localStorage.setItem('tas_user', JSON.stringify(data));
-                window.location.href = 'attendance.html';
+                // 3. ผ่านการตรวจสอบ -> บันทึกและไปหน้าถัดไป
+                const userData = {
+                    personnel_id: data.personnel_id,
+                    name: data.name,
+                    level: data.level
+                };
+                localStorage.setItem('tas_user', JSON.stringify(userData));
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'ยินดีต้อนรับ',
+                    text: 'เข้าสู่ระบบสำเร็จ',
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.href = 'attendance.html';
+                });
 
             } catch (err) {
-                errorMsg.innerText = err.message || "เกิดข้อผิดพลาด";
-                errorMsg.classList.remove('hidden');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เข้าสู่ระบบไม่สำเร็จ',
+                    text: err.message
+                });
+                showDebug(err.message); // แสดง Error ที่หน้าจอเพื่อช่วยแก้ปัญหา
                 btn.disabled = false;
                 btn.innerText = "เข้าสู่ระบบ";
             }
