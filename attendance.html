@@ -71,6 +71,7 @@
     </div>
 
     <script>
+        // --- ตั้งค่า Supabase ---
         const SUPABASE_URL = "https://tdcmbskmlrwhbjrjyjkk.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkY21ic2ttbHJ3aGJqcmp5amtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2MTY4NTYsImV4cCI6MjA3ODE5Mjg1Nn0.FeYe75J8X_2LoQgG_JWyPNCKcuCL_otsmSW0s5bijAg";
         
@@ -85,20 +86,21 @@
             setTimeout(() => { msg.style.opacity = '0'; }, 3000);
         }
 
-        // 🔥 ฟังก์ชันสร้าง ID ให้ไม่เกิน 20 ตัวอักษร (YYYYMMDDHHmm-RRRR)
+        // 🔥 ฟังก์ชันสร้าง ID เอง (ให้ไม่ซ้ำและยาวไม่เกิน 20 ตัว)
+        // รูปแบบ: YYYYMMDDHHmmss + สุ่ม 4 หลัก (รวม 18 หลัก)
         function generateID() {
             const now = new Date();
-            const yy = String(now.getFullYear()); // 2025
+            const yy = String(now.getFullYear());
             const mm = String(now.getMonth() + 1).padStart(2, '0');
             const dd = String(now.getDate()).padStart(2, '0');
             const h = String(now.getHours()).padStart(2, '0');
             const m = String(now.getMinutes()).padStart(2, '0');
             const s = String(now.getSeconds()).padStart(2, '0');
             const r = Math.floor(Math.random() * 9999).toString().padStart(4, '0');
-            // รวมกันจะได้ประมาณ 18 ตัวอักษร (เช่น 202502121230005555)
             return `${yy}${mm}${dd}${h}${m}${s}${r}`;
         }
 
+        // เริ่มต้นระบบ
         function init() {
             try {
                 const stored = localStorage.getItem('tas_user');
@@ -110,7 +112,7 @@
                 document.getElementById('userName').innerText = userData.name || userData.personnel_id;
 
                 if (typeof window.supabase === 'undefined') {
-                    alert("ไม่พบไฟล์ supabase.js");
+                    alert("ไม่พบไฟล์ supabase.js ในโฟลเดอร์");
                     return;
                 }
                 client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -124,6 +126,7 @@
             }
         }
 
+        // ฟังก์ชันช่วยจัดรูปแบบวันที่/เวลา
         function getDBFormatValues() {
             const now = new Date();
             const year = now.getFullYear();
@@ -135,13 +138,14 @@
             const seconds = String(now.getSeconds()).padStart(2, '0');
 
             return {
-                date: `${year}-${month}-${day}`, // YYYY-MM-DD
-                time: `${hours}:${minutes}:${seconds}`, // HH:MM:SS
+                date: `${year}-${month}-${day}`, // ส่งเป็น Date (YYYY-MM-DD)
+                time: `${hours}:${minutes}:${seconds}`, // ส่งเป็น Time (HH:MM:SS)
                 obj: now
             };
         }
 
         function startClock() {
+            // ทำงานทุก 1 วินาที
             setInterval(() => {
                 const val = getDBFormatValues();
                 document.getElementById('clockDisplay').innerText = val.time;
@@ -151,10 +155,12 @@
                 });
             }, 1000);
             
+            // รันครั้งแรกทันที
             const val = getDBFormatValues();
             document.getElementById('clockDisplay').innerText = val.time;
         }
 
+        // โหลดข้อมูลวันนี้
         async function loadTodayRecord() {
             if (!client) return;
             const val = getDBFormatValues();
@@ -178,11 +184,13 @@
                     return null;
                 }
             } catch (err) {
+                // PGRST116 = หาไม่เจอ (ปกติถ้ายังไม่เคยลง)
                 if (err.code !== 'PGRST116') console.error(err);
                 return null;
             }
         }
 
+        // บันทึกเวลา
         async function recordTime(type) {
             if (!client) return;
             if (!confirm(`ยืนยันการลงเวลา ${type === 'in' ? 'เข้างาน' : 'เลิกงาน'} ?`)) return;
@@ -195,23 +203,23 @@
                 const existing = await loadTodayRecord();
                 let error = null;
 
-                // 🔥 สร้าง ID ใหม่เตรียมไว้ (สำหรับ Insert)
+                // สร้าง ID ใหม่เตรียมไว้ (สำหรับ Insert)
                 const newID = generateID();
 
                 if (type === 'in') {
                     if (existing) {
-                        // Update
+                        // มีข้อมูลแล้ว -> Update เฉพาะเวลาเข้า
                         const { error: upError } = await client
                             .from('TimeStampPlus')
                             .update({ time_in: timeDB })
                             .eq('id', existing.id);
                         error = upError;
                     } else {
-                        // Insert (ใส่ ID และตัด verified ออก)
+                        // ยังไม่มี -> Insert ใหม่ (ต้องใส่ id และลบ verified ออก)
                         const { error: insError } = await client
                             .from('TimeStampPlus')
                             .insert([{
-                                id: newID, // <-- ใส่ ID ที่สร้างเอง
+                                id: newID, // 🔥 ใส่ ID ที่สร้างเอง
                                 personnel_id: userData.personnel_id,
                                 full_name: userData.name,
                                 work_date: todayDB,
@@ -221,18 +229,18 @@
                     }
                 } else { // type === 'out'
                     if (existing) {
-                        // Update
+                        // มีข้อมูลแล้ว -> Update เฉพาะเวลาออก
                         const { error: upError } = await client
                             .from('TimeStampPlus')
                             .update({ time_out: timeDB })
                             .eq('id', existing.id);
                         error = upError;
                     } else {
-                        // Insert (กรณีลงออกก่อนเข้า ใส่ ID และตัด verified ออก)
+                        // ยังไม่มี (ลงออกก่อนเข้า) -> Insert ใหม่
                         const { error: insError } = await client
                             .from('TimeStampPlus')
                             .insert([{
-                                id: newID, // <-- ใส่ ID ที่สร้างเอง
+                                id: newID, // 🔥 ใส่ ID ที่สร้างเอง
                                 personnel_id: userData.personnel_id,
                                 full_name: userData.name,
                                 work_date: todayDB,
@@ -245,7 +253,7 @@
                 if (error) throw error;
 
                 showToast("บันทึกสำเร็จ!");
-                loadTodayRecord();
+                loadTodayRecord(); // รีเฟรชข้อมูล
 
             } catch (err) {
                 console.error(err);
