@@ -1,91 +1,69 @@
 // ==========================================
-// ⚙️ การตั้งค่าระบบ (แก้ไขที่นี่ที่เดียว)
+// ⚙️ config.js (แก้ไขให้ตรงกับ DB ของคุณ)
 // ==========================================
 const TAS_CONFIG = {
-    // ⚠️ ใส่ KEY ใหม่ของคุณที่นี่
+    // ⚠️ ใส่ KEY ANON (Public) ของคุณที่นี่
     SUPABASE_URL: "https://tdcmbskmlrwhbjrjyjkk.supabase.co",
-    SUPABASE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkY21ic2ttbHJ3aGJqcmp5amtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2MTY4NTYsImV4cCI6MjA3ODE5Mjg1Nn0.FeYe75J8X_2LoQgG_JWyPNCKcuCL_otsmSW0s5bijAg", 
+    SUPABASE_KEY: "ใส่_KEY_ANON_ของคุณที่นี่", 
     
-    // ชื่อตาราง
-    TABLE_USER: "Personnel",
-    TABLE_TIME: "TimeStampPlus"
+    // ชื่อตาราง (ต้องตรงกับใน DB เป๊ะๆ)
+    TABLE_USER: "Personnel",      // ตัว P ใหญ่ ตาม SQL ที่ส่งมา
+    TABLE_TIME: "TimeStampPlus"   // ตารางลงเวลา
 };
 
 // ==========================================
-// 🔧 ระบบส่วนกลาง (ห้ามแก้ไข ถ้าไม่จำเป็น)
+// 🔧 ระบบส่วนกลาง
 // ==========================================
-
-// ตัวแปร Client กลาง
 let sbClient = null;
 
-// เริ่มต้นระบบ
 function initSystem() {
     if (typeof window.supabase === 'undefined' || typeof Swal === 'undefined') {
         alert("❌ ไม่พบไฟล์ supabase.js หรือ sweetalert2.js");
         return false;
     }
-    
     sbClient = window.supabase.createClient(TAS_CONFIG.SUPABASE_URL, TAS_CONFIG.SUPABASE_KEY);
     return true;
 }
 
-// ตรวจสอบสิทธิ์ (ต้อง Login และเป็น Level 1)
+// เช็คสิทธิ์ (Level 1)
 function checkAuth() {
     const stored = localStorage.getItem('tas_user');
-    if (!stored) {
-        window.location.href = 'login.html';
-        return null;
-    }
-    
+    if (!stored) { window.location.href = 'login.html'; return null; }
     const user = JSON.parse(stored);
     
-    // บังคับ Level 1 เท่านั้น
+    // แปลงเป็น String กันเหนียว (เผื่อ DB ส่งมาเป็น number)
     if (String(user.level) !== '1') {
-        alert("⛔ สิทธิ์ของคุณไม่ถูกต้อง (Access Denied)");
-        localStorage.removeItem('tas_user'); // ดีดออกเลย
+        alert("⛔ สิทธิ์ของคุณไม่ถูกต้อง (เฉพาะ Level 1)");
+        localStorage.removeItem('tas_user');
         window.location.href = 'login.html';
         return null;
     }
-    
     return user;
 }
 
-// ฟังก์ชันออกจากระบบ
 function logout() {
     Swal.fire({
-        title: 'ออกจากระบบ?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#ef4444',
-        confirmButtonText: 'ยืนยัน'
-    }).then((result) => {
-        if (result.isConfirmed) {
+        title: 'ออกจากระบบ?', icon: 'warning', showCancelButton: true,
+        confirmButtonColor: '#ef4444', confirmButtonText: 'ยืนยัน'
+    }).then((r) => {
+        if (r.isConfirmed) {
             localStorage.removeItem('tas_user');
             window.location.href = 'login.html';
         }
     });
 }
 
-// สร้าง ID อัตโนมัติ (YYYYMMDDHHmmssRRRR)
 function generateID() {
     const now = new Date();
     const pad = (n) => String(n).padStart(2, '0');
-    const yy = now.getFullYear();
-    const mm = pad(now.getMonth() + 1);
-    const dd = pad(now.getDate());
-    const h = pad(now.getHours());
-    const m = pad(now.getMinutes());
-    const s = pad(now.getSeconds());
     const r = Math.floor(Math.random() * 9999).toString().padStart(4, '0');
-    return `${yy}${mm}${dd}${h}${m}${s}${r}`;
+    return `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}${r}`;
 }
 
-// ฟังก์ชันแปลงวันที่สำหรับ DB (YYYY-MM-DD)
 function getDBDateString() {
     const now = new Date();
     const pad = (n) => String(n).padStart(2, '0');
-    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    return `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
 }
 
-// เรียกใช้งานทันทีเพื่อให้มีตัวแปร sbClient รอไว้
 initSystem();
