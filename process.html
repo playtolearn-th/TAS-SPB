@@ -7,7 +7,6 @@
     <title>ประมวลผลข้อมูล (Process)</title>
     
     <link rel="manifest" href="manifest.json">
-    
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="apple-touch-icon" href="favicon.png">
     
@@ -22,82 +21,226 @@
     <script src="ios-fix.js"></script>
 
     <style>
-        :root { --primary: #6366f1; --primary-dark: #4f46e5; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; --bg-body: #f1f5f9; --bg-card: #ffffff; --text-main: #1e293b; --text-muted: #64748b; --terminal-bg: #1e293b; --terminal-text: #e2e8f0; }
+        :root { 
+            --primary: #6366f1; 
+            --primary-dark: #4f46e5; 
+            --success: #10b981; 
+            --warning: #f59e0b; 
+            --danger: #ef4444; 
+            --bg-body: #f1f5f9; 
+            --bg-card: #ffffff; 
+            --text-main: #1e293b; 
+            --text-muted: #64748b; 
+            --terminal-bg: #1e293b; 
+            --terminal-text: #e2e8f0; 
+        }
         * { box-sizing: border-box; }
-        body { font-family: 'Sarabun', sans-serif; background-color: var(--bg-body); color: var(--text-main); margin: 0; padding: 15px; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+        body { 
+            font-family: 'Sarabun', sans-serif; 
+            background-color: var(--bg-body); 
+            color: var(--text-main); 
+            margin: 0; 
+            padding: 15px; 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+        }
         .container { width: 100%; max-width: 750px; margin: 0 auto; }
-        .header-card { background: var(--bg-card); padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .header-card { 
+            background: var(--bg-card); 
+            padding: 20px; 
+            border-radius: 16px; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); 
+            margin-bottom: 20px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            flex-wrap: wrap; 
+            gap: 15px; 
+        }
         .header-info { display: flex; align-items: center; gap: 15px; }
-        .icon-box { width: 50px; height: 50px; background: linear-gradient(135deg, #a855f7, #6366f1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; flex-shrink: 0; }
+        .icon-box { 
+            width: 50px; height: 50px; 
+            background: linear-gradient(135deg, #a855f7, #6366f1); 
+            border-radius: 12px; 
+            display: flex; align-items: center; justify-content: center; 
+            color: white; font-size: 1.5rem; flex-shrink: 0; 
+        }
         .header-text h2 { margin: 0; font-size: 1.25rem; font-weight: 700; color: var(--text-main); }
         .header-text p { margin: 5px 0 0; font-size: 0.9rem; color: var(--text-muted); }
-        /* แก้ไข back-btn */
-        .back-btn { background: #f8fafc; color: var(--text-muted); text-decoration: none; padding: 8px 16px; border-radius: 30px; font-weight: 600; font-size: 0.9rem; border: 1px solid #e2e8f0; transition: all 0.2s; display: flex; align-items: center; gap: 5px; cursor: pointer; }
+        
+        .back-btn { 
+            background: #f8fafc; color: var(--text-muted); text-decoration: none; 
+            padding: 8px 16px; border-radius: 30px; font-weight: 600; font-size: 0.9rem; 
+            border: 1px solid #e2e8f0; transition: all 0.2s; 
+            display: flex; align-items: center; gap: 5px; cursor: pointer; 
+        }
         .back-btn:hover { background: #e2e8f0; color: var(--text-main); }
-        .action-card { background: var(--bg-card); padding: 30px 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); text-align: center; margin-bottom: 20px; }
-        .options-box { background: #f1f5f9; padding: 15px; border-radius: 10px; display: inline-block; text-align: left; margin-bottom: 20px; border: 1px solid #e2e8f0; width: 100%; max-width: 400px; }
+        
+        .action-card { 
+            background: var(--bg-card); padding: 30px 20px; border-radius: 16px; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); text-align: center; margin-bottom: 20px; 
+        }
+        .options-box { 
+            background: #f1f5f9; padding: 15px; border-radius: 10px; 
+            display: inline-block; text-align: left; margin-bottom: 20px; 
+            border: 1px solid #e2e8f0; width: 100%; max-width: 400px; 
+        }
         .radio-group { margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
         .radio-group label { cursor: pointer; font-weight: 500; color: #334155; }
-        input[type="date"] { font-family: 'Sarabun', sans-serif; padding: 5px 10px; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; outline: none; }
+        
+        input[type="date"] { 
+            font-family: 'Sarabun', sans-serif; padding: 5px 10px; 
+            border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; outline: none; 
+        }
         input[type="date"]:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
-        .btn-process { background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; border: none; padding: 15px 40px; border-radius: 50px; font-size: 1.1rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4); transition: transform 0.2s, box-shadow 0.2s; display: inline-flex; align-items: center; gap: 10px; }
+        
+        .btn-process { 
+            background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; border: none; 
+            padding: 15px 40px; border-radius: 50px; font-size: 1.1rem; font-weight: 700; 
+            cursor: pointer; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4); 
+            transition: transform 0.2s, box-shadow 0.2s; 
+            display: inline-flex; align-items: center; gap: 10px; 
+        }
         .btn-process:active { transform: scale(0.96); }
         .btn-process:disabled { background: #cbd5e1; cursor: not-allowed; box-shadow: none; }
-        .log-container { background: var(--terminal-bg); border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; height: 400px; border: 1px solid #334155; }
-        .log-header { background: #0f172a; padding: 10px 15px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #334155; }
+        
+        .log-container { 
+            background: var(--terminal-bg); border-radius: 16px; 
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); overflow: hidden; 
+            display: flex; flex-direction: column; height: 400px; border: 1px solid #334155; 
+        }
+        .log-header { 
+            background: #0f172a; padding: 10px 15px; display: flex; 
+            align-items: center; gap: 8px; border-bottom: 1px solid #334155; 
+        }
         .dot { width: 10px; height: 10px; border-radius: 50%; }
-        .dot-red { background: #ef4444; } .dot-yellow { background: #f59e0b; } .dot-green { background: #22c55e; }
+        .dot-red { background: #ef4444; } 
+        .dot-yellow { background: #f59e0b; } 
+        .dot-green { background: #22c55e; }
         .log-title { color: #94a3b8; font-size: 0.8rem; font-family: monospace; margin-left: 10px; }
-        .log-content { flex: 1; padding: 15px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 0.9rem; color: var(--terminal-text); line-height: 1.6; }
+        .log-content { 
+            flex: 1; padding: 15px; overflow-y: auto; font-family: 'Courier New', monospace; 
+            font-size: 0.9rem; color: var(--terminal-text); line-height: 1.6; 
+        }
         .log-line { margin-bottom: 5px; display: flex; gap: 8px; }
         .log-time { color: #64748b; font-size: 0.8rem; min-width: 60px; }
-        .msg-normal { color: #e2e8f0; } .msg-highlight { color: #fbbf24; font-weight: bold; } .msg-success { color: #34d399; } .msg-error { color: #f87171; } .msg-info { color: #60a5fa; }
-        @media (max-width: 600px) { .header-card { flex-direction: column; text-align: center; } .header-info { flex-direction: column; } .back-btn { width: 100%; justify-content: center; } .btn-process { width: 100%; justify-content: center; } .options-box { width: 100%; max-width: 100%; } }
+        
+        .msg-normal { color: #e2e8f0; } 
+        .msg-highlight { color: #fbbf24; font-weight: bold; } 
+        .msg-success { color: #34d399; } 
+        .msg-error { color: #f87171; } 
+        .msg-info { color: #60a5fa; }
+        
+        @media (max-width: 600px) { 
+            .header-card { flex-direction: column; text-align: center; } 
+            .header-info { flex-direction: column; } 
+            .back-btn { width: 100%; justify-content: center; } 
+            .btn-process { width: 100%; justify-content: center; } 
+            .options-box { width: 100%; max-width: 100%; } 
+        }
     </style>
     <script src="supabase.js"></script>
     <script src="sweetalert2.js"></script>
     <script src="config.js"></script>
 </head>
+
 <body>
     <div class="container">
         <div class="header-card">
             <div class="header-info">
                 <div class="icon-box"><i class="fas fa-sync-alt"></i></div>
-                <div class="header-text"><h2>ระบบประมวลผลข้อมูล</h2><p>ดึงข้อมูลจากเว็บรายงาน + รวมกับข้อมูลในระบบ</p></div>
+                <div class="header-text">
+                    <h2>ระบบประมวลผลข้อมูล</h2>
+                    <p>ดึงข้อมูลจากเว็บรายงาน + รวมกับข้อมูลในระบบ</p>
+                </div>
             </div>
             <div onclick="window.location.href='menu.html'" class="back-btn"><i class="fas fa-arrow-left"></i> กลับเมนูหลัก</div>
         </div>
 
         <div class="action-card">
             <div class="options-box">
-                <div class="radio-group"><input type="radio" id="modeAuto" name="syncMode" value="auto" checked onchange="toggleMode()"><label for="modeAuto">ซิงค์ต่อเนื่อง (จากข้อมูลล่าสุด - ปัจจุบัน)</label></div>
-                <div class="radio-group"><input type="radio" id="modeDate" name="syncMode" value="date" onchange="toggleMode()"><label for="modeDate">เลือกวันที่เฉพาะ:</label><input type="date" id="selectDate" disabled></div>
+                <div class="radio-group">
+                    <input type="radio" id="modeAuto" name="syncMode" value="auto" checked onchange="toggleMode()">
+                    <label for="modeAuto">ซิงค์ต่อเนื่อง (จากล่าสุด - ปัจจุบัน)</label>
+                </div>
+                <div class="radio-group">
+                    <input type="radio" id="modeDate" name="syncMode" value="date" onchange="toggleMode()">
+                    <label for="modeDate">เลือกวันที่เฉพาะ:</label>
+                    <input type="date" id="selectDate" disabled>
+                </div>
             </div>
             <br>
-            <button id="btnStart" class="btn-process" onclick="startProcess()"><i class="fas fa-rocket"></i> เริ่มการประมวลผล</button>
-            <p style="margin-top: 15px; font-size: 0.9rem; color: #64748b;">ระบบจะทำการดึงข้อมูลตามเงื่อนไขที่ท่านเลือก<br>และอัปเดตลงฐานข้อมูล</p>
+            <button id="btnStart" class="btn-process" onclick="startProcess()">
+                <i class="fas fa-rocket"></i> เริ่มการประมวลผล
+            </button>
+            <p style="margin-top: 15px; font-size: 0.9rem; color: #64748b;">
+                ระบบจะทำการดึงข้อมูลตามเงื่อนไขที่ท่านเลือก<br>และอัปเดตลงฐานข้อมูล
+            </p>
         </div>
 
         <div class="log-container">
-            <div class="log-header"><div class="dot dot-red"></div><div class="dot dot-yellow"></div><div class="dot dot-green"></div><span class="log-title">system_process.log</span></div>
-            <div class="log-content" id="logDisplay"><div class="log-line"><span class="log-time">--:--:--</span><span class="msg-normal">Ready to start...</span></div></div>
+            <div class="log-header">
+                <div class="dot dot-red"></div>
+                <div class="dot dot-yellow"></div>
+                <div class="dot dot-green"></div>
+                <span class="log-title">system_process.log</span>
+            </div>
+            <div class="log-content" id="logDisplay">
+                <div class="log-line">
+                    <span class="log-time">--:--:--</span>
+                    <span class="msg-normal">พร้อมเริ่มการทำงาน...</span>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         const user = checkAuth();
         document.addEventListener('DOMContentLoaded', () => { document.getElementById('selectDate').valueAsDate = new Date(); });
-        function toggleMode() { const isDateMode = document.getElementById('modeDate').checked; const dateInput = document.getElementById('selectDate'); dateInput.disabled = !isDateMode; if (isDateMode) dateInput.focus(); }
+        
+        function toggleMode() { 
+            const isDateMode = document.getElementById('modeDate').checked; 
+            const dateInput = document.getElementById('selectDate'); 
+            dateInput.disabled = !isDateMode; 
+            if (isDateMode) dateInput.focus(); 
+        }
+
         function log(msg, type = 'normal') {
             const box = document.getElementById('logDisplay'), now = new Date();
             const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
             let cssClass = 'msg-normal';
-            if (type === 'highlight') cssClass = 'msg-highlight'; if (type === 'success') cssClass = 'msg-success'; if (type === 'error') cssClass = 'msg-error'; if (type === 'info') cssClass = 'msg-info';
-            const line = document.createElement('div'); line.className = 'log-line'; line.innerHTML = `<span class="log-time">${timeStr}</span><span class="${cssClass}">${msg}</span>`;
+            if (type === 'highlight') cssClass = 'msg-highlight'; 
+            if (type === 'success') cssClass = 'msg-success'; 
+            if (type === 'error') cssClass = 'msg-error'; 
+            if (type === 'info') cssClass = 'msg-info';
+
+            // แปลข้อความ Log เป็นภาษาไทย
+            let displayMsg = msg
+                .replace('Starting process...', 'กำลังเริ่มกระบวนการ...')
+                .replace('Checking latest record in database...', 'กำลังตรวจสอบข้อมูลล่าสุดในฐานข้อมูล...')
+                .replace('Found latest record:', 'พบข้อมูลล่าสุดเมื่อวันที่:')
+                .replace('No previous data found.', 'ไม่พบข้อมูลเดิมในระบบ')
+                .replace('Proxy configuration loaded.', 'โหลดการตั้งค่า Proxy เรียบร้อยแล้ว')
+                .replace('Processing Date:', 'กำลังประมวลผลวันที่:')
+                .replace('HTML Source: Found', 'แหล่งข้อมูลเว็บ: พบ')
+                .replace('records', 'รายการ')
+                .replace('Internal DB: Found', 'ฐานข้อมูลภายใน: พบ')
+                .replace('Database: Updated', 'ฐานข้อมูล: อัปเดตสำเร็จ')
+                .replace('successfully', '')
+                .replace('ALL DONE! Process completed successfully.', 'เสร็จสิ้นทั้งหมด! ประมวลผลข้อมูลเรียบร้อยแล้ว')
+                .replace('Range:', 'ช่วงเวลา:');
+
+            const line = document.createElement('div'); 
+            line.className = 'log-line'; 
+            line.innerHTML = `<span class="log-time">${timeStr}</span><span class="${cssClass}">${displayMsg}</span>`;
             box.appendChild(line); box.scrollTop = box.scrollHeight;
         }
+
         function formatDateDB(date) { const pad = (n) => String(n).padStart(2, '0'); return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`; }
         function formatDateURL(date) { const pad = (n) => String(n).padStart(2, '0'); return `${pad(date.getDate())}${pad(date.getMonth() + 1)}${date.getFullYear()}`; }
+        
         function parseHTMLTable(htmlString, dateStr) {
             const parser = new DOMParser(), doc = parser.parseFromString(htmlString, "text/html"), table = doc.getElementById('mainTable'), records = [];
             if (!table) return [];
@@ -112,30 +255,53 @@
                 }
             }); return records;
         }
+
         async function startProcess() {
             const btn = document.getElementById('btnStart'), mode = document.querySelector('input[name="syncMode"]:checked').value;
-            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังทำงาน...'; document.getElementById('logDisplay').innerHTML = '';
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังทำงาน...'; 
+            document.getElementById('logDisplay').innerHTML = '';
+            
             let startDate, endDate; const today = new Date(); today.setHours(0, 0, 0, 0);
+            
             try {
-                if (mode === 'date') { const dateVal = document.getElementById('selectDate').value; if (!dateVal) throw new Error("กรุณาเลือกวันที่ที่ต้องการซิงค์"); startDate = new Date(dateVal); endDate = new Date(dateVal); }
+                if (mode === 'date') { 
+                    const dateVal = document.getElementById('selectDate').value; 
+                    if (!dateVal) throw new Error("กรุณาเลือกวันที่ที่ต้องการซิงค์"); 
+                    startDate = new Date(dateVal); endDate = new Date(dateVal); 
+                }
                 else {
                     log('Checking latest record in database...', 'normal');
                     const { data: latestRecord } = await sbClient.from(TAS_CONFIG.TABLE_TARGET).select('work_date').order('work_date', { ascending: false }).limit(1).single();
-                    if (latestRecord && latestRecord.work_date) { startDate = new Date(latestRecord.work_date); log(`Found latest record: ${formatDateDB(startDate)}`, 'success'); }
-                    else { startDate = new Date(); startDate.setDate(startDate.getDate() - 30); log(`No previous data found. Defaulting to last 30 days.`, 'warning'); }
+                    if (latestRecord && latestRecord.work_date) { 
+                        startDate = new Date(latestRecord.work_date); 
+                        log(`Found latest record: ${formatDateDB(startDate)}`, 'success'); 
+                    }
+                    else { 
+                        startDate = new Date(); startDate.setDate(startDate.getDate() - 30); 
+                        log(`No previous data found. Defaulting to last 30 days.`, 'warning'); 
+                    }
                     endDate = new Date();
                 }
+                
                 startDate.setHours(0, 0, 0, 0); endDate.setHours(0, 0, 0, 0);
                 log(`Starting process... Mode: ${mode === 'date' ? 'Specific Date' : 'Continuous Sync'}`, 'highlight');
                 log(`Range: ${formatDateDB(startDate)} to ${formatDateDB(endDate)}`, 'highlight');
+                
                 const { data: settingData } = await sbClient.from(TAS_CONFIG.TABLE_SETTINGS).select('value').eq('key', 'data_url').single();
                 let baseURL = "";
-                if (settingData && settingData.value) { let rawUrl = settingData.value.replace("https://api.allorigins.win/raw?url=", ""); baseURL = `https://api.allorigins.win/get?url=${encodeURIComponent(rawUrl)}`; log('Proxy configuration loaded.', 'info'); }
+                if (settingData && settingData.value) { 
+                    let rawUrl = settingData.value.replace("https://api.allorigins.win/raw?url=", ""); 
+                    baseURL = `https://api.allorigins.win/get?url=${encodeURIComponent(rawUrl)}`; 
+                    log('Proxy configuration loaded.', 'info'); 
+                }
                 else log('⚠️ Warning: Data URL not found in settings.');
+                
                 let loopDate = new Date(startDate);
                 while (loopDate <= endDate) {
                     const dateDBStr = formatDateDB(loopDate), dateURLPart = formatDateURL(loopDate);
-                    log(`-----------------------------------`, 'normal'); log(`Processing Date: ${dateDBStr}`, 'highlight');
+                    log(`-----------------------------------`, 'normal'); 
+                    log(`Processing Date: ${dateDBStr}`, 'highlight');
+                    
                     let externalData = [];
                     if (baseURL) {
                         try {
@@ -143,33 +309,56 @@
                             if (cleanBase.includes("allorigins")) { const match = cleanBase.match(/url=(.*)/); if (match) cleanBase = decodeURIComponent(match[1]); }
                             if (!cleanBase.endsWith('/')) cleanBase += '/';
                             const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(cleanBase + dateURLPart)}`);
-                            if (res.ok) { const jsonRes = await res.json(); externalData = parseHTMLTable(jsonRes.contents, dateDBStr); log(`   HTML Source: Found ${externalData.length} records`, 'success'); }
+                            if (res.ok) { 
+                                const jsonRes = await res.json(); 
+                                externalData = parseHTMLTable(jsonRes.contents, dateDBStr); 
+                                log(`   HTML Source: Found ${externalData.length} records`, 'success'); 
+                            }
                             else log(`   HTML Source: Connection failed (${res.status})`, 'error');
                         } catch (e) { log(`   HTML Source: Fetch Error`, 'error'); }
                     }
+                    
                     const { data: internalData, error: internalError } = await sbClient.from(TAS_CONFIG.TABLE_TARGET).select('*').eq('work_date', dateDBStr);
                     if (internalError) throw new Error(internalError.message);
                     log(`   Internal DB: Found ${internalData ? internalData.length : 0} records`, 'info');
+                    
                     const mergedMap = {};
                     const processRecord = (rec) => {
                         const pid = rec.personnel_id;
                         if (!mergedMap[pid]) mergedMap[pid] = { personnel_id: pid, full_name: rec.full_name || rec.name, work_date: dateDBStr, time_in: rec.time_in, time_out: rec.time_out };
-                        else { const current = mergedMap[pid]; if (rec.time_in && (!current.time_in || rec.time_in < current.time_in)) current.time_in = rec.time_in; if (rec.time_out && (!current.time_out || rec.time_out > current.time_out)) current.time_out = rec.time_out; }
+                        else { 
+                            const current = mergedMap[pid]; 
+                            if (rec.time_in && (!current.time_in || rec.time_in < current.time_in)) current.time_in = rec.time_in; 
+                            if (rec.time_out && (!current.time_out || rec.time_out > current.time_out)) current.time_out = rec.time_out; 
+                        }
                     };
+                    
                     if (externalData.length > 0) externalData.forEach(processRecord);
                     if (internalData && internalData.length > 0) internalData.forEach(processRecord);
+                    
                     const finalData = Object.values(mergedMap);
                     if (finalData.length > 0) {
                         const recordsToSave = finalData.map(item => ({ id: `${dateURLPart}${item.personnel_id}`, personnel_id: item.personnel_id, full_name: item.full_name, work_date: item.work_date, time_in: item.time_in, time_out: item.time_out, verified: 0 }));
                         const { error: errUpsert } = await sbClient.from(TAS_CONFIG.TABLE_TARGET).upsert(recordsToSave, { onConflict: 'personnel_id, work_date' });
-                        if (errUpsert) log(`   Save Error: ${errUpsert.message}`, 'error'); else log(`   Database: Updated ${recordsToSave.length} records successfully`, 'success');
+                        if (errUpsert) log(`   Save Error: ${errUpsert.message}`, 'error'); 
+                        else log(`   Database: Updated ${recordsToSave.length} records successfully`, 'success');
                     } else log(`   No data to update.`, 'normal');
+                    
                     loopDate.setDate(loopDate.getDate() + 1);
                 }
-                log(`-----------------------------------`, 'normal'); log(`ALL DONE! Process completed successfully.`, 'success');
+                
+                log(`-----------------------------------`, 'normal'); 
+                log(`ALL DONE! Process completed successfully.`, 'success');
                 await Swal.fire({ icon: 'success', title: 'เสร็จสิ้น!', text: 'กระบวนการดึงและรวมข้อมูลเสร็จสมบูรณ์', confirmButtonColor: '#6366f1' });
-            } catch (err) { console.error(err); log(`CRITICAL ERROR: ${err.message}`, 'error'); Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message }); }
-            finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-rocket"></i> เริ่มการประมวลผล'; }
+            } catch (err) { 
+                console.error(err); 
+                log(`CRITICAL ERROR: ${err.message}`, 'error'); 
+                Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message }); 
+            }
+            finally { 
+                btn.disabled = false; 
+                btn.innerHTML = '<i class="fas fa-rocket"></i> เริ่มการประมวลผล'; 
+            }
         }
     </script>
 </body>
