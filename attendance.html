@@ -70,7 +70,6 @@
                 color: var(--primary);
             }
 
-            /* Back Button */
             .back-btn {
                 text-decoration: none;
                 color: var(--muted);
@@ -105,6 +104,30 @@
                 font-family: 'Sarabun';
                 font-size: 1rem;
                 background: #f9fafb;
+            }
+
+            /* Filter Status Buttons */
+            .filter-status {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 10px;
+            }
+
+            .btn-filter {
+                padding: 6px 14px;
+                border-radius: 20px;
+                font-size: 0.85rem;
+                font-weight: 600;
+                cursor: pointer;
+                border: 1px solid transparent;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                transition: 0.2s;
+            }
+
+            .btn-filter.active {
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             }
 
             /* Tabs */
@@ -169,11 +192,7 @@
             .item-att { border-left-color: var(--primary); }
             .item-leave { border-left-color: var(--warning); }
 
-            .info h4 {
-                margin: 0;
-                font-size: 1rem;
-            }
-
+            .info h4 { margin: 0; font-size: 1rem; }
             .info p {
                 margin: 5px 0 0;
                 font-size: 0.85rem;
@@ -190,9 +209,10 @@
                 font-weight: bold;
             }
 
-            .bg-green { background: #dcfce7; color: #166534; }
-            .bg-red { background: #fee2e2; color: #991b1b; }
-            .bg-orange { background: #ffedd5; color: #9a3412; }
+            .bg-green { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+            .bg-red { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+            .bg-orange { background: #ffedd5; color: #9a3412; border: 1px solid #fed7aa; }
+            .bg-gray { background: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db; }
 
             .actions { display: flex; gap: 8px; }
 
@@ -229,37 +249,6 @@
                 border: none;
                 z-index: 100;
             }
-
-            /* Modal */
-            .swal2-popup {
-                border-radius: 20px !important;
-                font-family: 'Sarabun' !important;
-            }
-
-            .modal-form {
-                display: grid;
-                gap: 15px;
-                text-align: left;
-            }
-
-            .search-results {
-                position: absolute;
-                background: white;
-                width: 100%;
-                z-index: 999;
-                border: 1px solid #ddd;
-                max-height: 150px;
-                overflow-y: auto;
-                display: none;
-            }
-
-            .search-item {
-                padding: 10px;
-                border-bottom: 1px solid #eee;
-                cursor: pointer;
-            }
-
-            .search-item:hover { background: #f0fdf4; }
 
             @media (max-width: 600px) {
                 .data-item {
@@ -298,12 +287,21 @@
                     <input type="date" id="filterDate" class="date-input" onchange="loadAllData()">
                 </div>
                 <div class="tabs">
-                    <button id="btn-tab-att" class="tab-btn active" onclick="switchTab('att')">🕒 เวลาทำงาน (TimeStamp)</button>
-                    <button id="btn-tab-leave" class="tab-btn" onclick="switchTab('leave')">✈️ การลา (Leave Records)</button>
+                    <button id="btn-tab-att" class="tab-btn active" onclick="switchTab('att')">🕒 เวลาทำงาน</button>
+                    <button id="btn-tab-leave" class="tab-btn" onclick="switchTab('leave')">✈️ การลา</button>
                 </div>
             </div>
 
             <div id="tab-att" class="content-section active">
+                <div class="filter-status">
+                    <button id="filter-all" class="btn-filter bg-green active" onclick="setStatusFilter('all')">
+                        <i class="fas fa-list"></i> ทั้งหมด
+                    </button>
+                    <button id="filter-incomplete" class="btn-filter bg-gray" onclick="setStatusFilter('incomplete')">
+                        <i class="fas fa-exclamation-triangle"></i> ลงเวลาไม่สมบูรณ์
+                    </button>
+                </div>
+                
                 <div id="list-att" class="data-list">
                     <div style="text-align:center; padding:30px; color:#999;">กำลังโหลด...</div>
                 </div>
@@ -322,6 +320,7 @@
             if (typeof sbClient === 'undefined') Swal.fire('Error', 'Supabase Client Not Found', 'error');
 
             let currentTab = 'att';
+            let statusFilter = 'all';
             let personnelMap = {};
             let leaveTypes = [];
 
@@ -333,6 +332,25 @@
                 await loadMasterData();
                 loadAllData();
             });
+
+            window.setStatusFilter = function(status) {
+                statusFilter = status;
+                const btnAll = document.getElementById('filter-all');
+                const btnInc = document.getElementById('filter-incomplete');
+                
+                if(status === 'all') {
+                    btnAll.classList.add('active', 'bg-green');
+                    btnAll.classList.remove('bg-gray');
+                    btnInc.classList.remove('active', 'bg-red');
+                    btnInc.classList.add('bg-gray');
+                } else {
+                    btnAll.classList.remove('active', 'bg-green');
+                    btnAll.classList.add('bg-gray');
+                    btnInc.classList.add('active', 'bg-red');
+                    btnInc.classList.remove('bg-gray');
+                }
+                loadAttendance();
+            }
 
             window.switchTab = function (tabName) {
                 currentTab = tabName;
@@ -359,14 +377,28 @@
                 const container = document.getElementById('list-att');
                 container.innerHTML = `<div style="text-align:center; padding:20px; color:#4f46e5;">⏳ กำลังโหลดเวลา...</div>`;
                 try {
-                    const { data, error } = await sbClient.from(TAS_CONFIG.TABLE_TARGET).select('*').eq('work_date', date).order('time_in');
+                    let query = sbClient.from(TAS_CONFIG.TABLE_TARGET).select('*').eq('work_date', date);
+                    
+                    if (statusFilter === 'incomplete') {
+                        query = query.or('time_in.is.null,time_out.is.null');
+                    }
+                    
+                    const { data, error } = await query.order('time_in');
                     if (error) throw error;
-                    if (!data || data.length === 0) { container.innerHTML = `<div style="text-align:center; padding:30px; color:#999;">ไม่พบข้อมูลเวลาทำงาน</div>`; return; }
+                    if (!data || data.length === 0) { 
+                        const msg = statusFilter === 'incomplete' ? 'ไม่พบรายการที่ลงเวลาไม่สมบูรณ์' : 'ไม่พบข้อมูลเวลาทำงาน';
+                        container.innerHTML = `<div style="text-align:center; padding:30px; color:#999;">${msg}</div>`; 
+                        return; 
+                    }
                     container.innerHTML = data.map(r => `
                     <div class="data-item item-att">
                         <div class="info">
                             <h4>${r.full_name || personnelMap[r.personnel_id] || r.personnel_id}</h4>
-                            <p><span class="badge bg-green">เข้า: ${r.time_in ? r.time_in.slice(0, 5) : '-'}</span><span class="badge bg-red">ออก: ${r.time_out ? r.time_out.slice(0, 5) : '-'}</span><small>(${r.personnel_id})</small></p>
+                            <p>
+                                <span class="badge ${r.time_in ? 'bg-green' : 'bg-red'}">เข้า: ${r.time_in ? r.time_in.slice(0, 5) : 'ขาด'}</span>
+                                <span class="badge ${r.time_out ? 'bg-green' : 'bg-red'}">ออก: ${r.time_out ? r.time_out.slice(0, 5) : 'ขาด'}</span>
+                                <small>(${r.personnel_id})</small>
+                            </p>
                         </div>
                         <div class="actions">
                             <button class="btn-icon btn-edit" onclick="editAtt('${r.id}', '${r.full_name}', '${r.time_in || ''}', '${r.time_out || ''}')"><i class="fas fa-pen"></i></button>
@@ -433,20 +465,21 @@
                 let userOptions = '';
                 if (!isEdit) {
                     try {
-                        const { data: att } = await sbClient.from(TAS_CONFIG.TABLE_TARGET).select('personnel_id').eq('work_date', date);
-                        const { data: lev } = await sbClient.from('Leave_records').select('personnel_id').eq('leave_date', date);
-                        const busy = new Set([...(att?.map(x => x.personnel_id) || []), ...(lev?.map(x => x.personnel_id) || [])]);
-                        Object.keys(personnelMap).sort().forEach(k => { if (!busy.has(k)) userOptions += `<option value="${k}">${personnelMap[k]} (${k})</option>`; });
+                        const { data: att } = await sbClient.from(TAS_CONFIG.TABLE_USER).select('personnel_id, name');
+                        const { data: existingAtt } = await sbClient.from(TAS_CONFIG.TABLE_TARGET).select('personnel_id').eq('work_date', date);
+                        const { data: existingLev } = await sbClient.from('Leave_records').select('personnel_id').eq('leave_date', date);
+                        const busy = new Set([...(existingAtt?.map(x => x.personnel_id) || []), ...(existingLev?.map(x => x.personnel_id) || [])]);
+                        att?.forEach(u => { if (!busy.has(u.personnel_id)) userOptions += `<option value="${u.personnel_id}">${u.name} (${u.personnel_id})</option>`; });
                     } catch (e) { }
                 }
-                const htmlContent = `<div class="modal-form">${!isEdit ? `<div><label style="font-weight:bold;">พนักงาน (ที่ยังไม่ลงเวลา):</label><select id="l-pid" class="date-input"><option value="" disabled selected>-- เลือก --</option>${userOptions}</select></div>` : `<div><label>พนักงาน:</label><input id="l-pid" class="date-input" value="${personnelMap[pid] || pid}" readonly style="background:#f3f4f6"><input type="hidden" id="l-pid-val" value="${pid}"></div>`}<div><label style="font-weight:bold;">ประเภทการลา:</label><select id="l-type" class="date-input">${typeOpts}</select></div></div>`;
+                const htmlContent = `<div class="modal-form">${!isEdit ? `<div><label style="font-weight:bold;">พนักงาน:</label><select id="l-pid" class="date-input"><option value="" disabled selected>-- เลือก --</option>${userOptions}</select></div>` : `<div><label>พนักงาน:</label><input id="l-pid" class="date-input" value="${personnelMap[pid] || pid}" readonly style="background:#f3f4f6"><input type="hidden" id="l-pid-val" value="${pid}"></div>`}<div><label style="font-weight:bold;">ประเภทการลา:</label><select id="l-type" class="date-input">${typeOpts}</select></div></div>`;
                 const { value: f } = await Swal.fire({
                     title: isEdit ? 'แก้ไขการลา' : 'บันทึกการลา', html: htmlContent, showCancelButton: true, confirmButtonText: 'OK', cancelButtonText: 'Cancel',
                     preConfirm: () => { const p = isEdit ? document.getElementById('l-pid-val').value : document.getElementById('l-pid').value; if (!p) return Swal.showValidationMessage('กรุณาเลือกพนักงาน'); return { pid: p, type: document.getElementById('l-type').value }; }
                 });
                 if (f) {
-                    const payload = { personnel_id: f.pid, leave_date: date, leave_type: f.type, reason: '', status: 'pending' };
-                    if (isEdit) await sbClient.from('Leave_records').update(payload).eq('id', id); else { payload.id = Date.now() + Math.floor(Math.random() * 1000); await sbClient.from('Leave_records').insert([payload]); }
+                    const payload = { personnel_id: f.pid, leave_date: date, leave_type: f.type, status: 'approved' };
+                    if (isEdit) await sbClient.from('Leave_records').update(payload).eq('id', id); else { payload.id = Date.now(); await sbClient.from('Leave_records').insert([payload]); }
                     loadLeaves(); Swal.fire('สำเร็จ', 'บันทึกข้อมูลแล้ว', 'success');
                 }
             }
