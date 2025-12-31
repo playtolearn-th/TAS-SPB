@@ -75,15 +75,16 @@
 
         /* หัวเรื่อง 18pt */
         .rpt-header { text-align: center; margin-bottom: 6mm; line-height: 1.2; }
+        /* แก้ไขระบบตัดคำหัวเรื่อง: ถ้าบรรทัดเดียวไม่พอจะตัดที่วรรค */
         .rpt-title { font-size: 18pt; font-weight: bold; white-space: normal; word-break: keep-all; display: block; width: 100%; }
         .rpt-sub { font-size: 18pt; }
 
-        /* ตารางปรับความสูงแถวเป็น 26px เพื่อให้พอดี 29 รายการ */
+        /* ตารางปรับความสูงแถวเป็น 26.4px เพื่อให้พอดี 29 รายการอย่างแม่นยำ */
         .rpt-table { width: 100%; border-collapse: collapse; border: 1.5px solid black; table-layout: fixed; }
         .rpt-table th { border: 1px solid black; background: #f2f2f2; font-weight: bold; height: 35px; font-size: 16pt; text-align: center; }
         .rpt-table td { 
             border: 1px solid black; padding: 0 5px; font-size: 16pt; 
-            height: 26.4px; /* ปรับตามคำสั่งเพื่อความแม่นยำ 29 รายการ */
+            height: 26.4px; 
             vertical-align: middle; line-height: 1.0; 
             overflow: hidden; white-space: nowrap; text-overflow: ellipsis; 
         }
@@ -185,7 +186,7 @@
                             </div>
                             <table class="rpt-table">
                                 <thead>
-                                    <tr><th class="col-id">ที่</th><th class="col-name">ชื่อ-สกุล</th><th class="col-time">มา</th><th class="col-time">กลับ</th><th style="width:auto;">หมายเหตุ</th></tr>
+                                    <tr><th class="col-id">ที่</th><th class="col-name">ชื่อ-สกุล</th><th class="col-time">ลงเวลามา</th><th class="col-time">ลงเวลากลับ</th><th style="width:auto;">หมายเหตุ</th></tr>
                                 </thead>
                                 <tbody>
                                     ${items.map((u, i) => `
@@ -224,7 +225,7 @@
                                     </div>
                                 </div>
                                 <div class="signature-area">
-                                    <div style="margin-top:5mm;">(ลงชื่อ)............................................................</div>
+                                    <div style="margin-top:3.5mm;">(ลงชื่อ)............................................................</div>
                                     <div style="margin-top:2mm;">(${config['signer_name'] || ''})</div>
                                     <div>${config['signer_position'] || ''}</div>
                                 </div>
