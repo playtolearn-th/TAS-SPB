@@ -1,94 +1,198 @@
-<script>
-    // ... ส่วนเริ่มต้นเดิม ...
+<!DOCTYPE html>
+<html lang="th">
 
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const user = document.getElementById('username').value.trim();
-        const pass = document.getElementById('password').value;
-        const rememberMe = document.getElementById('rememberMe').checked;
-        const btn = document.getElementById('btnSubmit');
-        const originalBtnContent = btn.innerHTML;
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>เข้าสู่ระบบ - TAS-SPB</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="TAS-SPB">
 
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ตรวจสอบ...';
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="ios-fix.js"></script>
+    <script src="supabase.js"></script>
+    <script src="sweetalert2.js"></script>
+    <script src="config.js"></script>
+    
+    <style>
+        :root { --primary: #4f46e5; --primary-dark: #4338ca; --text-main: #1f2937; --text-muted: #6b7280; --bg-gradient: linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 100%); --white: #ffffff; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Sarabun', sans-serif; background: var(--bg-gradient); min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; color: var(--text-main); }
+        .login-card { background: var(--white); width: 100%; max-width: 400px; padding: 40px 30px; border-radius: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); text-align: center; position: relative; overflow: hidden; animation: slideUp 0.6s ease-out; }
+        .header { margin-bottom: 30px; }
+        .logo-circle { width: 80px; height: 80px; background: linear-gradient(135deg, #4f46e5, #818cf8); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; color: white; font-size: 2.5rem; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3); }
+        .header h2 { font-size: 1.5rem; font-weight: 700; }
+        .form-group { margin-bottom: 20px; text-align: left; position: relative; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; }
+        .input-wrapper { position: relative; }
+        .input-wrapper i.left-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #9ca3af; }
+        .toggle-password { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #9ca3af; cursor: pointer; padding: 5px; z-index: 2; }
+        input { width: 100%; padding: 14px 45px; border: 2px solid #e5e7eb; border-radius: 12px; font-family: 'Sarabun'; font-size: 1rem; background: #f9fafb; transition: 0.3s; }
+        input:focus { outline: none; border-color: var(--primary); background: white; }
+        .remember-group { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; cursor: pointer; user-select: none; }
+        .remember-group input { width: 18px; height: 18px; cursor: pointer; }
+        .btn-login { width: 100%; padding: 16px; border: none; border-radius: 12px; background: var(--primary); color: white; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-login:hover { background: var(--primary-dark); transform: translateY(-2px); }
+        .back-link { color: var(--primary); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; margin-top: 25px; cursor: pointer; font-size: 0.9rem; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
 
-        try {
-            // ดึงข้อมูล User
-            const { data, error } = await sbClient.from(TAS_CONFIG.TABLE_USER).select('*').eq('personnel_id', user).single();
+<body>
+    <div class="login-card">
+        <div class="header">
+            <div class="logo-circle"><i class="fas fa-user-shield"></i></div>
+            <h2>เข้าสู่ระบบ</h2>
+            <p style="color:var(--text-muted); font-size:0.9rem;">TAS-SPB Time Attendance System</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label>รหัสพนักงาน</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-id-card left-icon"></i>
+                    <input type="text" id="username" placeholder="กรอกรหัสพนักงาน..." required autocomplete="off">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>รหัสผ่าน</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-lock left-icon"></i>
+                    <input type="password" id="password" placeholder="กรอกรหัสผ่าน...">
+                    <i class="fas fa-eye-slash toggle-password" id="togglePassword"></i>
+                </div>
+            </div>
+
+            <label class="remember-group">
+                <input type="checkbox" id="rememberMe">
+                <span style="font-size: 0.9rem; color: var(--text-muted);">จดจำการใช้งานในเครื่องนี้</span>
+            </label>
+
+            <button type="submit" id="btnSubmit" class="btn-login">
+                <span>เข้าสู่ระบบ</span> <i class="fas fa-arrow-right"></i>
+            </button>
+        </form>
+
+        <div onclick="window.location.href='index.html'" class="back-link">
+            <i class="fas fa-home"></i> กลับหน้าหลัก
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check Remember Me
+            if (localStorage.getItem('tas_remember') === 'true' && localStorage.getItem('tas_user')) {
+                window.location.href = 'menu.html';
+            }
             
-            // --- ปรับปรุงใหม่: Silent Check ---
-            // ต่อให้ Error หรือไม่พบ User เราจะยังไม่แจ้งเตือนที่นี่ แต่จะเก็บสถานะไว้
-            const userExists = data && !error;
-            const dbPass = userExists ? (data.Password || "") : "dummy_pass"; // ใช้รหัสหลอกถ้าไม่พบ user
-            const isFirstTime = userExists && (dbPass === "" || dbPass === String(user));
+            // Password Visibility
+            const togglePassword = document.querySelector('#togglePassword'), password = document.querySelector('#password');
+            togglePassword.addEventListener('click', () => {
+                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                password.setAttribute('type', type);
+                togglePassword.classList.toggle('fa-eye');
+                togglePassword.classList.toggle('fa-eye-slash');
+            });
+        });
 
-            // กรณีต้องเข้าหน้ากรอกรหัสลับ (First Time หรือ รหัสผ่านว่าง)
-            if (!userExists || isFirstTime) {
-                const { value: secret } = await Swal.fire({
-                    title: 'ยืนยันตัวตน',
-                    text: 'กรุณาระบุโค้ดลับ (ติดต่อ Admin เพื่อรับโค้ด)',
-                    input: 'text',
-                    inputPlaceholder: 'กรอกโค้ดลับที่นี่...',
-                    showCancelButton: true,
-                    confirmButtonColor: '#4f46e5'
-                });
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const user = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+            const btn = document.getElementById('btnSubmit');
+            const originalBtnContent = btn.innerHTML;
 
-                // ตรวจสอบรหัสลับ (ชื่อ-สกุล)
-                if (userExists && secret === data.name) {
-                    const { value: newPass } = await Swal.fire({
-                        title: 'ตั้งรหัสผ่านใหม่',
-                        input: 'password',
-                        inputPlaceholder: 'ระบุรหัสผ่านใหม่',
-                        confirmButtonText: 'บันทึก',
-                        inputAttributes: { minlength: 4 },
-                        inputValidator: (v) => {
-                            if (!v) return 'กรุณาระบุรหัสผ่าน';
-                            // --- ปรับปรุงใหม่: ห้ามใช้รหัสบุคลากรเป็น Password ---
-                            if (v === String(user)) return 'ห้ามใช้รหัสบุคลากรเป็นรหัสผ่าน';
-                        }
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ตรวจสอบ...';
+
+            try {
+                // ดึงข้อมูล User
+                const { data, error } = await sbClient.from(TAS_CONFIG.TABLE_USER).select('*').eq('personnel_id', user).single();
+                
+                const userExists = data && !error;
+                const dbPass = userExists ? (data.Password || "") : "";
+                const isFirstTime = userExists && (dbPass === "" || dbPass === String(user));
+
+                // กรณีไม่พบพนักงาน หรือ ต้องตั้งรหัสครั้งแรก (Silent Failure: ปล่อยให้ผ่านไปหน้ากรอกโค้ดลับเสมอ)
+                if (!userExists || isFirstTime) {
+                    const { value: secret } = await Swal.fire({
+                        title: 'ยืนยันตัวตน',
+                        text: 'กรุณาระบุโค้ดลับ (ติดต่อ Admin เพื่อรับโค้ด)',
+                        input: 'text',
+                        inputPlaceholder: 'กรอกโค้ดลับที่นี่...',
+                        showCancelButton: true,
+                        confirmButtonColor: '#4f46e5',
+                        cancelButtonText: 'ยกเลิก'
                     });
 
-                    if (newPass) {
-                        await sbClient.from(TAS_CONFIG.TABLE_USER).update({ Password: newPass }).eq('personnel_id', user);
-                        data.Password = newPass;
-                        proceedLogin(data, rememberMe, true);
+                    // ตรวจสอบชื่อ (Secret Code) เฉพาะกรณีที่มี User จริงเท่านั้น
+                    if (userExists && secret === data.name) {
+                        const { value: newPass } = await Swal.fire({
+                            title: 'ตั้งรหัสผ่านใหม่',
+                            input: 'password',
+                            inputPlaceholder: 'ระบุรหัสผ่านใหม่',
+                            confirmButtonText: 'บันทึก',
+                            inputAttributes: { minlength: 4 },
+                            inputValidator: (v) => {
+                                if (!v) return 'กรุณาระบุรหัสผ่าน';
+                                if (v === String(user)) return 'ห้ามใช้รหัสบุคลากรเป็นรหัสผ่าน';
+                            }
+                        });
+
+                        if (newPass) {
+                            await sbClient.from(TAS_CONFIG.TABLE_USER).update({ Password: newPass }).eq('personnel_id', user);
+                            data.Password = newPass;
+                            completeLogin(data, rememberMe, true);
+                        } else {
+                            throw new Error("การตั้งรหัสผ่านถูกยกเลิก");
+                        }
                     } else {
-                        throw new Error("ยกเลิกการตั้งรหัสผ่าน");
+                        // หากไม่มี User หรือรหัสลับผิด ให้แสดงข้อความแจ้งเตือนกลางๆ
+                        throw new Error("ข้อมูลยืนยันตัวตนไม่ถูกต้อง หรือรหัสลับผิดพลาด");
                     }
-                } else {
-                    // หาก User ไม่มีจริง หรือ รหัสลับผิด ให้แสดงข้อความรวมๆ เพื่อไม่ให้รู้จุดผิด
-                    throw new Error("ข้อมูลยืนยันตัวตนไม่ถูกต้อง หรือรหัสลับผิดพลาด");
+                } 
+                // กรณีเข้าสู่ระบบปกติ
+                else {
+                    if (String(dbPass) === String(pass)) {
+                        completeLogin(data, rememberMe, false);
+                    } else {
+                        throw new Error("รหัสพนักงานหรือรหัสผ่านไม่ถูกต้อง");
+                    }
                 }
-            } 
-            // กรณีเข้าสู่ระบบปกติ
-            else {
-                if (String(dbPass) === String(pass)) {
-                    proceedLogin(data, rememberMe, false);
-                } else {
-                    throw new Error("รหัสพนักงานหรือรหัสผ่านไม่ถูกต้อง");
-                }
+
+            } catch (err) {
+                Swal.fire({ icon: 'error', title: 'ไม่สามารถเข้าสู่ระบบ', text: err.message, confirmButtonColor: '#4f46e5' });
+                btn.disabled = false;
+                btn.innerHTML = originalBtnContent;
             }
-
-        } catch (err) {
-            Swal.fire({ icon: 'error', title: 'เข้าสู่ระบบไม่สำเร็จ', text: err.message, confirmButtonColor: '#4f46e5' });
-            btn.disabled = false;
-            btn.innerHTML = originalBtnContent;
-        }
-    });
-
-    function proceedLogin(userData, rememberMe, isNewUser) {
-        localStorage.setItem('tas_user', JSON.stringify(userData));
-        if (rememberMe) localStorage.setItem('tas_remember', 'true');
-        
-        Swal.fire({
-            icon: 'success',
-            title: 'สำเร็จ',
-            text: 'กำลังเข้าสู่ระบบ...',
-            timer: 1500,
-            showConfirmButton: false
-        }).then(() => {
-            // ถ้าเป็นคนตั้งรหัสใหม่ให้ไปหน้า Profile เพื่อตรวจความเรียบร้อย
-            window.location.href = isNewUser ? 'profile.html' : 'menu.html';
         });
-    }
-</script>
+
+        function completeLogin(userData, rememberMe, isNew) {
+            localStorage.setItem('tas_user', JSON.stringify(userData));
+            if (rememberMe) localStorage.setItem('tas_remember', 'true');
+            
+            Swal.fire({
+                icon: 'success',
+                title: 'สำเร็จ',
+                text: 'กำลังเข้าสู่ระบบ...',
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => {
+                window.location.href = isNew ? 'profile.html' : 'menu.html';
+            });
+        }
+    </script>
+</body>
+
+</html>
