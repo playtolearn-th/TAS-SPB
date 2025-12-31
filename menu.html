@@ -17,39 +17,61 @@
         .container { max-width: 500px; margin: 0 auto; }
 
         /* Top Bar */
-        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 5px; margin-bottom: 15px; }
-        .system-logo { font-weight: 800; font-size: 1.2rem; color: var(--primary); letter-spacing: -0.5px; }
-        .btn-logout { border: none; background: #fee2e2; color: #dc2626; padding: 8px 12px; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 0.85rem; }
+        .top-bar { display: flex; align-items: center; padding: 10px 5px; margin-bottom: 20px; gap: 10px; }
+        .sys-icon { width: 32px; height: 32px; object-fit: contain; border-radius: 6px; }
+        .system-logo { font-weight: 800; font-size: 1.25rem; color: var(--primary); letter-spacing: -0.5px; }
 
-        /* Unified Profile Menu Card */
+        /* Profile Menu Card */
         .profile-menu-card {
             background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
-            padding: 25px;
+            padding: 22px;
             border-radius: 24px;
             color: white;
             text-decoration: none;
             display: flex;
             align-items: center;
-            gap: 20px;
+            justify-content: space-between; /* ปรับให้กระจายซ้าย-ขวา */
+            gap: 15px;
             margin-bottom: 20px;
             box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4);
-            transition: transform 0.2s;
+            position: relative;
+            overflow: hidden;
         }
-        .profile-menu-card:active { transform: scale(0.97); }
-        .avatar-box { width: 65px; height: 65px; background: rgba(255,255,255,0.2); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 2rem; }
-        .profile-info h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 2px; }
-        .profile-info p { font-size: 0.85rem; opacity: 0.8; margin-bottom: 8px; }
-        .view-label { display: inline-block; font-size: 0.75rem; background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 20px; }
+        .profile-main-link { display: flex; align-items: center; gap: 15px; text-decoration: none; color: white; flex: 1; overflow: hidden; }
+        .avatar-box { width: 55px; height: 55px; background: rgba(255,255,255,0.2); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; flex-shrink: 0; }
+        
+        /* จัดการชื่อให้อยู่ในบรรทัดเดียว */
+        .profile-info { overflow: hidden; flex: 1; }
+        .profile-info h2 { 
+            font-size: 1.15rem; font-weight: 700; margin-bottom: 2px;
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; /* แสดง ... เมื่อชื่อยาวเกิน */
+        }
+        .profile-info p { font-size: 0.8rem; opacity: 0.85; }
 
-        /* Admin Grid Menu */
-        .admin-section-title { font-size: 0.9rem; font-weight: 700; color: var(--muted); margin: 25px 5px 15px; text-transform: uppercase; letter-spacing: 0.5px; }
+        /* ปุ่มออกจากระบบในโปรไฟล์ */
+        .btn-logout-inline {
+            background: rgba(255, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            width: 42px; height: 42px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.2s;
+            z-index: 5;
+        }
+        .btn-logout-inline:active { transform: scale(0.9); background: rgba(255, 0, 0, 0.4); }
+
+        /* Grid Menu */
+        .admin-section-title { font-size: 0.85rem; font-weight: 700; color: var(--muted); margin: 25px 5px 12px; text-transform: uppercase; letter-spacing: 0.8px; }
         .grid-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .menu-card { 
-            background: var(--white); border-radius: 22px; padding: 20px 15px; text-align: center; 
+            background: var(--white); border-radius: 22px; padding: 22px 15px; text-align: center; 
             text-decoration: none; color: var(--text); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); 
             display: flex; flex-direction: column; align-items: center; gap: 12px; transition: 0.2s;
         }
-        .menu-card:active { transform: scale(0.95); background: #f1f5f9; }
+        .menu-card:active { transform: scale(0.95); }
         .icon-box { width: 50px; height: 50px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white; }
         
         .c-process { background: #8b5cf6; }
@@ -58,7 +80,7 @@
         .c-att { background: #ec4899; }
         
         .menu-title { font-weight: 700; font-size: 0.95rem; }
-        .version-text { text-align: center; margin-top: 40px; font-size: 0.75rem; color: var(--muted); }
+        .version-text { text-align: center; margin-top: 40px; font-size: 0.7rem; color: var(--muted); opacity: 0.7; }
     </style>
     <script src="supabase.js"></script>
     <script src="config.js"></script>
@@ -66,36 +88,42 @@
 <body>
     <div class="container">
         <div class="top-bar">
-            <div class="system-logo">TAS-SPB <span style="font-weight:300;">SYSTEM</span></div>
-            <button class="btn-logout" onclick="logout()">ออกจากระบบ</button>
+            <img src="favicon.png" alt="Logo" class="sys-icon">
+            <div class="system-logo">TAS-SPB <span style="font-weight:300; font-size: 1.1rem; opacity: 0.7;">Online</span></div>
         </div>
 
-        <a href="profile.html" class="profile-menu-card">
-            <div class="avatar-box">👤</div>
-            <div class="profile-info">
-                <h2 id="userName">กำลังโหลด...</h2>
-                <p id="userStatus">รหัสพนักงาน: -</p>
-                <div class="view-label">จัดการโปรไฟล์และดูประวัติ <i class="fas fa-chevron-right" style="font-size:0.6rem; margin-left:5px;"></i></div>
-            </div>
-        </a>
+        <div class="profile-menu-card">
+            <a href="profile.html" class="profile-main-link">
+                <div class="avatar-box">👤</div>
+                <div class="profile-info">
+                    <h2 id="userName">กำลังโหลด...</h2>
+                    <p id="userStatus">รหัสบุคลากร: -</p>
+                </div>
+                <i class="fas fa-chevron-right" style="opacity: 0.5; font-size: 0.8rem; margin: 0 5px;"></i>
+            </a>
+            
+            <button class="btn-logout-inline" onclick="logout()" title="ออกจากระบบ">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </div>
 
         <div id="admin-area" style="display: none;">
-            <div class="admin-section-title">เครื่องมือดูแลระบบ</div>
+            <div class="admin-section-title">เมนูบริหารจัดการ</div>
             <div class="grid-menu">
                 <a href="process.html" class="menu-card">
                     <div class="icon-box c-process"><i class="fas fa-sync-alt"></i></div>
-                    <div class="menu-title">ประมวลผล</div>
+                    <div class="menu-title">ประมวลผลข้อมูล</div>
                 </a>
                 <a href="attendance.html" class="menu-card">
-                    <div class="icon-box c-att"><i class="fas fa-user-edit"></i></div>
+                    <div class="icon-box c-att"><i class="fas fa-calendar-check"></i></div>
                     <div class="menu-title">จัดการเวลา/ลา</div>
                 </a>
                 <a href="report.html" class="menu-card">
-                    <div class="icon-box c-report"><i class="fas fa-file-invoice"></i></div>
-                    <div class="menu-title">ออกรายงาน</div>
+                    <div class="icon-box c-report"><i class="fas fa-file-export"></i></div>
+                    <div class="menu-title">รายงานสรุป</div>
                 </a>
                 <a href="settings.html" class="menu-card">
-                    <div class="icon-box c-setting"><i class="fas fa-sliders-h"></i></div>
+                    <div class="icon-box c-setting"><i class="fas fa-tools"></i></div>
                     <div class="menu-title">ตั้งค่าระบบ</div>
                 </a>
             </div>
@@ -118,17 +146,31 @@
                 document.getElementById('admin-area').style.display = 'block';
             }
 
-            // โหลดเวอร์ชัน
+            // โหลดเวอร์ชันจาก DB
             try {
                 const { data } = await sbClient.from(TAS_CONFIG.TABLE_SETTINGS).select('value').eq('key', 'latest_version').single();
-                if (data) document.getElementById('vText').innerText = `TAS-SPB v${data.value}`;
+                if (data) document.getElementById('vText').innerText = `TAS-SPB Version ${data.value}`;
             } catch (e) {}
         }
 
         function logout() {
-            localStorage.removeItem('tas_user');
-            localStorage.removeItem('tas_remember');
-            window.location.href = 'login.html';
+            Swal.fire({
+                title: 'ออกจากระบบ?',
+                text: "ท่านต้องการออกจากระบบลงเวลาใช่หรือไม่",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#4f46e5',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'ยืนยัน',
+                cancelButtonText: 'ยกเลิก',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    localStorage.removeItem('tas_user');
+                    localStorage.removeItem('tas_remember');
+                    window.location.href = 'login.html';
+                }
+            });
         }
 
         initMenu();
