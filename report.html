@@ -1,439 +1,107 @@
 <!DOCTYPE html>
 <html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รายงานประจำวัน - TAS-SPB</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="apple-touch-icon" href="favicon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="TAS-SPB">
+    <style>
+        :root { --primary: #4f46e5; --bg: #525659; --a4-w: 210mm; --a4-h: 297mm; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Sarabun', sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .controls-bar { width: 100%; max-width: var(--a4-w); background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 10px; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .date-input { padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: 'Sarabun'; }
+        .btn { padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; color: white; font-weight: bold; }
+        .btn-load { background: var(--primary); }
+        .btn-print { background: #333; }
+        /* แก้ไข back-link */
+        .back-link { text-decoration: none; color: #666; font-weight: bold; margin-right: 10px; cursor: pointer; }
+        .paper { width: var(--a4-w); min-height: var(--a4-h); background: white; padding: 20mm; margin-bottom: 20px; box-shadow: 0 0 15px rgba(0,0,0,0.5); position: relative; page-break-after: always; }
+        .rpt-header { text-align: center; margin-bottom: 15px; line-height: 1.2; }
+        .rpt-title { font-size: 18pt; font-weight: bold; }
+        .rpt-date { font-size: 16pt; margin: 5px 0; }
+        .rpt-school { font-size: 16pt; }
+        .rpt-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+        .rpt-table th, .rpt-table td { border: 1px solid #000; padding: 4px 5px; font-size: 14pt; }
+        .rpt-table th { background-color: #f0f0f0; text-align: center; height: 35px; }
+        .rpt-table td { height: 30px; vertical-align: middle; }
+        .col-no { width: 50px; text-align: center; } .col-name { text-align: left; } .col-time { width: 80px; text-align: center; } .col-note { width: 120px; text-align: center; }
+        .rpt-footer { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 5px; font-size: 14pt; width: 100%; }
+        .footer-left { text-align: left; white-space: nowrap; } .footer-right { text-align: left; white-space: nowrap; } .footer-row { margin-bottom: 5px; }
+        .sign-area { width: 100%; text-align: center; margin-top: 40px; } .sign-text { margin-top: 5px; font-size: 14pt; }
+        @media print { body { background: white; padding: 0; } .controls-bar { display: none; } .paper { box-shadow: none; margin: 0; width: 100%; page-break-after: always; padding: 15mm; } .paper:last-child { page-break-after: auto; } }
+    </style>
+    <script src="supabase.js"></script>
+    <script src="sweetalert2.js"></script>
+    <script src="config.js"></script>
+</head>
+<body>
+    <div class="controls-bar">
+        <div onclick="window.location.href='menu.html'" class="back-link"><i class="fas fa-arrow-left"></i> กลับเมนู</div>
+        <label>เลือกวันที่:</label>
+        <input type="date" id="filterDate" class="date-input">
+        <button class="btn btn-load" onclick="generateReport()"><i class="fas fa-sync-alt"></i> โหลดข้อมูล</button>
+        <div style="flex-grow:1"></div>
+        <button class="btn btn-print" onclick="window.print()"><i class="fas fa-print"></i> สั่งพิมพ์ / PDF</button>
+    </div>
 
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>รายงานประจำวัน - TAS-SPB</title>
-        <link rel="icon" type="image/png" href="favicon.png">
+    <div id="reportContainer"><div class="paper"><div style="text-align:center; padding-top:100px; color:#999;"><h3>กรุณาเลือกวันที่แล้วกด "โหลดข้อมูล"</h3></div></div></div>
 
-        <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap"
-            rel="stylesheet">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-        <link rel="icon" type="image/png" href="favicon.png">
-        <link rel="apple-touch-icon" href="favicon.png">
-        <meta name="apple-mobile-web-app-capable" content="yes">
-        <meta name="mobile-web-app-capable" content="yes">
-        <meta name="apple-mobile-web-app-status-bar-style" content="default">
-        <meta name="apple-mobile-web-app-title" content="TAS-SPB">
-        <style>
-            :root {
-                --primary: #4f46e5;
-                --bg: #525659;
-                --a4-w: 210mm;
-                --a4-h: 297mm;
-            }
-
-            * {
-                box-sizing: border-box;
-            }
-
-            body {
-                font-family: 'Sarabun', sans-serif;
-                background: var(--bg);
-                margin: 0;
-                padding: 20px;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-            }
-
-            /* --- UI Controls --- */
-            .controls-bar {
-                width: 100%;
-                max-width: var(--a4-w);
-                background: white;
-                padding: 15px;
-                border-radius: 8px;
-                margin-bottom: 20px;
-                display: flex;
-                gap: 10px;
-                align-items: center;
-                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-            }
-
-            .date-input {
-                padding: 8px;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                font-family: 'Sarabun';
-            }
-
-            .btn {
-                padding: 8px 15px;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-                color: white;
-                font-weight: bold;
-            }
-
-            .btn-load {
-                background: var(--primary);
-            }
-
-            .btn-print {
-                background: #333;
-            }
-
-            .back-link {
-                text-decoration: none;
-                color: #666;
-                font-weight: bold;
-                margin-right: 10px;
-            }
-
-            /* --- Paper Styles --- */
-            .paper {
-                width: var(--a4-w);
-                min-height: var(--a4-h);
-                background: white;
-                padding: 20mm;
-                margin-bottom: 20px;
-                box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-                position: relative;
-                page-break-after: always;
-            }
-
-            /* Header */
-            .rpt-header {
-                text-align: center;
-                margin-bottom: 15px;
-                line-height: 1.2;
-            }
-
-            .rpt-title {
-                font-size: 18pt;
-                font-weight: bold;
-            }
-
-            .rpt-date {
-                font-size: 16pt;
-                margin: 5px 0;
-            }
-
-            .rpt-school {
-                font-size: 16pt;
-            }
-
-            /* Table */
-            .rpt-table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-bottom: 10px;
-            }
-
-            .rpt-table th,
-            .rpt-table td {
-                border: 1px solid #000;
-                padding: 4px 5px;
-                font-size: 14pt;
-            }
-
-            .rpt-table th {
-                background-color: #f0f0f0;
-                text-align: center;
-                height: 35px;
-            }
-
-            .rpt-table td {
-                height: 30px;
-                vertical-align: middle;
-            }
-
-            .col-no {
-                width: 50px;
-                text-align: center;
-            }
-
-            .col-name {
-                text-align: left;
-            }
-
-            .col-time {
-                width: 80px;
-                text-align: center;
-            }
-
-            .col-note {
-                width: 120px;
-                text-align: center;
-            }
-
-            /* Footer (Flexbox Layout) */
-            .rpt-footer {
-                display: flex;
-                justify-content: space-between;
-                align-items: flex-start;
-                margin-top: 5px;
-                font-size: 14pt;
-                width: 100%;
-            }
-
-            .footer-left {
-                text-align: left;
-                white-space: nowrap;
-            }
-
-            .footer-right {
-                text-align: left;
-                white-space: nowrap;
-            }
-
-            .footer-row {
-                margin-bottom: 5px;
-            }
-
-            /* Signature Area */
-            .sign-area {
-                width: 100%;
-                text-align: center;
-                margin-top: 40px;
-            }
-
-            .sign-text {
-                margin-top: 5px;
-                font-size: 14pt;
-            }
-
-            /* Print Mode */
-            @media print {
-                body {
-                    background: white;
-                    padding: 0;
-                }
-
-                .controls-bar {
-                    display: none;
-                }
-
-                .paper {
-                    box-shadow: none;
-                    margin: 0;
-                    width: 100%;
-                    page-break-after: always;
-                    padding: 15mm;
-                }
-
-                .paper:last-child {
-                    page-break-after: auto;
-                }
-            }
-        </style>
-
-        <script src="supabase.js"></script>
-        <script src="sweetalert2.js"></script>
-        <script src="config.js"></script>
-    </head>
-
-    <body>
-
-        <div class="controls-bar">
-            <a href="menu.html" class="back-link"><i class="fas fa-arrow-left"></i> กลับเมนู</a>
-            <label>เลือกวันที่:</label>
-            <input type="date" id="filterDate" class="date-input">
-            <button class="btn btn-load" onclick="generateReport()">
-                <i class="fas fa-sync-alt"></i> โหลดข้อมูล
-            </button>
-            <div style="flex-grow:1"></div>
-            <button class="btn btn-print" onclick="window.print()">
-                <i class="fas fa-print"></i> สั่งพิมพ์ / PDF
-            </button>
-        </div>
-
-        <div id="reportContainer">
-            <div class="paper">
-                <div style="text-align:center; padding-top:100px; color:#999;">
-                    <h3>กรุณาเลือกวันที่แล้วกด "โหลดข้อมูล"</h3>
-                </div>
-            </div>
-        </div>
-
-        <script>
-            if (typeof sbClient === 'undefined') Swal.fire('Error', 'Connect Failed', 'error');
-
-            let appSettings = {};
-
-            document.addEventListener('DOMContentLoaded', async () => {
-                document.getElementById('filterDate').value = new Date().toISOString().split('T')[0];
-                await loadSettings();
-            });
-
-            async function loadSettings() {
-                try {
-                    const { data } = await sbClient.from(TAS_CONFIG.TABLE_SETTINGS).select('*');
-                    if (data) data.forEach(item => appSettings[item.key] = item.value);
-                } catch (e) { console.error("Settings error", e); }
-            }
-
-            function formatThaiDate(dateStr) {
-                const months = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
-                const d = new Date(dateStr);
-                const year = d.getFullYear() + 543;
-                return `วัน${['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'][d.getDay()]}ที่ ${d.getDate()} ${months[d.getMonth()]} พ.ศ.${year}`;
-            }
-
-            function parseTime(t) { return t ? t.slice(0, 5) : ''; }
-
-            function formatTypeName(typeName) {
-                if (!typeName) return "";
-                if (typeName.length > 25) {
-                    const parts = typeName.split(' ');
-                    if (parts.length > 1) { return parts[0] + "ฯ"; }
-                }
-                return typeName;
-            }
-
-            async function generateReport() {
-                const date = document.getElementById('filterDate').value;
-                const container = document.getElementById('reportContainer');
-                container.innerHTML = '<div class="paper" style="text-align:center; padding-top:100px;">กำลังประมวลผล...</div>';
-
-                try {
-                    const { data: users } = await sbClient.from(TAS_CONFIG.TABLE_USER).select('*').order('personnel_id');
-                    const { data: att } = await sbClient.from(TAS_CONFIG.TABLE_TARGET).select('*').eq('work_date', date);
-                    const { data: leaves } = await sbClient.from('Leave_records').select('*').eq('leave_date', date);
-
-                    if (!users || users.length === 0) {
-                        container.innerHTML = '<div class="paper" style="text-align:center; padding-top:100px;">ไม่พบข้อมูลพนักงาน</div>';
-                        return;
-                    }
-
-                    const attMap = {}; att?.forEach(x => attMap[x.personnel_id] = x);
-                    const leaveMap = {}; leaves?.forEach(x => leaveMap[x.personnel_id] = x);
-
-                    const groups = {};
-                    users.forEach(u => {
-                        const pType = u.personnel_type || u['ประเภท'] || 'ไม่ระบุประเภท';
-                        if (!groups[pType]) groups[pType] = [];
-
-                        const ts = attMap[u.personnel_id];
-                        const lv = leaveMap[u.personnel_id];
-                        let status = 'absent', note = '', tIn = '', tOut = '';
-
-                        if (ts) {
-                            status = 'present';
-                            tIn = parseTime(ts.time_in); tOut = parseTime(ts.time_out);
-                            const lateTime = appSettings['Late'] || '08:30';
-                            const earlyTime = appSettings['early_leave'] || '16:30';
-                            if (tIn > lateTime) note += 'มาสาย ';
-                            if (tOut && tOut < earlyTime) note += 'กลับก่อน';
-                            if (!tOut) note += 'ไม่ลงกลับ';
-                        } else if (lv) {
-                            status = 'leave';
-                            note = lv.leave_type;
-                            if (lv.leave_type.includes('ราชการ')) status = 'trip';
-                        }
-                        groups[pType].push({ ...u, tIn, tOut, status, note });
+    <script>
+        if (typeof sbClient === 'undefined') Swal.fire('Error', 'Connect Failed', 'error');
+        let appSettings = {};
+        document.addEventListener('DOMContentLoaded', async () => { document.getElementById('filterDate').value = new Date().toISOString().split('T')[0]; await loadSettings(); });
+        async function loadSettings() { try { const { data } = await sbClient.from(TAS_CONFIG.TABLE_SETTINGS).select('*'); if (data) data.forEach(item => appSettings[item.key] = item.value); } catch (e) { console.error("Settings error", e); } }
+        function formatThaiDate(dateStr) { const months = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"]; const d = new Date(dateStr); const year = d.getFullYear() + 543; return `วัน${['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'][d.getDay()]}ที่ ${d.getDate()} ${months[d.getMonth()]} พ.ศ.${year}`; }
+        function parseTime(t) { return t ? t.slice(0, 5) : ''; }
+        function formatTypeName(typeName) { if (!typeName) return ""; if (typeName.length > 25) { const parts = typeName.split(' '); if (parts.length > 1) { return parts[0] + "ฯ"; } } return typeName; }
+        async function generateReport() {
+            const date = document.getElementById('filterDate').value, container = document.getElementById('reportContainer');
+            container.innerHTML = '<div class="paper" style="text-align:center; padding-top:100px;">กำลังประมวลผล...</div>';
+            try {
+                const { data: users } = await sbClient.from(TAS_CONFIG.TABLE_USER).select('*').order('personnel_id');
+                const { data: att } = await sbClient.from(TAS_CONFIG.TABLE_TARGET).select('*').eq('work_date', date);
+                const { data: leaves } = await sbClient.from('Leave_records').select('*').eq('leave_date', date);
+                if (!users || users.length === 0) { container.innerHTML = '<div class="paper" style="text-align:center; padding-top:100px;">ไม่พบข้อมูลพนักงาน</div>'; return; }
+                const attMap = {}; att?.forEach(x => attMap[x.personnel_id] = x);
+                const leaveMap = {}; leaves?.forEach(x => leaveMap[x.personnel_id] = x);
+                const groups = {};
+                users.forEach(u => {
+                    const pType = u.personnel_type || u['ประเภท'] || 'ไม่ระบุประเภท';
+                    if (!groups[pType]) groups[pType] = [];
+                    const ts = attMap[u.personnel_id], lv = leaveMap[u.personnel_id];
+                    let status = 'absent', note = '', tIn = '', tOut = '';
+                    if (ts) { status = 'present'; tIn = parseTime(ts.time_in); tOut = parseTime(ts.time_out); const lateTime = appSettings['Late'] || '08:30', earlyTime = appSettings['early_leave'] || '16:30'; if (tIn > lateTime) note += 'มาสาย '; if (tOut && tOut < earlyTime) note += 'กลับก่อน'; if (!tOut) note += 'ไม่ลงกลับ'; }
+                    else if (lv) { status = 'leave'; note = lv.leave_type; if (lv.leave_type.includes('ราชการ')) status = 'trip'; }
+                    groups[pType].push({ ...u, tIn, tOut, status, note });
+                });
+                container.innerHTML = '';
+                Object.keys(groups).sort().forEach((type) => {
+                    const list = groups[type];
+                    list.sort((a, b) => {
+                        let groupA = 4, groupB = 4;
+                        if (a.tIn) groupA = 1; else if (a.tOut) groupA = 2; else if (a.status === 'leave' || a.status === 'trip') groupA = 3;
+                        if (b.tIn) groupB = 1; else if (b.tOut) groupB = 2; else if (b.status === 'leave' || b.status === 'trip') groupB = 3;
+                        if (groupA !== groupB) return groupA - groupB;
+                        if (groupA === 1) return a.tIn.localeCompare(b.tIn);
+                        if (groupA === 2) return a.tOut.localeCompare(b.tOut);
+                        if (groupA === 3) return a.note.localeCompare(b.note, 'th');
+                        return a.personnel_id.localeCompare(b.personnel_id);
                     });
-
-                    container.innerHTML = '';
-                    Object.keys(groups).sort().forEach((type) => {
-                        const list = groups[type];
-
-                        // 🔥🔥 Logic การเรียงลำดับใหม่ (Sort) 🔥🔥
-                        list.sort((a, b) => {
-                            // Priority Group:
-                            // 1. มีเวลาเข้า (tIn) -> เรียงตามเวลา
-                            // 2. ไม่มีเวลาเข้า แต่มีเวลาออก (tOut) -> เรียงตามเวลาออก
-                            // 3. ลา (Leave/Trip) -> เรียงตามชื่อประเภทลา
-                            // 4. อื่นๆ (ขาด) -> เรียงตามรหัส
-
-                            let groupA = 4, groupB = 4;
-
-                            if (a.tIn) groupA = 1;
-                            else if (a.tOut) groupA = 2;
-                            else if (a.status === 'leave' || a.status === 'trip') groupA = 3;
-
-                            if (b.tIn) groupB = 1;
-                            else if (b.tOut) groupB = 2;
-                            else if (b.status === 'leave' || b.status === 'trip') groupB = 3;
-
-                            // เปรียบเทียบกลุ่มหลักก่อน
-                            if (groupA !== groupB) return groupA - groupB;
-
-                            // เปรียบเทียบภายในกลุ่ม
-                            if (groupA === 1) return a.tIn.localeCompare(b.tIn); // เรียงตามเวลาเข้า
-                            if (groupA === 2) return a.tOut.localeCompare(b.tOut); // เรียงตามเวลาออก
-                            if (groupA === 3) return a.note.localeCompare(b.note, 'th'); // เรียงตามประเภทลา
-
-                            // ถ้าเท่ากันหมดให้เรียงตามรหัส
-                            return a.personnel_id.localeCompare(b.personnel_id);
-                        });
-
-                        // คำนวณยอด
-                        const total = list.length;
-                        const present = list.filter(x => x.status === 'present').length;
-                        const late = list.filter(x => x.note.includes('มาสาย')).length;
-                        const trip = list.filter(x => x.status === 'trip').length;
-                        const absent_leave = list.filter(x => ['leave', 'absent'].includes(x.status)).length;
-                        const vacant = 0; const borrowed = 0;
-                        const shortTypeName = formatTypeName(type);
-
-                        const pageDiv = document.createElement('div');
-                        pageDiv.className = 'paper';
-
-                        pageDiv.innerHTML = `
-                        <div class="rpt-header">
-                            <div class="rpt-title">บันทึกการลงเวลาปฏิบัติงานของ${type}</div>
-                            <div class="rpt-date">${formatThaiDate(date)}</div>
-                            <div class="rpt-school">${appSettings['school_name'] || 'โรงเรียน...'}</div>
-                        </div>
-
-                        <table class="rpt-table">
-                            <thead>
-                                <tr>
-                                    <th class="col-no">ลำดับ</th>
-                                    <th class="col-name">ชื่อ-สกุล</th>
-                                    <th class="col-time">ลงเวลามา</th>
-                                    <th class="col-time">ลงเวลากลับ</th>
-                                    <th class="col-note">หมายเหตุ</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${list.map((u, idx) => `
-                                    <tr>
-                                        <td class="col-no">${idx + 1}</td>
-                                        <td class="col-name">${u.name}</td>
-                                        <td class="col-time" ${u.tIn > (appSettings['Late'] || '08:30') ? 'style="color:red"' : ''}>${u.tIn || ''}</td>
-                                        <td class="col-time">${u.tOut || ''}</td>
-                                        <td class="col-note" style="font-size:12pt;">${u.note || ''}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-
-                        <div class="rpt-footer">
-                            <div class="footer-left">
-                                <div class="footer-row">${shortTypeName} ทั้งหมด ${total} คน</div>
-                                <div class="footer-row">ตำแหน่งว่าง ${vacant > 0 ? vacant : '-'} คน</div>
-                                <div class="footer-row">ไปราชการ ${trip > 0 ? trip : '-'} คน</div>
-                                <div class="footer-row">ไม่มาปฏิบัติราชการ ${absent_leave > 0 ? absent_leave : '-'} คน</div>
-                            </div>
-                            <div class="footer-right">
-                                <div class="footer-row">มาสาย ${late > 0 ? late : '-'} คน</div>
-                                <div class="footer-row">ยืมตัวมาช่วยราชการ ${borrowed > 0 ? borrowed : '-'} คน</div>
-                                <div class="footer-row">มาปฏิบัติราชการ ${present} คน</div>
-                                <div class="footer-row">&nbsp;</div>
-                            </div>
-                        </div>
-
-                        <div class="sign-area">
-                            <div class="sign-text" style="margin-bottom:20px;">(.......................................)</div>
-                            <div class="sign-text" style="margin-bottom:5px;">(${appSettings['signer_name'] || '.......................................'})</div>
-                            <div class="sign-text">${appSettings['signer_position'] || 'ผู้อำนวยการสถานศึกษา...'}</div>
-                        </div>
-                        
-                        <div style="position:absolute; bottom:15mm; right:15mm; font-size:10pt;">หน้า 1</div>
-                    `;
-                        container.appendChild(pageDiv);
-                    });
-
-                } catch (err) {
-                    container.innerHTML = `<div class="paper" style="color:red; text-align:center; padding-top:50px;">Error: ${err.message}</div>`;
-                }
-            }
-        </script>
-    </body>
-
+                    const total = list.length, present = list.filter(x => x.status === 'present').length, late = list.filter(x => x.note.includes('มาสาย')).length, trip = list.filter(x => x.status === 'trip').length, absent_leave = list.filter(x => ['leave', 'absent'].includes(x.status)).length, vacant = 0, borrowed = 0, shortTypeName = formatTypeName(type);
+                    const pageDiv = document.createElement('div'); pageDiv.className = 'paper';
+                    pageDiv.innerHTML = `<div class="rpt-header"><div class="rpt-title">บันทึกการลงเวลาปฏิบัติงานของ${type}</div><div class="rpt-date">${formatThaiDate(date)}</div><div class="rpt-school">${appSettings['school_name'] || 'โรงเรียน...'}</div></div><table class="rpt-table"><thead><tr><th class="col-no">ลำดับ</th><th class="col-name">ชื่อ-สกุล</th><th class="col-time">ลงเวลามา</th><th class="col-time">ลงเวลากลับ</th><th class="col-note">หมายเหตุ</th></tr></thead><tbody>${list.map((u, idx) => `<tr><td class="col-no">${idx + 1}</td><td class="col-name">${u.name}</td><td class="col-time" ${u.tIn > (appSettings['Late'] || '08:30') ? 'style="color:red"' : ''}>${u.tIn || ''}</td><td class="col-time">${u.tOut || ''}</td><td class="col-note" style="font-size:12pt;">${u.note || ''}</td></tr>`).join('')}</tbody></table><div class="rpt-footer"><div class="footer-left"><div class="footer-row">${shortTypeName} ทั้งหมด ${total} คน</div><div class="footer-row">ตำแหน่งว่าง ${vacant > 0 ? vacant : '-'} คน</div><div class="footer-row">ไปราชการ ${trip > 0 ? trip : '-'} คน</div><div class="footer-row">ไม่มาปฏิบัติราชการ ${absent_leave > 0 ? absent_leave : '-'} คน</div></div><div class="footer-right"><div class="footer-row">มาสาย ${late > 0 ? late : '-'} คน</div><div class="footer-row">ยืมตัวมาช่วยราชการ ${borrowed > 0 ? borrowed : '-'} คน</div><div class="footer-row">มาปฏิบัติราชการ ${present} คน</div><div class="footer-row">&nbsp;</div></div></div><div class="sign-area"><div class="sign-text" style="margin-bottom:20px;">(.......................................)</div><div class="sign-text" style="margin-bottom:5px;">(${appSettings['signer_name'] || '.......................................'})</div><div class="sign-text">${appSettings['signer_position'] || 'ผู้อำนวยการสถานศึกษา...'}</div></div><div style="position:absolute; bottom:15mm; right:15mm; font-size:10pt;">หน้า 1</div>`;
+                    container.appendChild(pageDiv);
+                });
+            } catch (err) { container.innerHTML = `<div class="paper" style="color:red; text-align:center; padding-top:50px;">Error: ${err.message}</div>`; }
+        }
+    </script>
+</body>
 </html>
