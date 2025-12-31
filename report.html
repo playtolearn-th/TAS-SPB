@@ -14,10 +14,8 @@
     <meta name="apple-mobile-web-app-title" content="TAS-SPB">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
+    
     <style>
-        /* เรียกใช้ Font จาก Folder font/ ใน Root */
         @font-face {
             font-family: 'THSarabunNew';
             src: url('font/THSarabunNew.ttf') format('truetype');
@@ -31,7 +29,6 @@
 
         :root { 
             --paper-w: 210mm; --paper-h: 297mm;
-            /* มาตรฐานสารบรรณ: กั้นหน้า 3 ซม. (30mm) ด้านอื่น 2 ซม. (20mm) */
             --pad-top: 20mm; --pad-bottom: 20mm; --pad-left: 30mm; --pad-right: 20mm;
             --content-w: calc(var(--paper-w) - var(--pad-left) - var(--pad-right));
             --half-w: calc(var(--content-w) / 2);
@@ -45,7 +42,6 @@
             display: flex; flex-direction: column; align-items: center;
         }
 
-        /* Toolbar */
         .toolbar { 
             width: 100%; position: sticky; top: 0; z-index: 100; 
             background: white; padding: 12px; border-bottom: 1px solid #ddd; 
@@ -73,44 +69,26 @@
             box-shadow: 0 0 10px rgba(0,0,0,0.3);
         }
 
-        /* Scaler สำหรับ Mobile */
         @media screen and (max-width: 215mm) {
             #reportWrapper { transform: scale(0.42); transform-origin: top center; height: auto; margin-bottom: -60%; }
         }
 
-        /* หัวเรื่อง 18pt และตัดคำด้วยวรรค */
         .rpt-header { text-align: center; margin-bottom: 8mm; line-height: 1.2; }
-        .rpt-title { 
-            font-size: 18pt; font-weight: bold; margin-bottom: 4px;
-            word-break: keep-all; overflow-wrap: normal; /* ป้องกันการฉีกคำไทย */
-        }
-        .rpt-sub { font-size: 18pt; font-weight: normal; }
+        .rpt-title { font-size: 18pt; font-weight: bold; margin-bottom: 4px; word-break: keep-all; }
+        .rpt-sub { font-size: 18pt; }
 
-        /* ตาราง */
         .rpt-table { width: 100%; border-collapse: collapse; border: 1.5px solid black; table-layout: fixed; }
-        .rpt-table th { 
-            border: 1px solid black; background: #f2f2f2; font-weight: bold; 
-            height: 38px; font-size: 16pt; text-align: center; 
-        }
-        .rpt-table td { 
-            border: 1px solid black; padding: 2px 5px; font-size: 16pt; 
-            height: 30px; vertical-align: middle; overflow: hidden; 
-            white-space: nowrap; text-overflow: ellipsis; 
-        }
+        .rpt-table th { border: 1px solid black; background: #f2f2f2; font-weight: bold; height: 38px; font-size: 16pt; text-align: center; }
+        .rpt-table td { border: 1px solid black; padding: 2px 5px; font-size: 16pt; height: 30px; vertical-align: middle; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 
-        /* จัดขนาดคอลัมน์: ลำดับ + ชื่อ = ครึ่งหน้าพอดี */
         .col-id { width: 45px; text-align: center; }
         .col-name { width: calc(var(--half-w) - 45px); }
         .col-time { width: 75px; text-align: center; }
         .col-note { width: auto; }
 
-        /* ท้ายกระดาษ */
         .footer-content { margin-top: 1.5rem; width: 100%; font-size: 16pt; }
         .summary-grid { display: grid; grid-template-columns: 1.1fr 1fr; line-height: 1.4; }
-        .signature-area { 
-            width: 100%; text-align: center; margin-top: 15mm; 
-            line-height: 1.6; font-size: 16pt; 
-        }
+        .signature-area { width: 100%; text-align: center; margin-top: 15mm; line-height: 1.6; font-size: 16pt; }
         
         .page-num { position: absolute; bottom: 8mm; right: 20mm; font-size: 14pt; color: #333; }
 
@@ -136,7 +114,7 @@
     <script src="sweetalert2.js"></script>
 
     <script>
-        const ROWS_PER_PAGE = 29; [cite_start]// 1 หน้ามี 29 รายการ [cite: 1, 2]
+        const ROWS_PER_PAGE = 29;
 
         async function loadData() {
             const dateStr = document.getElementById('reportDate').value;
@@ -163,7 +141,6 @@
                     u.tIn = ts?.time_in || "";
                     u.tOut = ts?.time_out || "";
                     u.note = lv?.leave_type || (u.tIn > (config['Late'] || '08:30') ? "มาสาย" : "");
-                    [cite_start]// เรียงตามเวลาเข้าก่อน ถ้าว่างให้ต่อท้าย [cite: 1, 2]
                     u.sortKey = u.tIn ? `1_${u.tIn}` : `2_${u.note}`;
                     groups[type].push(u);
                 });
@@ -178,7 +155,6 @@
                         pageEl.className = 'paper';
                         const items = sortedList.slice(p * ROWS_PER_PAGE, (p + 1) * ROWS_PER_PAGE);
                         
-                        // ตัดประเภทบุคลากรที่วรรคเพื่อป้องกันฉีกคำ
                         const headerType = type.length > 35 ? type.split(' ')[0] + 'ฯ' : type;
 
                         pageEl.innerHTML = `
@@ -189,13 +165,7 @@
                             </div>
                             <table class="rpt-table">
                                 <thead>
-                                    <tr>
-                                        <th class="col-id">ที่</th>
-                                        <th class="col-name">ชื่อ-สกุล</th>
-                                        <th class="col-time">มา</th>
-                                        <th class="col-time">กลับ</th>
-                                        <th class="col-note">หมายเหตุ</th>
-                                    </tr>
+                                    <tr><th class="col-id">ที่</th><th class="col-name">ชื่อ-สกุล</th><th class="col-time">มา</th><th class="col-time">กลับ</th><th class="col-note">หมายเหตุ</th></tr>
                                 </thead>
                                 <tbody>
                                     ${items.map((u, i) => `
@@ -211,7 +181,7 @@
                             <div class="page-num">${p+1}/${totalPages}</div>
                         `;
 
-                        if(p === totalPages - 1) { // ท้ายตารางเฉพาะหน้าสุดท้าย
+                        if(p === totalPages - 1) {
                             const tripCount = sortedList.filter(x => x.note.includes('ราชการ')).length;
                             const leaveCount = sortedList.filter(x => x.note && !x.note.includes('ราชการ') && !x.note.includes('สาย')).length;
                             const lateCount = sortedList.filter(x => x.note === 'มาสาย').length;
@@ -233,8 +203,8 @@
                                     </div>
                                 </div>
                                 <div class="signature-area">
-                                    <div>..................................................................</div>
-                                    <div style="margin-top:5px;">(${config['signer_name'] || ''})</div>
+                                    <div style="margin-bottom:10px;">..................................................................</div>
+                                    <div>(${config['signer_name'] || ''})</div>
                                     <div>${config['signer_position'] || ''}</div>
                                 </div>
                             `;
