@@ -31,7 +31,7 @@
             display: flex; justify-content: space-between; align-items: center;
             border-left: 5px solid #cbd5e1; 
         }
-        .item-active { border-left-color: #10b981; } /* DB or URL Success */
+        .item-active { border-left-color: #10b981; } 
         .item-leave { border-left-color: #f59e0b; } 
         .item-date { font-weight: 700; font-size: 0.95rem; }
         .item-source { font-size: 0.7rem; color: var(--muted); }
@@ -81,7 +81,8 @@
     <script>
         const user = JSON.parse(localStorage.getItem('tas_user') || '{}');
         let attPage = 0, leavePage = 0, externalBaseURL = "";
-        const pageSize = 7;
+        const pageSizeAtt = 7; // เวลาทำงาน 7 วัน
+        const pageSizeLeave = 5; // การลา 5 รายการ
 
         document.addEventListener('DOMContentLoaded', async () => {
             if (!user.personnel_id) { window.location.href = 'login.html'; return; }
@@ -109,40 +110,21 @@
         async function loadAttendance() {
             const container = document.getElementById('att-list');
             container.innerHTML = '<p style="text-align:center; padding:20px; color:var(--muted);">กำลังโหลดข้อมูล...</p>';
-            
             try {
                 let combinedData = [];
                 const dbDates = new Set();
-
-                // 1. ดึงจาก DB
-                const { data: dbData } = await sbClient.from(TAS_CONFIG.TABLE_TARGET)
-                    .select('work_date, time_in, time_out')
-                    .eq('personnel_id', user.personnel_id)
-                    .order('work_date', { ascending: false });
-
-                if (dbData) {
-                    dbData.forEach(item => {
-                        dbDates.add(item.work_date);
-                        combinedData.push({ ...item, source: 'DB' });
-                    });
-                }
-
-                // 2. ดึงจาก URL (เฉพาะวันที่ยังไม่มีใน DB)
+                const { data: dbData } = await sbClient.from(TAS_CONFIG.TABLE_TARGET).select('work_date, time_in, time_out').eq('personnel_id', user.personnel_id).order('work_date', { ascending: false });
+                if (dbData) { dbData.forEach(item => { dbDates.add(item.work_date); combinedData.push({ ...item, source: 'DB' }); }); }
                 if (externalBaseURL) {
                     const today = new Date();
-                    // ตรวจสอบย้อนหลัง (ตัวอย่าง 14 วันล่าสุด เพื่อหาข้อมูลที่ขาด)
                     for(let i=0; i<14; i++) {
-                        const targetDate = new Date();
-                        targetDate.setDate(today.getDate() - i);
+                        const targetDate = new Date(); targetDate.setDate(today.getDate() - i);
                         const dateStr = targetDate.toISOString().split('T')[0];
-                        
-                        // เงื่อนไขสำคัญ: ซ่อนจาก URL หากพบใน DB แล้ว
                         if (!dbDates.has(dateStr)) {
                             const dateURL = formatDateURL(targetDate);
                             try {
                                 const proxyURL = `https://api.allorigins.win/get?url=${encodeURIComponent(externalBaseURL + dateURL)}`;
-                                const res = await fetch(proxyURL);
-                                const json = await res.json();
+                                const res = await fetch(proxyURL); const json = await res.json();
                                 const records = parseHTML(json.contents, dateStr);
                                 const myRecord = records.find(r => r.personnel_id === user.personnel_id);
                                 if (myRecord) combinedData.push({ ...myRecord, source: 'URL' });
@@ -150,54 +132,53 @@
                         }
                     }
                 }
-
-                // เรียงวันที่ล่าสุดก่อน (Sort by date descending)
                 combinedData.sort((a, b) => new Date(b.work_date) - new Date(a.work_date));
-
-                // ทำ Pagination แบบ Manual จากข้อมูลที่รวมแล้ว
-                const start = attPage * pageSize;
-                const paginatedData = combinedData.slice(start, start + pageSize);
-
+                const start = attPage * pageSizeAtt;
+                const paginatedData = combinedData.slice(start, start + pageSizeAtt);
                 let html = "";
                 paginatedData.forEach(item => {
-                    html += `
-                    <div class="history-item item-active">
-                        <div>
-                            <div class="item-date">${formatThaiDate(item.work_date)}</div>
-                            <div class="item-source">${item.source === 'DB' ? 'บันทึกระบบ' : 'รายงานภายนอก'}</div>
-                        </div>
-                        <div style="display:flex; gap:5px;">
-                            <span class="time-badge t-in">${item.time_in || '--:--'}</span>
-                            <span class="time-badge t-out">${item.time_out || '--:--'}</span>
-                        </div>
-                    </div>`;
+                    html += `<div class="history-item item-active"><div><div class="item-date">${formatThaiDate(item.work_date)}</div><div class="item-source">${item.source === 'DB' ? 'บันทึกระบบ' : 'รายงานภายนอก'}</div></div><div style="display:flex; gap:5px;"><span class="time-badge t-in">${item.time_in || '--:--'}</span><span class="time-badge t-out">${item.time_out || '--:--'}</span></div></div>`;
                 });
-
                 container.innerHTML = html || '<p style="text-align:center; padding:20px; color:var(--muted);">ไม่พบประวัติข้อมูล</p>';
                 document.getElementById('att-prev').disabled = attPage === 0;
-                document.getElementById('att-next').disabled = start + pageSize >= combinedData.length;
+                document.getElementById('att-next').disabled = start + pageSizeAtt >= combinedData.length;
             } catch (e) { container.innerHTML = 'Error loading data.'; }
         }
 
         async function loadLeaves() {
             const container = document.getElementById('leave-list');
+            container.innerHTML = '<p style="text-align:center; padding:20px; color:var(--muted);">กำลังโหลดรายการลา...</p>';
             try {
-                const { data } = await sbClient.from('Leave_records')
-                    .select('*')
+                // ดึงข้อมูลการลาและกรอง 'ยกเว้น' ออก
+                const { data, count, error } = await sbClient.from('Leave_records')
+                    .select('*', { count: 'exact' })
                     .eq('personnel_id', user.personnel_id)
-                    .neq('leave_type', 'ยกเว้น') // กรองรายการ "ยกเว้น" ออก
+                    .neq('leave_type', 'ยกเว้น')
                     .order('leave_date', { ascending: false })
-                    .range(leavePage * pageSize, (leavePage + 1) * pageSize - 1);
+                    .range(leavePage * pageSizeLeave, (leavePage + 1) * pageSizeLeave - 1);
+
+                if (error) throw error;
 
                 if (data && data.length > 0) {
                     container.innerHTML = data.map(item => `
                         <div class="history-item item-leave">
-                            <div><div class="item-date">${formatThaiDate(item.leave_date)}</div><div class="item-source">${item.leave_type}</div></div>
-                            <div style="font-size:0.8rem; font-weight:700;">${item.status || 'อนุมัติ'}</div>
+                            <div>
+                                <div class="item-date">${formatThaiDate(item.leave_date)}</div>
+                                <div class="item-source">${item.leave_type}</div>
+                            </div>
+                            <div style="font-size:0.8rem; font-weight:700; color:var(--primary);">${item.status || 'อนุมัติ'}</div>
                         </div>`).join('');
-                } else container.innerHTML = '<p style="text-align:center; padding:20px; color:var(--muted);">ไม่พบประวัติการลา</p>';
+                } else {
+                    container.innerHTML = '<p style="text-align:center; padding:20px; color:var(--muted);">ไม่พบประวัติการลา</p>';
+                }
+                
+                // ควบคุมปุ่ม Pagination
                 document.getElementById('leave-prev').disabled = leavePage === 0;
-            } catch (e) {}
+                document.getElementById('leave-next').disabled = (data ? data.length : 0) < pageSizeLeave;
+            } catch (e) {
+                console.error(e);
+                container.innerHTML = '<p style="text-align:center; color:red;">เกิดข้อผิดพลาดในการดึงข้อมูล</p>';
+            }
         }
 
         function parseHTML(htmlString, dateStr) {
@@ -205,9 +186,7 @@
             if (!table) return [];
             table.querySelectorAll('tbody tr').forEach(row => {
                 const cols = row.querySelectorAll('td');
-                if (cols.length >= 4) {
-                    records.push({ personnel_id: cols[0].innerText.trim(), work_date: dateStr, time_in: cols[2].innerText.trim(), time_out: cols[3].innerText.trim() });
-                }
+                if (cols.length >= 4) { records.push({ personnel_id: cols[0].innerText.trim(), work_date: dateStr, time_in: cols[2].innerText.trim(), time_out: cols[3].innerText.trim() }); }
             }); return records;
         }
 
@@ -221,8 +200,7 @@
             if (newPass) {
                 const { error } = await sbClient.from(TAS_CONFIG.TABLE_USER).update({ Password: newPass }).eq('personnel_id', user.personnel_id);
                 if (!error) { 
-                    user.Password = newPass; 
-                    localStorage.setItem('tas_user', JSON.stringify(user)); 
+                    user.Password = newPass; localStorage.setItem('tas_user', JSON.stringify(user)); 
                     Swal.fire('สำเร็จ', 'บันทึกรหัสผ่านใหม่แล้ว', 'success'); 
                 }
             }
