@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* เรียกใช้ Font TH Sarabun New จากโฟลเดอร์ font/ */
+        /* เรียกใช้ Font TH Sarabun New */
         @font-face {
             font-family: 'THSarabunNew';
             src: url('font/THSarabunNew.ttf') format('truetype');
@@ -44,7 +44,6 @@
             display: flex; flex-direction: column; align-items: center;
         }
 
-        /* Toolbar */
         .toolbar { 
             width: 100%; position: sticky; top: 0; z-index: 100; 
             background: white; padding: 12px; border-bottom: 1px solid #ddd; 
@@ -73,13 +72,19 @@
             #reportWrapper { transform: scale(0.42); transform-origin: top center; height: auto; margin-bottom: -60%; }
         }
 
-        /* หัวเรื่อง 18pt */
+        /* หัวเรื่อง 18pt และตั้งค่าการตัดบรรทัดที่วรรค */
         .rpt-header { text-align: center; margin-bottom: 6mm; line-height: 1.2; }
-        /* แก้ไขระบบตัดคำหัวเรื่อง: ถ้าบรรทัดเดียวไม่พอจะตัดที่วรรค */
-        .rpt-title { font-size: 18pt; font-weight: bold; white-space: normal; word-break: keep-all; display: block; width: 100%; }
+        .rpt-title { 
+            font-size: 18pt; 
+            font-weight: bold; 
+            display: block; 
+            width: 100%;
+            white-space: pre-wrap; /* รักษาการขึ้นบรรทัดใหม่จาก JavaScript */
+            word-wrap: break-word;
+        }
         .rpt-sub { font-size: 18pt; }
 
-        /* ตารางปรับความสูงแถวเป็น 26.4px เพื่อให้พอดี 29 รายการอย่างแม่นยำ */
+        /* ตารางปรับความสูงแถว 26.4px เพื่อความแม่นยำ 29 รายการ */
         .rpt-table { width: 100%; border-collapse: collapse; border: 1.5px solid black; table-layout: fixed; }
         .rpt-table th { border: 1px solid black; background: #f2f2f2; font-weight: bold; height: 35px; font-size: 16pt; text-align: center; }
         .rpt-table td { 
@@ -93,7 +98,6 @@
         .col-name { width: calc(var(--half-w) - 45px); }
         .col-time { width: 75px; text-align: center; }
 
-        /* ท้ายกระดาษ */
         .footer-content { margin-top: 3.5mm; width: 100%; font-size: 16pt; }
         .summary-grid { display: grid; grid-template-columns: var(--col-back-line) 1fr; line-height: 1.3; }
         .summary-left { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding-right: 10px; }
@@ -176,11 +180,19 @@
                         pageEl.className = 'paper';
                         const items = sortedList.slice(p * ROWS_PER_PAGE, (p + 1) * ROWS_PER_PAGE);
                         
-                        const headerFull = `บันทึกการลงเวลาปฏิบัติงานของ ${type}`;
+                        // แก้ไขการแสดงผลหัวเรื่องให้ตัดบรรทัดที่วรรค
+                        let headerTitle = "บันทึกการลงเวลาปฏิบัติงานของ " + type;
+                        if (headerTitle.length > 40) {
+                            // หาช่องว่างสุดท้ายก่อนถึงจุดที่เหมาะสม (ประมาณ 35-40 ตัวอักษร)
+                            let lastSpaceIndex = headerTitle.lastIndexOf(' ', 45);
+                            if (lastSpaceIndex !== -1) {
+                                headerTitle = headerTitle.substring(0, lastSpaceIndex) + "\n" + headerTitle.substring(lastSpaceIndex + 1);
+                            }
+                        }
 
                         pageEl.innerHTML = `
                             <div class="rpt-header">
-                                <div class="rpt-title">${headerFull}</div>
+                                <div class="rpt-title">${headerTitle}</div>
                                 <div class="rpt-sub">${formatThaiDate(dateStr)}</div>
                                 <div class="rpt-sub">${config['school_name'] || ''}</div>
                             </div>
