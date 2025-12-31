@@ -17,36 +17,24 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
-        /* เรียกใช้ Font จาก Folder font/ */
+        /* เรียกใช้ Font จาก Folder font/ ใน Root */
         @font-face {
             font-family: 'THSarabunNew';
             src: url('font/THSarabunNew.ttf') format('truetype');
-            font-weight: normal;
-            font-style: normal;
+            font-weight: normal; font-style: normal;
         }
         @font-face {
             font-family: 'THSarabunNew';
             src: url('font/THSarabunNew Bold.ttf') format('truetype');
-            font-weight: bold;
-            font-style: normal;
-        }
-        @font-face {
-            font-family: 'THSarabunNew';
-            src: url('font/THSarabunNew Italic.ttf') format('truetype');
-            font-weight: normal;
-            font-style: italic;
-        }
-        @font-face {
-            font-family: 'THSarabunNew';
-            src: url('font/THSarabunNew BoldItalic.ttf') format('truetype');
-            font-weight: bold;
-            font-style: italic;
+            font-weight: bold; font-style: normal;
         }
 
         :root { 
             --paper-w: 210mm; --paper-h: 297mm;
+            /* มาตรฐานสารบรรณ: กั้นหน้า 3 ซม. (30mm) ด้านอื่น 2 ซม. (20mm) */
             --pad-top: 20mm; --pad-bottom: 20mm; --pad-left: 30mm; --pad-right: 20mm;
-            --half-table: calc((var(--paper-w) - var(--pad-left) - var(--pad-right)) / 2);
+            --content-w: calc(var(--paper-w) - var(--pad-left) - var(--pad-right));
+            --half-w: calc(var(--content-w) / 2);
         }
         
         * { box-sizing: border-box; -webkit-print-color-adjust: exact; }
@@ -57,12 +45,24 @@
             display: flex; flex-direction: column; align-items: center;
         }
 
+        /* Toolbar */
         .toolbar { 
             width: 100%; position: sticky; top: 0; z-index: 100; 
-            background: white; padding: 10px; border-bottom: 1px solid #ddd; 
-            display: flex; justify-content: center; gap: 10px; 
+            background: white; padding: 12px; border-bottom: 1px solid #ddd; 
+            display: flex; justify-content: center; align-items: center; gap: 8px; 
         }
-        .btn { padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; font-family: 'THSarabunNew'; background: #4f46e5; color: white; }
+        .btn { 
+            padding: 10px 18px; border-radius: 10px; border: none; cursor: pointer; 
+            font-weight: bold; font-family: 'THSarabunNew'; font-size: 15pt;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            min-width: 110px; line-height: 1;
+        }
+        .btn-load { background: #4f46e5; color: white; }
+        .btn-print { background: #1e293b; color: white; }
+        .date-input { 
+            padding: 8px 12px; border-radius: 10px; border: 1px solid #cbd5e1; 
+            font-family: 'THSarabunNew'; font-size: 15pt; height: 42px;
+        }
 
         #reportWrapper { padding: 20px 0; display: flex; flex-direction: column; align-items: center; width: 100%; }
         
@@ -73,27 +73,44 @@
             box-shadow: 0 0 10px rgba(0,0,0,0.3);
         }
 
+        /* Scaler สำหรับ Mobile */
         @media screen and (max-width: 215mm) {
             #reportWrapper { transform: scale(0.42); transform-origin: top center; height: auto; margin-bottom: -60%; }
         }
 
-        /* การตั้งค่าขนาดตัวอักษรตามสั่ง */
-        .rpt-header { text-align: center; margin-bottom: 8mm; line-height: 1.1; }
-        .rpt-title { font-size: 18pt; font-weight: bold; margin-bottom: 2px; }
+        /* หัวเรื่อง 18pt และตัดคำด้วยวรรค */
+        .rpt-header { text-align: center; margin-bottom: 8mm; line-height: 1.2; }
+        .rpt-title { 
+            font-size: 18pt; font-weight: bold; margin-bottom: 4px;
+            word-break: keep-all; overflow-wrap: normal; /* ป้องกันการฉีกคำไทย */
+        }
         .rpt-sub { font-size: 18pt; font-weight: normal; }
 
+        /* ตาราง */
         .rpt-table { width: 100%; border-collapse: collapse; border: 1.5px solid black; table-layout: fixed; }
-        .rpt-table th { border: 1px solid black; background: #f2f2f2; text-align: center; font-weight: bold; height: 35px; font-size: 16pt; }
-        .rpt-table td { border: 1px solid black; padding: 1px 5px; font-size: 16pt; line-height: 1.0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; height: 28px; vertical-align: middle; font-weight: normal; }
+        .rpt-table th { 
+            border: 1px solid black; background: #f2f2f2; font-weight: bold; 
+            height: 38px; font-size: 16pt; text-align: center; 
+        }
+        .rpt-table td { 
+            border: 1px solid black; padding: 2px 5px; font-size: 16pt; 
+            height: 30px; vertical-align: middle; overflow: hidden; 
+            white-space: nowrap; text-overflow: ellipsis; 
+        }
 
+        /* จัดขนาดคอลัมน์: ลำดับ + ชื่อ = ครึ่งหน้าพอดี */
         .col-id { width: 45px; text-align: center; }
-        .col-name { width: calc(var(--half-table) - 45px); }
+        .col-name { width: calc(var(--half-w) - 45px); }
         .col-time { width: 75px; text-align: center; }
         .col-note { width: auto; }
 
-        .footer-content { margin-top: 1.2rem; width: 100%; font-size: 16pt; }
-        .summary-grid { display: grid; grid-template-columns: 1.1fr 1fr; line-height: 1.2; }
-        .signature-area { width: 100%; text-align: center; margin-top: 10mm; line-height: 1.5; font-size: 16pt; }
+        /* ท้ายกระดาษ */
+        .footer-content { margin-top: 1.5rem; width: 100%; font-size: 16pt; }
+        .summary-grid { display: grid; grid-template-columns: 1.1fr 1fr; line-height: 1.4; }
+        .signature-area { 
+            width: 100%; text-align: center; margin-top: 15mm; 
+            line-height: 1.6; font-size: 16pt; 
+        }
         
         .page-num { position: absolute; bottom: 8mm; right: 20mm; font-size: 14pt; color: #333; }
 
@@ -103,32 +120,34 @@
             .paper { margin: 0; box-shadow: none; page-break-after: always; }
         }
     </style>
-    <script src="supabase.js"></script><script src="config.js"></script>
-    <script src="sweetalert2.js"></script>
 </head>
 <body>
     <div class="toolbar">
-        <button class="btn" onclick="window.location.href='menu.html'"><i class="fas fa-arrow-left"></i> เมนู</button>
-        <input type="date" id="reportDate" style="padding:5px; border-radius:5px; border:1px solid #ccc; font-family:'THSarabunNew'; font-size:14pt;">
-        <button class="btn" onclick="loadData()">โหลดข้อมูล</button>
-        <button class="btn" style="background:#333" onclick="window.print()">พิมพ์ / PDF</button>
+        <button class="btn" style="background:#f1f5f9; color:#475569;" onclick="window.location.href='menu.html'"><i class="fas fa-arrow-left"></i> เมนู</button>
+        <input type="date" id="reportDate" class="date-input">
+        <button class="btn btn-load" onclick="loadData()"><i class="fas fa-sync-alt"></i> โหลดข้อมูล</button>
+        <button class="btn btn-print" onclick="window.print()"><i class="fas fa-file-pdf"></i> พิมพ์ / PDF</button>
     </div>
 
     <div id="reportWrapper"></div>
 
+    <script src="supabase.js"></script>
+    <script src="config.js"></script>
+    <script src="sweetalert2.js"></script>
+
     <script>
-        const ROWS_PER_PAGE = 29;
+        const ROWS_PER_PAGE = 29; [cite_start]// 1 หน้ามี 29 รายการ [cite: 1, 2]
 
         async function loadData() {
-            const date = document.getElementById('reportDate').value;
+            const dateStr = document.getElementById('reportDate').value;
             const wrapper = document.getElementById('reportWrapper');
-            if(!date) return;
-            wrapper.innerHTML = '<div class="paper"><div style="text-align:center; margin-top:100mm; font-size:18pt;">กำลังโหลดข้อมูล...</div></div>';
+            if(!dateStr) return;
+            wrapper.innerHTML = '<div class="paper"><div style="text-align:center; margin-top:100mm; font-size:18pt;">กำลังโหลด...</div></div>';
 
             try {
                 const { data: users } = await sbClient.from(TAS_CONFIG.TABLE_USER).select('*');
-                const { data: att } = await sbClient.from(TAS_CONFIG.TABLE_TARGET).select('*').eq('work_date', date);
-                const { data: leaves } = await sbClient.from('Leave_records').select('*').eq('leave_date', date);
+                const { data: att } = await sbClient.from(TAS_CONFIG.TABLE_TARGET).select('*').eq('work_date', dateStr);
+                const { data: leaves } = await sbClient.from('Leave_records').select('*').eq('leave_date', dateStr);
                 const { data: settings } = await sbClient.from(TAS_CONFIG.TABLE_SETTINGS).select('*');
                 
                 const config = {}; settings?.forEach(s => config[s.key] = s.value);
@@ -144,24 +163,28 @@
                     u.tIn = ts?.time_in || "";
                     u.tOut = ts?.time_out || "";
                     u.note = lv?.leave_type || (u.tIn > (config['Late'] || '08:30') ? "มาสาย" : "");
-                    u.sortOrder = u.tIn ? `1_${u.tIn}` : `2_${u.note}`;
+                    [cite_start]// เรียงตามเวลาเข้าก่อน ถ้าว่างให้ต่อท้าย [cite: 1, 2]
+                    u.sortKey = u.tIn ? `1_${u.tIn}` : `2_${u.note}`;
                     groups[type].push(u);
                 });
 
                 wrapper.innerHTML = "";
                 Object.keys(groups).sort().forEach(type => {
-                    const list = groups[type].sort((a,b) => a.sortOrder.localeCompare(b.sortOrder));
-                    const totalPages = Math.ceil(list.length / ROWS_PER_PAGE);
+                    const sortedList = groups[type].sort((a,b) => a.sortKey.localeCompare(b.sortKey));
+                    const totalPages = Math.ceil(sortedList.length / ROWS_PER_PAGE);
 
                     for(let p = 0; p < totalPages; p++) {
                         const pageEl = document.createElement('div');
                         pageEl.className = 'paper';
-                        const items = list.slice(p * ROWS_PER_PAGE, (p + 1) * ROWS_PER_PAGE);
+                        const items = sortedList.slice(p * ROWS_PER_PAGE, (p + 1) * ROWS_PER_PAGE);
                         
+                        // ตัดประเภทบุคลากรที่วรรคเพื่อป้องกันฉีกคำ
+                        const headerType = type.length > 35 ? type.split(' ')[0] + 'ฯ' : type;
+
                         pageEl.innerHTML = `
                             <div class="rpt-header">
-                                <div class="rpt-title">บันทึกการลงเวลาปฏิบัติงานของ${type}</div>
-                                <div class="rpt-sub">${formatThaiDate(date)}</div>
+                                <div class="rpt-title">บันทึกการลงเวลาปฏิบัติงานของ ${headerType}</div>
+                                <div class="rpt-sub">${formatThaiDate(dateStr)}</div>
                                 <div class="rpt-sub">${config['school_name'] || ''}</div>
                             </div>
                             <table class="rpt-table">
@@ -188,33 +211,34 @@
                             <div class="page-num">${p+1}/${totalPages}</div>
                         `;
 
-                        if(p === totalPages - 1) {
-                            const summary = document.createElement('div');
-                            summary.className = 'footer-content';
-                            const isLeave = x => x.note && !x.note.includes('ราชการ') && !x.note.includes('สาย');
-                            const presentCount = list.length - list.filter(isLeave).length;
-                            
-                            summary.innerHTML = `
+                        if(p === totalPages - 1) { // ท้ายตารางเฉพาะหน้าสุดท้าย
+                            const tripCount = sortedList.filter(x => x.note.includes('ราชการ')).length;
+                            const leaveCount = sortedList.filter(x => x.note && !x.note.includes('ราชการ') && !x.note.includes('สาย')).length;
+                            const lateCount = sortedList.filter(x => x.note === 'มาสาย').length;
+
+                            const footer = document.createElement('div');
+                            footer.className = 'footer-content';
+                            footer.innerHTML = `
                                 <div class="summary-grid">
                                     <div>
-                                        ${type.length > 35 ? type.slice(0,35)+'ฯ' : type} ทั้งหมด ${list.length} คน<br>
+                                        ${headerType} ทั้งหมด ${sortedList.length} คน<br>
                                         ตำแหน่งว่าง ${getVal(config['vacant_position'], type)} คน<br>
-                                        ไปราชการ ${list.filter(x => x.note.includes('ราชการ')).length || '-'}<br>
-                                        ไม่มาปฏิบัติราชการ ${list.filter(isLeave).length || '-'} คน
+                                        ไปราชการ ${tripCount || '-'}<br>
+                                        ไม่มาปฏิบัติราชการ ${leaveCount || '-'} คน
                                     </div>
                                     <div style="padding-left:15%">
-                                        มาสาย ${list.filter(x => x.note === 'มาสาย').length || '-'} คน<br>
+                                        มาสาย ${lateCount || '-'} คน<br>
                                         ยืมตัวมาช่วยราชการ ${getVal(config['government_service'], type)} คน<br>
-                                        มาปฏิบัติราชการ ${presentCount} คน
+                                        มาปฏิบัติราชการ ${sortedList.length - leaveCount} คน
                                     </div>
                                 </div>
                                 <div class="signature-area">
-                                    <div>(ลงชื่อ)............................................................</div>
+                                    <div>..................................................................</div>
                                     <div style="margin-top:5px;">(${config['signer_name'] || ''})</div>
                                     <div>${config['signer_position'] || ''}</div>
                                 </div>
                             `;
-                            pageEl.appendChild(summary);
+                            pageEl.appendChild(footer);
                         }
                         wrapper.appendChild(pageEl);
                     }
