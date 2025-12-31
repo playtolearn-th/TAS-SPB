@@ -97,12 +97,7 @@
                 transition: 0.2s;
             }
 
-            .btn-logout:hover {
-                background: #fca5a5;
-                color: #991b1b;
-            }
-
-            /* Grid Menu */
+            /* Grid Menu - แก้ไข cursor ให้เป็นรูปมือ */
             .grid-menu {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
@@ -114,7 +109,6 @@
                 border-radius: 20px;
                 padding: 25px 15px;
                 text-align: center;
-                text-decoration: none;
                 color: var(--text);
                 box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
                 transition: all 0.2s;
@@ -122,6 +116,8 @@
                 flex-direction: column;
                 align-items: center;
                 gap: 10px;
+                cursor: pointer;
+                /* เพิ่มเพื่อให้รู้ว่ากดได้ */
             }
 
             .menu-card:hover {
@@ -186,7 +182,6 @@
     </head>
 
     <body>
-
         <div class="container">
             <div class="profile-card">
                 <div class="user-info">
@@ -200,35 +195,35 @@
             </div>
 
             <div class="grid-menu">
-                <a href="attendance.html" class="menu-card">
+                <div onclick="window.location.href='attendance.html'" class="menu-card">
                     <div class="icon-circle c-time"><i class="fas fa-clock"></i></div>
                     <div class="menu-title">จัดการเวลาและการลา</div>
                     <div class="menu-desc">บันทึกเวลา / ลาหยุด</div>
-                </a>
+                </div>
 
-                <a href="process.html" class="menu-card">
+                <div onclick="window.location.href='process.html'" class="menu-card">
                     <div class="icon-circle c-process"><i class="fas fa-sync-alt"></i></div>
                     <div class="menu-title">ประมวลผลข้อมูล</div>
                     <div class="menu-desc">ดึงข้อมูลเว็บรายงาน</div>
-                </a>
+                </div>
 
-                <a href="report.html" class="menu-card">
+                <div onclick="window.location.href='report.html'" class="menu-card">
                     <div class="icon-circle c-report"><i class="fas fa-file-alt"></i></div>
                     <div class="menu-title">ออกรายงานรายวัน</div>
                     <div class="menu-desc">เช็คชื่อประจำวัน</div>
-                </a>
+                </div>
 
-                <a href="leave_summary.html" class="menu-card">
+                <div onclick="window.location.href='leave_summary.html'" class="menu-card">
                     <div class="icon-circle c-leave"><i class="fas fa-calendar-check"></i></div>
                     <div class="menu-title">สรุปวันลา</div>
                     <div class="menu-desc">สถิติลาตามช่วงเวลา</div>
-                </a>
+                </div>
 
-                <a href="settings.html" class="menu-card">
+                <div onclick="window.location.href='settings.html'" class="menu-card">
                     <div class="icon-circle c-setting"><i class="fas fa-cog"></i></div>
                     <div class="menu-title">ตั้งค่าระบบ</div>
                     <div class="menu-desc">URL / Admin</div>
-                </a>
+                </div>
             </div>
 
             <div id="footerVersion" class="footer">TAS-SPB System</div>
@@ -241,34 +236,21 @@
                 const user = JSON.parse(stored);
                 document.getElementById('userName').innerText = user.name || user.personnel_id;
                 if (user.level == 1) document.getElementById('userRole').innerText = "ผู้ดูแลระบบ (Level 1)";
-
-                await loadAppVersion(); // ดึงเวอร์ชันหลังจากยืนยันตัวตน
+                await loadAppVersion();
             }
 
             async function loadAppVersion() {
                 try {
-                    // ดึงข้อมูลเวอร์ชันจากตาราง Settings
-                    const { data, error } = await sbClient
-                        .from(TAS_CONFIG.TABLE_SETTINGS)
-                        .select('value')
-                        .eq('key', 'latest_version')
-                        .single();
-
-                    if (data && data.value) {
-                        document.getElementById('footerVersion').innerText = `TAS-SPB System v${data.value}`;
-                    } else {
-                        document.getElementById('footerVersion').innerText = `TAS-SPB System v2.1`;
-                    }
-                } catch (e) {
-                    console.error("Version load error", e);
-                }
+                    const { data, error } = await sbClient.from(TAS_CONFIG.TABLE_SETTINGS).select('value').eq('key', 'latest_version').single();
+                    if (data && data.value) document.getElementById('footerVersion').innerText = `TAS-SPB System v${data.value}`;
+                    else document.getElementById('footerVersion').innerText = `TAS-SPB System v2.1`;
+                } catch (e) { console.error("Version load error", e); }
             }
 
             function logout() {
                 localStorage.removeItem('tas_user');
                 window.location.href = 'login.html';
             }
-
             checkAuth();
         </script>
     </body>

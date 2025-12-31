@@ -43,7 +43,6 @@
                 color: var(--text-main);
             }
 
-            /* Card Container */
             .landing-card {
                 background: white;
                 width: 100%;
@@ -57,7 +56,6 @@
                 overflow: hidden;
             }
 
-            /* Decorative Circle */
             .landing-card::before {
                 content: '';
                 position: absolute;
@@ -71,7 +69,6 @@
                 z-index: 0;
             }
 
-            /* Logo Area */
             .logo-box {
                 position: relative;
                 width: 100px;
@@ -91,7 +88,6 @@
                 color: white;
             }
 
-            /* Text Content */
             h1 {
                 font-size: 1.8rem;
                 font-weight: 700;
@@ -118,7 +114,6 @@
                 margin-bottom: 35px;
             }
 
-            /* Feature Grid (Small Icons) */
             .features {
                 display: flex;
                 justify-content: center;
@@ -147,7 +142,7 @@
                 border-radius: 50%;
             }
 
-            /* Action Button */
+            /* Action Button - แก้ไข cursor */
             .btn-start {
                 display: flex;
                 align-items: center;
@@ -163,6 +158,7 @@
                 text-decoration: none;
                 transition: all 0.3s ease;
                 box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+                cursor: pointer;
             }
 
             .btn-start:hover {
@@ -175,7 +171,6 @@
                 transform: scale(0.98);
             }
 
-            /* Footer */
             .footer {
                 margin-top: 30px;
                 font-size: 0.85rem;
@@ -183,7 +178,6 @@
                 text-align: center;
             }
 
-            /* Animation */
             @keyframes fadeIn {
                 from {
                     opacity: 0;
@@ -196,7 +190,6 @@
                 }
             }
 
-            /* Mobile specific */
             @media (max-width: 480px) {
                 .landing-card {
                     padding: 30px 20px;
@@ -219,45 +212,22 @@
     </head>
 
     <body>
-
         <div class="landing-card">
-            <div class="logo-box">
-                <i class="fas fa-school"></i>
-            </div>
-
+            <div class="logo-box"><i class="fas fa-school"></i></div>
             <div class="badge">Time Attendance System</div>
-
             <h1>TAS-SPB System</h1>
-
-            <p>
-                ระบบลงเวลาปฏิบัติงานออนไลน์<br>
-                สะดวก รวดเร็ว และตรวจสอบได้ทันที
-            </p>
-
+            <p>ระบบลงเวลาปฏิบัติงานออนไลน์<br>สะดวก รวดเร็ว และตรวจสอบได้ทันที</p>
             <div class="features">
-                <div class="feature-item">
-                    <i class="fas fa-bolt"></i>
-                    <span>รวดเร็ว</span>
-                </div>
-                <div class="feature-item">
-                    <i class="fas fa-mobile-alt"></i>
-                    <span>รองรับมือถือ</span>
-                </div>
-                <div class="feature-item">
-                    <i class="fas fa-shield-alt"></i>
-                    <span>ปลอดภัย</span>
-                </div>
+                <div class="feature-item"><i class="fas fa-bolt"></i><span>รวดเร็ว</span></div>
+                <div class="feature-item"><i class="fas fa-mobile-alt"></i><span>รองรับมือถือ</span></div>
+                <div class="feature-item"><i class="fas fa-shield-alt"></i><span>ปลอดภัย</span></div>
             </div>
 
-            <a href="login.html" class="btn-start">
+            <div onclick="window.location.href='login.html'" class="btn-start">
                 เข้าสู่ระบบลงเวลา <i class="fas fa-arrow-right"></i>
-            </a>
+            </div>
         </div>
-
-        <div class="footer">
-            &copy; 2025 TAS-SPB Project. All rights reserved.
-        </div>
-
+        <div class="footer">&copy; 2025 TAS-SPB Project. All rights reserved.</div>
     </body>
 
 </html>
