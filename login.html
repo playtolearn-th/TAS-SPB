@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -36,13 +37,18 @@
         input { width: 100%; padding: 14px 14px 14px 45px; border: 2px solid #e5e7eb; border-radius: 12px; font-family: 'Sarabun'; font-size: 1rem; transition: all 0.3s; background: #f9fafb; }
         input:focus { outline: none; border-color: var(--primary); background: white; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
         input:focus + i { color: var(--primary); }
+        
+        /* สไตล์สำหรับ Remember Me */
+        .remember-group { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; cursor: pointer; user-select: none; }
+        .remember-group input { width: 18px; height: 18px; cursor: pointer; border: 2px solid #d1d5db; border-radius: 4px; background: #f9fafb; }
+        .remember-group span { font-size: 0.9rem; color: var(--text-muted); font-weight: 400; }
+
         .btn-login { width: 100%; padding: 16px; border: none; border-radius: 12px; background: var(--primary); color: white; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2); display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-login:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3); }
         .btn-login:active { transform: scale(0.98); }
         .btn-login:disabled { background: #9ca3af; cursor: not-allowed; transform: none; }
         .card-footer { margin-top: 25px; font-size: 0.85rem; color: var(--text-muted); }
         
-        /* แก้ไข back-link ให้รองรับ div และ cursor pointer */
         .back-link { color: var(--primary); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; margin-top: 10px; cursor: pointer; }
         .back-link:hover { text-decoration: underline; }
         
@@ -79,6 +85,11 @@
                 </div>
             </div>
 
+            <label class="remember-group">
+                <input type="checkbox" id="rememberMe">
+                <span>จดจำการใช้งานในเครื่องนี้</span>
+            </label>
+
             <button type="submit" id="btnSubmit" class="btn-login">
                 <span>เข้าสู่ระบบ</span> <i class="fas fa-arrow-right"></i>
             </button>
@@ -93,12 +104,22 @@
     </div>
 
     <script>
+        // --- ตรวจสอบการจดจำรหัสผ่านเมื่อโหลดหน้าจอ ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const isRemembered = localStorage.getItem('tas_remember') === 'true';
+            const userData = localStorage.getItem('tas_user');
+            if (isRemembered && userData) {
+                window.location.href = 'menu.html';
+            }
+        });
+
         if (typeof sbClient === 'undefined') Swal.fire({ icon: 'error', title: 'System Error', text: 'ไม่พบการเชื่อมต่อ Supabase', confirmButtonColor: '#ef4444' });
 
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const user = document.getElementById('username').value.trim();
             const pass = document.getElementById('password').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
             const btn = document.getElementById('btnSubmit');
             const originalBtnContent = btn.innerHTML;
 
@@ -109,22 +130,29 @@
                 const { data, error } = await sbClient.from(TAS_CONFIG.TABLE_USER).select('*').eq('personnel_id', user).single();
                 if (error) {
                     if (error.code === 'PGRST116') throw new Error(`ไม่พบรหัสพนักงาน "${user}" ในระบบ`);
-                    if (error.code === '42P01') throw new Error(`ไม่พบตารางข้อมูล "${TAS_CONFIG.TABLE_USER}"`);
                     throw new Error(error.message);
                 }
-                if (!data) throw new Error("ข้อมูลผู้ใช้งานไม่ถูกต้อง");
-
+                
                 const dbPass = data.Password || data.password || "";
                 if (String(dbPass) !== String(pass)) throw new Error("รหัสผ่านไม่ถูกต้อง");
                 if (String(data.level) !== '1') throw new Error("ขออภัย! สิทธิ์การใช้งานไม่ถูกต้อง (เฉพาะ Admin/Level 1)");
 
+                // บันทึกข้อมูลผู้ใช้งานลงเครื่อง
                 localStorage.setItem('tas_user', JSON.stringify(data));
-                await Swal.fire({ icon: 'success', title: 'ยินดีต้อนรับ', text: `คุณ ${data.name || 'ผู้ใช้งาน'}`, timer: 1500, showConfirmButton: false, backdrop: `rgba(0,0,0,0.4)` });
+                
+                // จัดการระบบ Remember Me
+                if (rememberMe) {
+                    localStorage.setItem('tas_remember', 'true');
+                } else {
+                    localStorage.removeItem('tas_remember');
+                }
+
+                await Swal.fire({ icon: 'success', title: 'ยินดีต้อนรับ', text: `คุณ ${data.name || 'ผู้ใช้งาน'}`, timer: 1500, showConfirmButton: false });
                 window.location.href = 'menu.html';
 
             } catch (err) {
                 console.error(err);
-                Swal.fire({ icon: 'error', title: 'เข้าสู่ระบบไม่สำเร็จ', text: err.message, confirmButtonColor: '#4f46e5', confirmButtonText: 'ลองใหม่อีกครั้ง' });
+                Swal.fire({ icon: 'error', title: 'เข้าสู่ระบบไม่สำเร็จ', text: err.message, confirmButtonColor: '#4f46e5' });
                 btn.disabled = false;
                 btn.innerHTML = originalBtnContent;
             }
