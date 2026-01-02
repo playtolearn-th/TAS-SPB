@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>03รายงานการลงเวลา</title>
+    <title>รายงานการลงเวลา</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="favicon.png">
@@ -35,6 +35,7 @@
             --pad-bottom: 10mm; 
             --pad-left: 30mm; 
             --pad-right: 15mm;
+            --line-height-fix: 26px;
         }
         
         * { box-sizing: border-box; -webkit-print-color-adjust: exact; }
@@ -45,7 +46,6 @@
             display: flex; flex-direction: column; align-items: center;
         }
 
-        /* --- จุดสำคัญ: บังคับการตัดหน้าให้ทำงานแน่นอน --- */
         @media print {
             @page { size: A4 portrait; margin: 0; }
             body { background: none; }
@@ -54,12 +54,9 @@
             .paper { 
                 margin: 0 !important; 
                 box-shadow: none !important; 
-                /* ลดความสูงลงเล็กน้อยเพื่อป้องกันหน้าว่าง */
-                height: 296mm !important; 
+                height: 296.2mm !important; /* ป้องกันพิกเซลเกินดีดหน้าว่าง */
                 display: block !important;
-                position: relative;
                 overflow: hidden;
-                /* บังคับตัดหน้า */
                 page-break-after: always !important;
                 break-after: page !important;
             }
@@ -97,18 +94,30 @@
 
         .rpt-table { width: 100%; border-collapse: collapse; border: 1.2px solid black; table-layout: fixed; }
         .rpt-table th { border: 1px solid black; background: #fff !important; height: 35px; font-size: 16pt; font-weight: bold; }
-        
-        /* ล็อคความสูง 26px */
         .rpt-table td { 
             border: 1px solid black; padding: 0 5px; font-size: 16pt; 
-            height: 26px; 
+            height: var(--line-height-fix); 
             vertical-align: middle; line-height: 1; 
             overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
         }
 
-        .footer-area { margin-top: auto; padding-bottom: 5mm; }
+        /* ส่วนสรุปเว้นจากตาราง 1 บรรทัด */
+        .footer-area { 
+            margin-top: var(--line-height-fix); 
+            flex-grow: 1; 
+            display: flex; 
+            flex-direction: column;
+        }
         .summary-grid { display: grid; grid-template-columns: 1.1fr 1fr; font-size: 16pt; line-height: 1.3; }
-        .signature-area { margin-top: 15mm; text-align: center; font-size: 16pt; line-height: 1.5; }
+        
+        /* ส่วนลงนามห่างจากขอบล่าง 3 บรรทัด */
+        .signature-area { 
+            margin-top: auto; 
+            margin-bottom: calc(var(--line-height-fix) * 3); 
+            text-align: center; 
+            font-size: 16pt; 
+            line-height: 1.5; 
+        }
 
         .toolbar { 
             width: 100%; position: sticky; top: 0; z-index: 1000; 
