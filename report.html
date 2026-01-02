@@ -1,298 +1,238 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>รายงานการลงเวลา</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รายงานการลงเวลา</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @font-face {
+            font-family: 'THSarabunNew';
+            src: url('font/THSarabunNew.ttf') format('truetype');
+            font-weight: normal; font-style: normal;
+        }
+        @font-face {
+            font-family: 'THSarabunNew';
+            src: url('font/THSarabunNew Bold.ttf') format('truetype');
+            font-weight: bold; font-style: normal;
+        }
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        :root { 
+            --paper-w: 210mm; 
+            --paper-h: 297mm;
+            --pad-top: 20mm; 
+            --pad-bottom: 15mm; 
+            --pad-left: 30mm; 
+            --pad-right: 20mm;
+        }
+        
+        * { box-sizing: border-box; -webkit-print-color-adjust: exact; }
+        
+        body { 
+            font-family: 'THSarabunNew', sans-serif; 
+            background: #525659; margin: 0; padding: 0;
+        }
 
-<style>
-/* ================= ฟอนต์ ================= */
-@font-face {
-    font-family: 'THSarabunNew';
-    src: url('font/THSarabunNew.ttf');
-}
-@font-face {
-    font-family: 'THSarabunNew';
-    src: url('font/THSarabunNew Bold.ttf');
-    font-weight: bold;
-}
+        @media print {
+            @page { size: A4 portrait; margin: 0; }
+            body { background: none; }
+            .toolbar { display: none !important; }
+            #reportWrapper { padding: 0 !important; width: 100%; }
+            .paper { 
+                margin: 0 !important; 
+                box-shadow: none !important; 
+                page-break-after: always !important;
+                height: var(--paper-h) !important;
+                display: block !important;
+                overflow: hidden;
+            }
+        }
 
-:root {
-    --paper-w: 210mm;
-    --paper-h: 297mm;
-    --pad-top: 15mm;
-    --pad-bottom: 15mm;
-    --pad-left: 30mm;
-    --pad-right: 15mm;
-}
+        #reportWrapper { display: flex; flex-direction: column; align-items: center; padding: 20px 0; }
+        
+        .paper { 
+            width: var(--paper-w); 
+            height: var(--paper-h); 
+            background: white; 
+            padding: var(--pad-top) var(--pad-right) var(--pad-bottom) var(--pad-left);
+            margin-bottom: 10mm; 
+            position: relative; 
+            display: flex; 
+            flex-direction: column; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            overflow: hidden; /* ล็อคเนื้อหาไม่ให้ไปเบียดหน้าถัดไป */
+        }
 
-* {
-    box-sizing: border-box;
-    -webkit-print-color-adjust: exact;
-}
+        /* --- แก้ไข: ล็อคตำแหน่งเลขหน้าและหัวกระดาษให้คงที่ทุกหน้า --- */
+        .page-num { position: absolute; top: 10mm; right: 15mm; font-size: 14pt; z-index: 100; }
+        
+        .rpt-header { 
+            text-align: center; 
+            margin-bottom: 5mm; 
+            line-height: 1.1;
+            min-height: 30mm; /* บังคับความสูงหัวกระดาษให้เท่ากันทุกหน้า */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+        .rpt-title { font-size: 18pt; font-weight: bold; display: block; }
+        .rpt-sub { font-size: 16pt; display: block; }
 
-body {
-    font-family: 'THSarabunNew', sans-serif;
-    margin: 0;
-    background: #525659;
-}
+        .rpt-table { width: 100%; border-collapse: collapse; border: 1.2px solid black; table-layout: fixed; }
+        .rpt-table th { border: 1px solid black; background: #fff !important; height: 35px; font-size: 16pt; font-weight: bold; }
+        .rpt-table td { 
+            border: 1px solid black; padding: 0 5px; font-size: 16pt; 
+            height: 26px; vertical-align: middle; line-height: 1; 
+            overflow: hidden; white-space: nowrap; 
+        }
 
-/* ================= Toolbar ================= */
-.toolbar {
-    position: sticky;
-    top: 0;
-    background: #fff;
-    padding: 10px;
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    border-bottom: 1px solid #ccc;
-    z-index: 1000;
-}
+        .footer-area { margin-top: auto; padding-bottom: 5mm; }
+        .summary-grid { display: grid; grid-template-columns: 1.1fr 1fr; font-size: 16pt; line-height: 1.3; }
+        .signature-area { margin-top: 15mm; text-align: center; font-size: 16pt; line-height: 1.5; }
 
-.btn {
-    font-family: 'THSarabunNew';
-    font-size: 15pt;
-    font-weight: bold;
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-}
-
-/* ================= Layout ================= */
-#reportWrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px 0;
-}
-
-/* ================= A4 Paper ================= */
-.paper {
-    width: var(--paper-w);
-    min-height: var(--paper-h);
-    background: #fff;
-    padding: var(--pad-top) var(--pad-right) var(--pad-bottom) var(--pad-left);
-    margin-bottom: 12mm;
-    box-shadow: 0 0 10px rgba(0,0,0,.3);
-}
-
-/* ================= Header ================= */
-.rpt-header {
-    text-align: center;
-    margin-bottom: 6mm;
-    line-height: 1.2;
-}
-
-.rpt-title {
-    font-size: 18pt;
-    font-weight: bold;
-}
-
-.rpt-sub {
-    font-size: 16pt;
-}
-
-/* ================= Table ================= */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: fixed;
-}
-
-thead {
-    display: table-header-group; /* สำคัญ: ให้หัวตารางขึ้นทุกหน้า */
-}
-
-tfoot {
-    display: table-footer-group;
-}
-
-th, td {
-    border: 1px solid #000;
-    font-size: 16pt;
-    padding: 2px 5px;
-    height: 26px;
-    vertical-align: middle;
-}
-
-th {
-    font-weight: bold;
-    height: 34px;
-}
-
-/* ================= Footer ================= */
-.footer-area {
-    margin-top: 10mm;
-    font-size: 16pt;
-}
-
-.summary-grid {
-    display: grid;
-    grid-template-columns: 1.1fr 1fr;
-    line-height: 1.4;
-}
-
-.signature-area {
-    margin-top: 20mm;
-    text-align: center;
-    line-height: 1.5;
-}
-
-/* ================= Mobile Preview ================= */
-@media screen and (max-width: 600px) {
-    #reportWrapper {
-        zoom: 0.45;
-    }
-}
-
-/* ================= Print ================= */
-@media print {
-    @page {
-        size: A4 portrait;
-        margin: 0;
-    }
-
-    body {
-        background: none;
-    }
-
-    .toolbar {
-        display: none;
-    }
-
-    #reportWrapper {
-        padding: 0;
-    }
-
-    .paper {
-        margin: 0;
-        box-shadow: none;
-        page-break-after: always;
-    }
-}
-</style>
+        /* Toolbar Styles */
+        .toolbar { 
+            width: 100%; position: sticky; top: 0; z-index: 1000; 
+            background: white; padding: 10px; border-bottom: 1px solid #ddd; 
+            display: flex; justify-content: center; gap: 8px; align-items: center;
+        }
+        .btn { 
+            padding: 8px 12px; border: none; font-family: 'THSarabunNew'; 
+            font-size: 15pt; cursor: pointer; font-weight: bold; border-radius: 6px;
+            display: flex; align-items: center; gap: 5px;
+        }
+        @media screen and (max-width: 600px) {
+            .btn span { display: none; }
+            .btn { padding: 10px 15px; }
+            #reportWrapper { transform: scale(0.4); transform-origin: top center; margin-bottom: -60%; }
+        }
+    </style>
 </head>
-
 <body>
+    <div class="toolbar">
+        <button class="btn" style="background: #f3f4f6; color: #374151;" onclick="location.href='index.html'">
+            <i class="fa-solid fa-house"></i><span> กลับหน้าหลัก</span>
+        </button>
+        <input type="date" id="reportDate" style="padding: 5px; font-family: 'THSarabunNew'; font-size: 14pt; border-radius: 5px; border: 1px solid #ccc;">
+        <button class="btn" style="background: #4f46e5; color: white;" onclick="loadData()">
+            <i class="fa-solid fa-magnifying-glass"></i><span> แสดงรายงาน</span>
+        </button>
+        <button class="btn" style="background: #1e293b; color: white;" onclick="window.print()">
+            <i class="fa-solid fa-file-pdf"></i><span> พิมพ์ PDF</span>
+        </button>
+    </div>
 
-<div class="toolbar">
-    <input type="date" id="reportDate">
-    <button class="btn" onclick="loadData()">แสดงรายงาน</button>
-    <button class="btn" onclick="window.print()">พิมพ์ PDF</button>
-</div>
+    <div id="reportWrapper"></div>
 
-<div id="reportWrapper"></div>
+    <script src="supabase.js"></script>
+    <script src="config.js"></script>
+    <script>
+        const ROWS_PER_PAGE = 28;
 
-<script src="supabase.js"></script>
-<script src="config.js"></script>
+        async function loadData() {
+            const dateStr = document.getElementById('reportDate').value;
+            const wrapper = document.getElementById('reportWrapper');
+            if(!dateStr) return;
+            document.title = `รายงาน_${dateStr}`;
+            wrapper.innerHTML = "";
 
-<script>
-async function loadData() {
+            try {
+                const { data: users } = await sbClient.from(TAS_CONFIG.TABLE_USER).select('*');
+                const { data: att } = await sbClient.from(TAS_CONFIG.TABLE_TARGET).select('*').eq('work_date', dateStr);
+                const { data: leaves } = await sbClient.from('Leave_records').select('*').eq('leave_date', dateStr);
+                const { data: settings } = await sbClient.from(TAS_CONFIG.TABLE_SETTINGS).select('*');
+                
+                const config = {}; settings?.forEach(s => config[s.key] = s.value);
+                const attMap = {}; att?.forEach(a => attMap[a.personnel_id] = a);
+                const leaveMap = {}; leaves?.forEach(l => leaveMap[l.personnel_id] = l);
 
-    const dateStr = reportDate.value;
-    if (!dateStr) return;
+                const groups = {};
+                users?.forEach(u => {
+                    const type = u.personnel_type || 'ทั่วไป';
+                    if(!groups[type]) groups[type] = [];
+                    const ts = attMap[u.personnel_id];
+                    const lv = leaveMap[u.personnel_id];
+                    u.tIn = ts?.time_in || "";
+                    u.tOut = ts?.time_out || "";
+                    u.note = lv?.leave_type || (u.tIn > (config['Late'] || '08:30') ? "มาสาย" : "");
+                    u.sortKey = u.tIn ? `1_${u.tIn}` : `2_${u.name.trim()}`;
+                    groups[type].push(u);
+                });
 
-    reportWrapper.innerHTML = "";
+                Object.keys(groups).sort().forEach(type => {
+                    const list = groups[type].sort((a,b) => a.sortKey.localeCompare(b.sortKey));
+                    const totalP = Math.ceil(list.length / ROWS_PER_PAGE);
 
-    const { data: users } = await sbClient.from(TAS_CONFIG.TABLE_USER).select('*');
-    const { data: att } = await sbClient.from(TAS_CONFIG.TABLE_TARGET)
-        .select('*').eq('work_date', dateStr);
-    const { data: leaves } = await sbClient.from('Leave_records')
-        .select('*').eq('leave_date', dateStr);
-    const { data: settings } = await sbClient.from(TAS_CONFIG.TABLE_SETTINGS).select('*');
+                    for(let p = 0; p < totalP; p++) {
+                        const page = document.createElement('div');
+                        page.className = 'paper';
+                        const items = list.slice(p * ROWS_PER_PAGE, (p + 1) * ROWS_PER_PAGE);
+                        
+                        page.innerHTML = `
+                            <div class="page-num">${p+1}/${totalP}</div>
+                            <div class="rpt-header">
+                                <span class="rpt-title">บันทึกการลงเวลาปฏิบัติงานของ${type}</span>
+                                <span class="rpt-sub">${formatThaiDate(dateStr)}</span>
+                                <span class="rpt-sub">${config['school_name'] || ''}</span>
+                            </div>
+                            <table class="rpt-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:40px">ที่</th>
+                                        <th>ชื่อ-สกุล</th>
+                                        <th style="width:80px">เวลามา</th>
+                                        <th style="width:80px">เวลากลับ</th>
+                                        <th style="width:100px">หมายเหตุ</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${items.map((u, i) => `
+                                        <tr>
+                                            <td style="text-align:center">${(p * ROWS_PER_PAGE) + i + 1}</td>
+                                            <td>${u.name.trim()}</td>
+                                            <td style="text-align:center">${u.tIn ? u.tIn.slice(0,5) : ''}</td>
+                                            <td style="text-align:center">${u.tOut ? u.tOut.slice(0,5) : ''}</td>
+                                            <td style="font-size:14pt;">${u.note}</td>
+                                        </tr>`).join('')}
+                                </tbody>
+                            </table>
+                        `;
 
-    const cfg = {};
-    settings?.forEach(s => cfg[s.key] = s.value);
+                        if(p === totalP - 1) {
+                            const trip = list.filter(x => x.note.includes('ราชการ')).length;
+                            const leave = list.filter(x => x.note && !x.note.includes('ราชการ') && !x.note.includes('สาย')).length;
+                            const footer = document.createElement('div');
+                            footer.className = 'footer-area';
+                            footer.innerHTML = `
+                                <div class="summary-grid">
+                                    <div>- ทั้งหมด ${list.length} คน<br>- ตำแหน่งว่าง ${getVal(config['vacant_position'], type)} คน<br>- ไปราชการ ${trip || '-'} คน</div>
+                                    <div>- มาปฏิบัติราชการ ${list.length - leave} คน<br>- ไม่มาปฏิบัติราชการ ${leave || '-'} คน</div>
+                                </div>
+                                <div class="signature-area">
+                                    (ลงชื่อ)............................................................<br>
+                                    (${config['signer_name'] || ''})<br>
+                                    ${config['signer_position'] || ''}
+                                </div>
+                            `;
+                            page.appendChild(footer);
+                        }
+                        wrapper.appendChild(page);
+                    }
+                });
+            } catch (e) { console.error(e); }
+        }
 
-    const attMap = {};
-    att?.forEach(a => attMap[a.personnel_id] = a);
+        function getVal(str, type) {
+            if(!str) return "-";
+            const pair = str.split(',').find(p => p.trim().startsWith(type+":"));
+            const v = pair?.split(':')[1]; return (v && v.trim() !== "0") ? v.trim() : "-";
+        }
 
-    const leaveMap = {};
-    leaves?.forEach(l => leaveMap[l.personnel_id] = l);
-
-    const groups = {};
-    users?.forEach(u => {
-        const type = u.personnel_type || 'ทั่วไป';
-        groups[type] ??= [];
-        u.tIn = attMap[u.personnel_id]?.time_in || '';
-        u.tOut = attMap[u.personnel_id]?.time_out || '';
-        u.note = leaveMap[u.personnel_id]?.leave_type || '';
-        groups[type].push(u);
-    });
-
-    Object.keys(groups).sort().forEach(type => {
-
-        const list = groups[type];
-
-        const paper = document.createElement('div');
-        paper.className = 'paper';
-
-        paper.innerHTML = `
-            <div class="rpt-header">
-                <div class="rpt-title">บันทึกการลงเวลาปฏิบัติงานของ${type}</div>
-                <div class="rpt-sub">${formatThaiDate(dateStr)}</div>
-                <div class="rpt-sub">${cfg.school_name || ''}</div>
-            </div>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width:40px">ที่</th>
-                        <th>ชื่อ-สกุล</th>
-                        <th style="width:80px">เวลามา</th>
-                        <th style="width:80px">เวลากลับ</th>
-                        <th style="width:100px">หมายเหตุ</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${list.map((u,i)=>`
-                        <tr>
-                            <td align="center">${i+1}</td>
-                            <td>${u.name}</td>
-                            <td align="center">${u.tIn?.slice(0,5)||''}</td>
-                            <td align="center">${u.tOut?.slice(0,5)||''}</td>
-                            <td>${u.note}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-
-            <div class="footer-area">
-                <div class="summary-grid">
-                    <div>
-                        - ทั้งหมด ${list.length} คน<br>
-                        - ไปราชการ ${list.filter(x=>x.note.includes('ราชการ')).length || '-'} คน
-                    </div>
-                    <div>
-                        - มาปฏิบัติราชการ ${list.filter(x=>x.tIn).length} คน<br>
-                        - ไม่มาปฏิบัติราชการ ${list.filter(x=>!x.tIn).length} คน
-                    </div>
-                </div>
-
-                <div class="signature-area">
-                    (ลงชื่อ)............................................................<br>
-                    (${cfg.signer_name || ''})<br>
-                    ${cfg.signer_position || ''}
-                </div>
-            </div>
-        `;
-
-        reportWrapper.appendChild(paper);
-    });
-}
-
-function formatThaiDate(d) {
-    const m = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน",
-               "กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
-    const dt = new Date(d);
-    return `วัน${["อาทิตย์","จันทร์","อังคาร","พุธ","พฤหัสบดี","ศุกร์","เสาร์"][dt.getDay()]}
-            ที่ ${dt.getDate()} ${m[dt.getMonth()]} พ.ศ. ${dt.getFullYear()+543}`;
-}
-</script>
-
+        function formatThaiDate(d) {
+            const date = new Date(d);
+            const months = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+            return `วัน${['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'][date.getDay()]}ที่ ${date.getDate()} ${months[date.getMonth()]} พ.ศ. ${date.getFullYear()+543}`;
+        }
+    </script>
 </body>
 </html>
