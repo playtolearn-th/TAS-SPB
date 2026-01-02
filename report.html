@@ -19,10 +19,10 @@
         :root { 
             --paper-w: 210mm; 
             --paper-h: 297mm;
-            --pad-top: 20mm; 
+            --pad-top: 15mm; 
             --pad-bottom: 10mm; 
             --pad-left: 30mm; 
-            --pad-right: 20mm;
+            --pad-right: 15mm;
         }
         
         * { box-sizing: border-box; -webkit-print-color-adjust: exact; }
@@ -33,19 +33,15 @@
         }
 
         @media print {
-            @page { 
-                size: A4 portrait; 
-                margin: 0; /* ลบระยะขอบที่เบราว์เซอร์สร้างเองออกทั้งหมด */
-            }
+            @page { size: A4 portrait; margin: 0; }
             body { background: none; }
             .toolbar { display: none !important; }
-            #reportWrapper { padding: 0 !important; }
+            #reportWrapper { padding: 0 !important; width: 100%; }
             .paper { 
                 margin: 0 !important; 
                 box-shadow: none !important; 
-                page-break-after: always !important; /* บังคับขึ้นหน้าใหม่ทุกครั้งที่จบแผ่น */
-                height: var(--paper-h) !important; /* ล็อคความสูงหน้ากระดาษ */
-                position: relative;
+                page-break-after: always !important;
+                height: var(--paper-h) !important;
             }
         }
 
@@ -60,50 +56,64 @@
             position: relative; 
             display: flex; 
             flex-direction: column; 
-            overflow: hidden; /* สำคัญ: ป้องกันเนื้อหาที่เกินไปดันหน้าถัดไป */
+            overflow: hidden;
             box-shadow: 0 0 10px rgba(0,0,0,0.3);
         }
 
-        /* ส่วนหัว 3 บรรทัด */
-        .rpt-header { text-align: center; margin-bottom: 5mm; line-height: 1.1; }
+        .page-num { 
+            position: absolute; 
+            top: 10mm; 
+            right: 15mm; 
+            font-size: 14pt; 
+            z-index: 100;
+        }
+
+        .rpt-header { text-align: center; margin-bottom: 5mm; line-height: 1.1; margin-top: 5mm; }
         .rpt-title { font-size: 18pt; font-weight: bold; display: block; }
         .rpt-sub { font-size: 16pt; display: block; }
 
-        /* ตาราง 28 บรรทัด ล็อคความสูงคงที่ */
         .rpt-table { width: 100%; border-collapse: collapse; border: 1.2px solid black; table-layout: fixed; }
-        .rpt-table th { border: 1px solid black; height: 32px; font-size: 16pt; font-weight: bold; }
+        .rpt-table th { border: 1px solid black; height: 35px; font-size: 16pt; font-weight: bold; }
         .rpt-table td { 
             border: 1px solid black; padding: 0 5px; font-size: 16pt; 
-            height: 25px; /* ล็อคความสูงแถวให้คงที่ 25px */
+            height: 26px; 
             vertical-align: middle; line-height: 1; 
-            overflow: hidden; white-space: nowrap; text-overflow: ellipsis; 
+            overflow: hidden; white-space: nowrap; 
         }
 
-        .col-id { width: 40px; text-align: center; }
-        .col-time { width: 70px; text-align: center; }
-
-        /* ส่วนท้ายและที่ลงนาม */
-        .footer-area { margin-top: auto; padding-bottom: 5mm; } /* ผลักไปไว้ล่างสุดของพื้นที่ที่เหลือ */
+        .footer-area { margin-top: auto; padding-bottom: 5mm; }
         .summary-grid { display: grid; grid-template-columns: 1.1fr 1fr; font-size: 16pt; line-height: 1.3; }
+        
         .signature-area { 
-            margin-top: 15mm; /* ระยะห่างก่อนถึงที่ลงนาม */
+            margin-top: 20mm; 
             text-align: center; 
             font-size: 16pt; 
             line-height: 1.5; 
         }
-        
-        .page-num { position: absolute; top: 10mm; right: 10mm; font-size: 12pt; }
 
-        .toolbar { width: 100%; position: sticky; top: 0; z-index: 100; background: white; padding: 10px; border-bottom: 1px solid #ddd; display: flex; justify-content: center; gap: 10px; }
-        .btn { padding: 8px 20px; border: none; font-family: 'THSarabunNew'; font-size: 15pt; cursor: pointer; font-weight: bold; border-radius: 8px; }
+        /* Toolbar Styles */
+        .toolbar { 
+            width: 100%; position: sticky; top: 0; z-index: 1000; 
+            background: white; padding: 10px; border-bottom: 1px solid #ddd; 
+            display: flex; justify-content: center; gap: 10px; align-items: center;
+        }
+        .btn { 
+            padding: 8px 15px; border: none; font-family: 'THSarabunNew'; 
+            font-size: 15pt; cursor: pointer; font-weight: bold; border-radius: 6px;
+            display: flex; align-items: center; gap: 5px;
+        }
     </style>
 </head>
 <body>
     <div class="toolbar">
-        <input type="date" id="reportDate" style="padding: 5px; font-family: 'THSarabunNew'; font-size: 15pt;">
-        <button class="btn" style="background: #4f46e5; color: white;" onclick="loadData()">แสดงรายงาน</button>
-        <button class="btn" style="background: #1e293b; color: white;" onclick="window.print()">พิมพ์ PDF</button>
+        <button class="btn" style="background: #f3f4f6; color: #374151;" onclick="location.href='index.html'">
+            🏠 กลับหน้าหลัก
+        </button>
+        <input type="date" id="reportDate" style="padding: 5px; font-family: 'THSarabunNew'; font-size: 15pt; border-radius: 5px; border: 1px solid #ccc;">
+        <button class="btn" style="background: #4f46e5; color: white;" onclick="loadData()">🔍 แสดงรายงาน</button>
+        <button class="btn" style="background: #1e293b; color: white;" onclick="window.print()">📥 พิมพ์ PDF</button>
     </div>
+
     <div id="reportWrapper"></div>
 
     <script src="supabase.js"></script>
@@ -115,34 +125,29 @@
             const dateStr = document.getElementById('reportDate').value;
             const wrapper = document.getElementById('reportWrapper');
             if(!dateStr) return;
-            document.title = `รายงานการลงเวลา_${dateStr}`;
+            document.title = `รายงาน_${dateStr}`;
             wrapper.innerHTML = "";
 
             try {
                 const { data: users } = await sbClient.from(TAS_CONFIG.TABLE_USER).select('*');
                 const { data: att } = await sbClient.from(TAS_CONFIG.TABLE_TARGET).select('*').eq('work_date', dateStr);
-                const { data: leaves } = await sbClient.from('Leave_records').select('*').eq('leave_date', dateStr);
                 const { data: settings } = await sbClient.from(TAS_CONFIG.TABLE_SETTINGS).select('*');
                 
                 const config = {}; settings?.forEach(s => config[s.key] = s.value);
                 const attMap = {}; att?.forEach(a => attMap[a.personnel_id] = a);
-                const leaveMap = {}; leaves?.forEach(l => leaveMap[l.personnel_id] = l);
 
                 const groups = {};
                 users?.forEach(u => {
                     const type = u.personnel_type || 'ทั่วไป';
                     if(!groups[type]) groups[type] = [];
                     const ts = attMap[u.personnel_id];
-                    const lv = leaveMap[u.personnel_id];
                     u.tIn = ts?.time_in || "";
                     u.tOut = ts?.time_out || "";
-                    u.note = lv?.leave_type || (u.tIn > (config['Late'] || '08:30') ? "มาสาย" : "");
-                    u.sortKey = u.tIn ? `1_${u.tIn}` : `2_${u.name.trim()}`;
                     groups[type].push(u);
                 });
 
                 Object.keys(groups).sort().forEach(type => {
-                    const list = groups[type].sort((a,b) => a.sortKey.localeCompare(b.sortKey));
+                    const list = groups[type];
                     const totalP = Math.ceil(list.length / ROWS_PER_PAGE);
 
                     for(let p = 0; p < totalP; p++) {
@@ -151,6 +156,7 @@
                         const items = list.slice(p * ROWS_PER_PAGE, (p + 1) * ROWS_PER_PAGE);
                         
                         page.innerHTML = `
+                            <div class="page-num">${p+1}/${totalP}</div>
                             <div class="rpt-header">
                                 <span class="rpt-title">บันทึกการลงเวลาปฏิบัติงานของ${type}</span>
                                 <span class="rpt-sub">${formatThaiDate(dateStr)}</span>
@@ -158,31 +164,34 @@
                             </div>
                             <table class="rpt-table">
                                 <thead>
-                                    <tr><th class="col-id">ที่</th><th>ชื่อ-สกุล</th><th class="col-time">เวลามา</th><th class="col-time">เวลากลับ</th><th style="width:100px;">หมายเหตุ</th></tr>
+                                    <tr>
+                                        <th style="width:40px">ที่</th>
+                                        <th>ชื่อ-สกุล</th>
+                                        <th style="width:80px">เวลามา</th>
+                                        <th style="width:80px">เวลากลับ</th>
+                                        <th style="width:100px">หมายเหตุ</th>
+                                    </tr>
                                 </thead>
                                 <tbody>
                                     ${items.map((u, i) => `
                                         <tr>
-                                            <td class="col-id">${(p * ROWS_PER_PAGE) + i + 1}</td>
-                                            <td>${u.name.trim()}</td>
-                                            <td class="col-time">${u.tIn ? u.tIn.slice(0,5) : ''}</td>
-                                            <td class="col-time">${u.tOut ? u.tOut.slice(0,5) : ''}</td>
-                                            <td>${u.note}</td>
+                                            <td style="text-align:center">${(p * ROWS_PER_PAGE) + i + 1}</td>
+                                            <td>${u.name}</td>
+                                            <td style="text-align:center">${u.tIn.slice(0,5)}</td>
+                                            <td style="text-align:center">${u.tOut.slice(0,5)}</td>
+                                            <td></td>
                                         </tr>`).join('')}
                                 </tbody>
                             </table>
-                            <div class="page-num">${p+1}/${totalP}</div>
                         `;
 
                         if(p === totalP - 1) {
-                            const trip = list.filter(x => x.note.includes('ราชการ')).length;
-                            const leave = list.filter(x => x.note && !x.note.includes('ราชการ') && !x.note.includes('สาย')).length;
                             const footer = document.createElement('div');
                             footer.className = 'footer-area';
                             footer.innerHTML = `
                                 <div class="summary-grid">
-                                    <div>- ทั้งหมด ${list.length} คน<br>- ตำแหน่งว่าง ${getVal(config['vacant_position'], type)} คน<br>- ไปราชการ ${trip || '-'} คน</div>
-                                    <div>- มาปฏิบัติราชการ ${list.length - leave} คน<br>- ไม่มาปฏิบัติราชการ ${leave || '-'} คน</div>
+                                    <div>- ทั้งหมด ${list.length} คน<br>- ตำแหน่งว่าง - คน</div>
+                                    <div>- มาปฏิบัติราชการ ${list.length} คน<br>- ไม่มาปฏิบัติราชการ - คน</div>
                                 </div>
                                 <div class="signature-area">
                                     (ลงชื่อ)............................................................<br>
@@ -196,12 +205,6 @@
                     }
                 });
             } catch (e) { console.error(e); }
-        }
-
-        function getVal(str, type) {
-            if(!str) return "-";
-            const pair = str.split(',').find(p => p.trim().startsWith(type+":"));
-            const v = pair?.split(':')[1]; return (v && v.trim() !== "0") ? v.trim() : "-";
         }
 
         function formatThaiDate(d) {
