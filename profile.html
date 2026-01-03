@@ -3,221 +3,278 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>โปรไฟล์พนักงาน - TAS-SPB</title>
-    
+    <title>โปรไฟล์ - TAS-SPB</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="apple-touch-icon" href="favicon.png">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="TAS-SPB">
-
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <script src="ios-fix.js"></script>
     <script src="supabase.js"></script>
     <script src="sweetalert2.js"></script>
     <script src="config.js"></script>
-
     <style>
-        @font-face {
-            font-family: 'THSarabunNew';
-            src: url('font/THSarabunNew.ttf') format('truetype');
-            font-weight: normal; font-style: normal;
-        }
-        :root { --primary: #4f46e5; --bg: #f3f4f6; }
+        :root { --primary: #4f46e5; --bg: #f3f4f6; --white: #ffffff; --text: #1e293b; --muted: #64748b; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'THSarabunNew', 'Sarabun', sans-serif; background: var(--bg); min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+        body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--text); padding: 15px; padding-bottom: 50px; }
+        .container { max-width: 500px; margin: 0 auto; }
 
-        /* Toolbar */
-        .toolbar { width: 100%; background: white; padding: 12px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .header-card {
+            background: var(--white); padding: 15px 20px; border-radius: 16px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .header-title { display: flex; align-items: center; gap: 10px; color: var(--primary); font-weight: 700; }
+        .back-btn {
+            text-decoration: none; color: var(--muted); background: #f9fafb; padding: 8px 15px;
+            border-radius: 20px; border: 1px solid #e5e7eb; font-size: 0.9rem; display: flex; align-items: center; gap: 5px;
+        }
+
+        .card { background: var(--white); border-radius: 24px; padding: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        .profile-info { text-align: center; margin-bottom: 15px; }
+        .user-emoji { font-size: 4rem; display: block; margin-bottom: 10px; }
         
-        .container { width: 100%; max-width: 500px; padding: 15px; flex-grow: 1; display: flex; flex-direction: column; gap: 15px; }
-
-        /* User Info Card */
-        .user-card { background: linear-gradient(135deg, #4f46e5, #818cf8); border-radius: 20px; padding: 20px; color: white; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3); }
-        .user-name { font-size: 1.6rem; font-weight: bold; margin-bottom: 5px; }
-        .user-detail { font-size: 1.2rem; opacity: 0.9; }
-
-        /* Tabs Control */
-        .tabs { display: flex; background: #e2e8f0; border-radius: 12px; padding: 5px; margin-top: 10px; }
-        .tab-btn { flex: 1; border: none; padding: 10px; border-radius: 10px; font-weight: bold; font-family: 'Sarabun'; cursor: pointer; transition: 0.3s; color: #64748b; background: none; }
-        .tab-btn.active { background: white; color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-
-        /* Content Area */
-        .content-card { background: white; border-radius: 16px; padding: 15px; flex-grow: 1; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
-        
-        /* Table Controls */
-        .table-wrapper { overflow-y: auto; flex-grow: 1; max-height: calc(100vh - 380px); border: 1px solid #f1f5f9; border-radius: 10px; }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #f8fafc; padding: 12px 8px; font-size: 1.1rem; position: sticky; top: 0; border-bottom: 2px solid #e2e8f0; text-align: center; }
-        td { padding: 12px 8px; border-bottom: 1px solid #f1f5f9; text-align: center; font-size: 1.2rem; }
-
+        .tabs { display: flex; background: #e2e8f0; padding: 5px; border-radius: 14px; margin-bottom: 15px; }
+        .tab-btn { flex: 1; padding: 10px; border: none; background: transparent; border-radius: 10px; cursor: pointer; font-weight: 600; color: var(--muted); font-family: 'Sarabun'; }
+        .tab-btn.active { background: var(--white); color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-
-        .btn { padding: 8px 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; font-family: 'Sarabun'; }
         
-        @media screen and (max-width: 600px) {
-            .btn span { display: none; }
+        .history-item { 
+            background: var(--white); border-radius: 16px; padding: 12px 15px; margin-bottom: 10px; 
+            display: flex; justify-content: space-between; align-items: center;
+            border-left: 5px solid #cbd5e1; 
         }
+        .item-db { border-left-color: #10b981; } 
+        .item-url { border-left-color: #3b82f6; }
+        .item-leave { border-left-color: #f59e0b; } 
+
+        .day-label { font-size: 0.8rem; font-weight: 700; color: var(--muted); margin-bottom: 2px; }
+        .item-date { font-weight: 700; font-size: 0.95rem; color: var(--text); }
+        .item-source { font-size: 0.65rem; color: var(--muted); }
+        .time-badge { padding: 4px 8px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; min-width: 55px; text-align: center; }
+        .t-in { background: #dcfce7; color: #15803d; }
+        .t-out { background: #fee2e2; color: #b91c1c; }
+        .btn-check-url { border: none; background: #f0f4ff; color: #4338ca; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 600; cursor: pointer; }
+
+        .week-info { text-align: center; font-size: 0.85rem; color: var(--primary); font-weight: 700; margin-bottom: 10px; }
+        .pagination { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
+        .btn-page { padding: 10px 18px; border: none; border-radius: 12px; background: var(--white); color: var(--primary); font-weight: 600; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .btn-page:disabled { opacity: 0.5; }
+        .btn-action { width: 100%; padding: 16px; border: none; border-radius: 16px; background: var(--primary); color: white; font-weight: 700; cursor: pointer; }
     </style>
 </head>
 <body>
-
-    <div class="toolbar">
-        <button class="btn" style="background: #f1f5f9;" onclick="location.href='menu.html'">
-            <i class="fa-solid fa-house"></i><span>หน้าหลัก</span>
-        </button>
-        <div style="font-weight: 700; font-size: 1.2rem;">โปรไฟล์พนักงาน</div>
-        <button class="btn" style="background: #fee2e2; color: #ef4444;" onclick="handleLogout()">
-            <i class="fa-solid fa-power-off"></i><span>ออก</span>
-        </button>
-    </div>
-
     <div class="container">
-        <div class="user-card">
-            <div class="user-name" id="disp-name">กำลังโหลด...</div>
-            <div class="user-detail" id="disp-id">รหัส: -</div>
-            <div class="user-detail" id="disp-type">ตำแหน่ง: -</div>
+        <div class="header-card">
+            <div class="header-title"><i class="fas fa-user-circle"></i> <span>โปรไฟล์</span></div>
+            <div onclick="window.location.href='menu.html'" class="back-btn"><i class="fas fa-arrow-left"></i> เมนู</div>
+        </div>
+
+        <div class="card">
+            <div class="profile-info">
+                <span class="user-emoji">👤</span>
+                <div id="u-name" style="font-weight:700; font-size:1.4rem;">...</div>
+                <div id="u-id" style="color:var(--muted); font-size:0.9rem;">ID: -</div>
+            </div>
+            <button class="btn-action" onclick="changePassword()">🔐 เปลี่ยนรหัสผ่าน</button>
         </div>
 
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab(event, 'attendance-tab')">ประวัติการลงเวลา</button>
-            <button class="tab-btn" onclick="switchTab(event, 'leave-tab')">ประวัติการลา</button>
+            <button class="tab-btn active" onclick="switchTab('att')">🕒 เวลาทำงาน</button>
+            <button class="tab-btn" onclick="switchTab('leave')">✈️ การลา</button>
         </div>
 
-        <div class="content-card">
-            <div id="attendance-tab" class="tab-content active">
-                <div class="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>วันที่</th>
-                                <th>มา</th>
-                                <th>กลับ</th>
-                            </tr>
-                        </thead>
-                        <tbody id="att-body"></tbody>
-                    </table>
-                </div>
+        <div id="tab-att" class="tab-content active">
+            <div id="week-display" class="week-info"></div>
+            <div id="att-list"></div>
+            <div class="pagination">
+                <button id="att-prev" class="btn-page" onclick="changeAttWeek(1)">สัปดาห์ก่อน</button>
+                <button id="att-next" class="btn-page" onclick="changeAttWeek(-1)">สัปดาห์ถัดไป</button>
             </div>
+        </div>
 
-            <div id="leave-tab" class="tab-content">
-                <div class="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>วันที่ลา</th>
-                                <th>ประเภท</th>
-                            </tr>
-                        </thead>
-                        <tbody id="leave-body"></tbody>
-                    </table>
-                </div>
+        <div id="tab-leave" class="tab-content">
+            <div id="leave-list"></div>
+            <div class="pagination">
+                <button id="leave-prev" class="btn-page" onclick="changeLeavePage(-1)">ก่อนหน้า</button>
+                <button id="leave-next" class="btn-page" onclick="changeLeavePage(1)">ถัดไป</button>
             </div>
         </div>
     </div>
 
     <script>
-        // ใช้ Key เดียวกับหน้า Login (tas_user)
-        const user = JSON.parse(localStorage.getItem('tas_user'));
+        const user = JSON.parse(localStorage.getItem('tas_user') || '{}');
+        let weekOffset = 0; // 0 คือสัปดาห์ปัจจุบัน
+        let leavePage = 0;
+        let externalBaseURL = "";
 
-        async function init() {
-            if (!user || !user.personnel_id) {
-                location.href = 'login.html';
-                return;
-            }
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!user.personnel_id) { window.location.href = 'login.html'; return; }
+            document.getElementById('u-name').innerText = user.name;
+            document.getElementById('u-id').innerText = `รหัส: ${user.personnel_id}`;
+            await fetchSettings();
+            loadAttendance();
+            loadLeaves();
+        });
 
-            // แสดงข้อมูลเบื้องต้น
-            document.getElementById('disp-name').innerText = user.name;
-            document.getElementById('disp-id').innerText = `รหัสพนักงาน: ${user.personnel_id}`;
-            document.getElementById('disp-type').innerText = `ตำแหน่ง: ${user.personnel_type || 'บุคลากร'}`;
-
-            await loadAttendance();
-            await loadLeaves();
+        async function fetchSettings() {
+            const { data } = await sbClient.from(TAS_CONFIG.TABLE_SETTINGS).select('value').eq('key', 'data_url').single();
+            if (data) externalBaseURL = data.value;
         }
 
-        // ฟังก์ชันสลับแท็บ
-        function switchTab(evt, tabId) {
-            const contents = document.getElementsByClassName("tab-content");
-            for (let content of contents) content.classList.remove("active");
-            
-            const buttons = document.getElementsByClassName("tab-btn");
-            for (let btn of buttons) btn.classList.remove("active");
-
-            document.getElementById(tabId).classList.add("active");
-            evt.currentTarget.classList.add("active");
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.getElementById(`tab-${tab}`).classList.add('active');
         }
 
+        // --- ระบบคำนวณวัน อาทิตย์ - เสาร์ ---
         async function loadAttendance() {
-            const tbody = document.getElementById('att-body');
-            const { data } = await sbClient
-                .from(TAS_CONFIG.TABLE_TARGET)
+            const container = document.getElementById('att-list');
+            container.innerHTML = '<p style="text-align:center; padding:20px; color:var(--muted);">กำลังโหลดข้อมูลสัปดาห์นี้...</p>';
+            
+            // คำนวณวันอาทิตย์ของสัปดาห์ที่เลือก
+            const now = new Date();
+            const startOfWeek = new Date(now);
+            startOfWeek.setDate(now.getDate() - now.getDay() - (7 * weekOffset));
+            
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+            document.getElementById('week-display').innerText = `${formatThaiDate(startOfWeek)} - ${formatThaiDate(endOfWeek)}`;
+
+            let html = "";
+            const dbDates = {};
+
+            // ดึงข้อมูลจาก DB ในช่วงสัปดาห์นั้น
+            const { data: dbData } = await sbClient.from(TAS_CONFIG.TABLE_TARGET)
                 .select('work_date, time_in, time_out')
                 .eq('personnel_id', user.personnel_id)
-                .order('work_date', { ascending: false })
-                .limit(7); // แสดงสัปดาห์ล่าสุด
+                .gte('work_date', startOfWeek.toISOString().split('T')[0])
+                .lte('work_date', endOfWeek.toISOString().split('T')[0])
+                .order('work_date', { ascending: false });
 
-            if (data && data.length > 0) {
-                tbody.innerHTML = data.map(i => `
-                    <tr>
-                        <td>${formatDate(i.work_date)}</td>
-                        <td style="color:green; font-weight:bold;">${i.time_in ? i.time_in.slice(0,5) : '-'}</td>
-                        <td style="color:red; font-weight:bold;">${i.time_out ? i.time_out.slice(0,5) : '-'}</td>
-                    </tr>
-                `).join('');
-            } else {
-                tbody.innerHTML = '<tr><td colspan="3">ไม่พบข้อมูลสัปดาห์นี้</td></tr>';
+            if (dbData) dbData.forEach(item => dbDates[item.work_date] = item);
+
+            // วนลูปสร้าง 7 วัน (เสาร์ ถอยไป อาทิตย์)
+            for (let i = 6; i >= 0; i--) {
+                const targetDate = new Date(startOfWeek);
+                targetDate.setDate(startOfWeek.getDate() + i);
+                const dateISO = targetDate.toISOString().split('T')[0];
+                const dataInDB = dbDates[dateISO];
+                const dayName = targetDate.toLocaleDateString('th-TH', { weekday: 'short' });
+
+                if (dataInDB) {
+                    html += renderItem(dataInDB, 'DB', dayName);
+                } else {
+                    html += `
+                    <div class="history-item">
+                        <div>
+                            <div class="day-label">${dayName}</div>
+                            <div class="item-date">${formatThaiDate(dateISO)}</div>
+                            <div class="item-source">ไม่มีในระบบหลัก</div>
+                        </div>
+                        <button class="btn-check-url" onclick="fetchFromURL('${dateISO}', this)">
+                            <i class="fas fa-sync-alt"></i> เช็คจากเว็บ
+                        </button>
+                    </div>`;
+                }
             }
+            container.innerHTML = html;
+            document.getElementById('att-next').disabled = weekOffset <= 0;
+        }
+
+        async function fetchFromURL(dateStr, btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            const targetDate = new Date(dateStr);
+            const dateURL = formatDateURL(targetDate);
+            const dayName = targetDate.toLocaleDateString('th-TH', { weekday: 'short' });
+            const proxyURL = `https://api.allorigins.win/get?url=${encodeURIComponent(externalBaseURL + dateURL)}`;
+
+            try {
+                const res = await fetch(proxyURL);
+                const json = await res.json();
+                const records = parseHTML(json.contents, dateStr);
+                const myRecord = records.find(r => r.personnel_id === user.personnel_id);
+
+                if (myRecord) {
+                    const parent = btn.parentElement;
+                    parent.classList.add('item-url');
+                    parent.innerHTML = `
+                        <div>
+                            <div class="day-label">${dayName}</div>
+                            <div class="item-date">${formatThaiDate(dateStr)}</div>
+                            <div class="item-source">รายงานภายนอก (URL)</div>
+                        </div>
+                        <div style="display:flex; gap:5px;">
+                            <span class="time-badge t-in">${myRecord.time_in || '--:--'}</span>
+                            <span class="time-badge t-out">${myRecord.time_out || '--:--'}</span>
+                        </div>`;
+                } else {
+                    Swal.fire({ icon: 'info', title: 'ไม่พบข้อมูล', text: 'ไม่พบรายการลงเวลาในหน้าเว็บ' });
+                    btn.disabled = false; btn.innerHTML = '<i class="fas fa-sync-alt"></i> เช็คจากเว็บ';
+                }
+            } catch (err) {
+                btn.disabled = false; btn.innerHTML = 'ลองใหม่';
+            }
+        }
+
+        function renderItem(item, src, dayName) {
+            return `
+            <div class="history-item item-db">
+                <div>
+                    <div class="day-label">${dayName}</div>
+                    <div class="item-date">${formatThaiDate(item.work_date)}</div>
+                    <div class="item-source">บันทึกในระบบหลัก</div>
+                </div>
+                <div style="display:flex; gap:5px;">
+                    <span class="time-badge t-in">${item.time_in ? item.time_in.slice(0, 5) : '--:--'}</span>
+                    <span class="time-badge t-out">${item.time_out ? item.time_out.slice(0, 5) : '--:--'}</span>
+                </div>
+            </div>`;
         }
 
         async function loadLeaves() {
-            const tbody = document.getElementById('leave-body');
-            const { data } = await sbClient
-                .from('Leave_records')
-                .select('leave_date, leave_type')
-                .eq('personnel_id', user.personnel_id)
-                .order('leave_date', { ascending: false });
-
+            const container = document.getElementById('leave-list');
+            const { data } = await sbClient.from('Leave_records').select('*').eq('personnel_id', user.personnel_id).neq('leave_type', 'ยกเว้น').order('leave_date', { ascending: false }).range(leavePage * 5, (leavePage + 1) * 5 - 1);
             if (data && data.length > 0) {
-                tbody.innerHTML = data.map(i => `
-                    <tr>
-                        <td>${formatDate(i.leave_date)}</td>
-                        <td style="color:var(--primary); font-weight:bold;">${i.leave_type}</td>
-                    </tr>
-                `).join('');
-            } else {
-                tbody.innerHTML = '<tr><td colspan="2">ไม่พบประวัติการลา</td></tr>';
+                container.innerHTML = data.map(item => `
+                    <div class="history-item item-leave">
+                        <div>
+                            <div class="day-label">${new Date(item.leave_date).toLocaleDateString('th-TH', { weekday: 'short' })}</div>
+                            <div class="item-date">${formatThaiDate(item.leave_date)}</div>
+                            <div class="item-source">${item.leave_type}</div>
+                        </div>
+                        <div style="font-size:0.8rem; font-weight:700; color:var(--primary);">${item.status || 'อนุมัติ'}</div>
+                    </div>`).join('');
+            } else container.innerHTML = '<p style="text-align:center; padding:20px; color:var(--muted);">ไม่พบประวัติการลา</p>';
+            document.getElementById('leave-prev').disabled = leavePage === 0;
+        }
+
+        function parseHTML(html, d) {
+            const parser = new DOMParser(), doc = parser.parseFromString(html, "text/html"), table = doc.getElementById('mainTable'), recs = [];
+            if (!table) return [];
+            table.querySelectorAll('tbody tr').forEach(row => {
+                const cols = row.querySelectorAll('td');
+                if (cols.length >= 4) recs.push({ personnel_id: cols[0].innerText.trim(), time_in: cols[2].innerText.trim(), time_out: cols[3].innerText.trim() });
+            }); return recs;
+        }
+
+        function formatDateURL(date) { const pad = (n) => String(n).padStart(2, '0'); return `${pad(date.getDate())}${pad(date.getMonth() + 1)}${date.getFullYear()}/`; }
+        function formatThaiDate(s) { const d = new Date(s); return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }); }
+        function changeAttWeek(s) { weekOffset += s; loadAttendance(); }
+        function changeLeavePage(s) { leavePage += s; loadLeaves(); }
+
+        async function changePassword() {
+            const { value: newPass } = await Swal.fire({ title: 'เปลี่ยนรหัสผ่าน', input: 'password', showCancelButton: true });
+            if (newPass) {
+                await sbClient.from(TAS_CONFIG.TABLE_USER).update({ Password: newPass }).eq('personnel_id', user.personnel_id);
+                Swal.fire('สำเร็จ', 'บันทึกแล้ว', 'success');
             }
         }
-
-        function formatDate(d) {
-            const date = new Date(d);
-            const months = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
-            return `${date.getDate()} ${months[date.getMonth()]} ${String(date.getFullYear() + 543).slice(-2)}`;
-        }
-
-        function handleLogout() {
-            Swal.fire({
-                title: 'ออกจากระบบ?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#4f46e5',
-                confirmButtonText: 'ยืนยัน',
-                cancelButtonText: 'ยกเลิก'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    localStorage.removeItem('tas_user');
-                    localStorage.removeItem('tas_remember');
-                    location.href = 'index.html';
-                }
-            });
-        }
-
-        window.onload = init;
     </script>
 </body>
 </html>
