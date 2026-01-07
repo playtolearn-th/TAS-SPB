@@ -2,139 +2,177 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>เมนูหลัก - TAS-SPB</title>
+    
     <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <style>
-        body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-        
-        .header-bar { width: 100%; max-width: 600px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .user-info { font-weight: bold; color: #334155; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
-        .logout-btn { background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
-        .logout-btn:hover { background: #ef4444; color: white; }
-
-        .menu-grid { 
-            display: grid; 
-            grid-template-columns: repeat(2, 1fr); 
-            gap: 15px; 
-            width: 100%; 
-            max-width: 600px; 
-        }
-
-        .menu-card {
-            background: white; border-radius: 20px; padding: 20px 10px;
-            text-align: center; cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            transition: transform 0.2s, box-shadow 0.2s;
-            text-decoration: none; color: inherit;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            height: 140px;
-        }
-        .menu-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        
-        .emoji-icon { font-size: 3rem; margin-bottom: 10px; }
-        .menu-title { font-size: 1rem; font-weight: bold; color: #1e293b; }
-        
-        /* สไตล์พิเศษ */
-        .full-width { grid-column: span 2; background: linear-gradient(135deg, #4f46e5, #4338ca); color: white; height: auto; padding: 30px; }
-        .full-width .menu-title { color: white; font-size: 1.3rem; }
-        
-        .btn-process { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; }
-        .btn-process .menu-title { color: white; }
-        
-        /* Class สำหรับซ่อนเมนู */
-        .hidden-menu { display: none !important; }
-
-    </style>
-    
-    <script src="supabase.js"></script>
     <script src="sweetalert2.js"></script>
-    <script src="config.js"></script> 
+    <script src="supabase.js"></script>
+    <script src="config.js"></script>
+
+    <style>
+        :root { --primary: #4f46e5; --bg: #f8fafc; --white: #ffffff; --text: #1e293b; --muted: #64748b; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Sarabun', sans-serif; background-color: var(--bg); color: var(--text); padding: 15px; }
+        .container { max-width: 500px; margin: 0 auto; }
+
+        /* Top Bar พร้อม favicon */
+        .top-bar { display: flex; align-items: center; padding: 10px 5px; margin-bottom: 20px; gap: 10px; }
+        .sys-icon { width: 32px; height: 32px; object-fit: contain; }
+        .system-logo { font-weight: 800; font-size: 1.25rem; color: var(--primary); letter-spacing: -0.5px; }
+
+        /* Unified Profile Card */
+        .profile-menu-card {
+            background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+            padding: 22px;
+            border-radius: 24px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4);
+        }
+        .profile-link { flex: 1; display: flex; align-items: center; gap: 15px; text-decoration: none; color: white; overflow: hidden; }
+        .avatar-box { width: 55px; height: 55px; background: rgba(255,255,255,0.2); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; flex-shrink: 0; }
+        
+        /* บังคับชื่อบรรทัดเดียว */
+        .profile-info { overflow: hidden; }
+        .profile-info h2 { 
+            font-size: 1.15rem; font-weight: 700; margin-bottom: 2px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+        }
+        .profile-info p { font-size: 0.8rem; opacity: 0.85; }
+
+        .btn-logout-inline {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            width: 42px; height: 42px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.2s;
+        }
+        .btn-logout-inline:active { transform: scale(0.9); background: rgba(220, 38, 38, 0.5); }
+
+        /* Grid Menu */
+        .admin-section-title { font-size: 0.85rem; font-weight: 700; color: var(--muted); margin: 25px 5px 12px; text-transform: uppercase; }
+        .grid-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .menu-card { 
+            background: var(--white); border-radius: 22px; padding: 22px 15px; text-align: center; 
+            text-decoration: none; color: var(--text); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); 
+            display: flex; flex-direction: column; align-items: center; gap: 12px;
+        }
+        .icon-box { width: 50px; height: 50px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white; }
+        .c-process { background: #8b5cf6; }
+        .c-report { background: #10b981; }
+        .c-setting { background: #f59e0b; }
+        .c-att { background: #ec4899; }
+    </style>
 </head>
 <body>
-
-    <div class="header-bar">
-        <div class="user-info">
-            <span>👤</span> <span id="userName">...</span> <span id="userBadge" style="font-size:0.8rem; background:#e2e8f0; padding:2px 8px; border-radius:10px; margin-left:5px;">L-?</span>
+    <div class="container">
+        <div class="top-bar">
+            <img src="favicon.png" alt="Icon" class="sys-icon">
+            <div class="system-logo">TAS-SPB <span style="font-weight:300; font-size: 1.1rem; opacity: 0.7;">Online</span></div>
         </div>
-        <button class="logout-btn" onclick="logout()">ออกจากระบบ</button>
-    </div>
 
-    <div class="menu-grid">
-        <a href="attendance.html" class="menu-card full-width">
-            <span class="emoji-icon">🕒</span>
-            <span class="menu-title">ลงเวลาทำงาน</span>
-        </a>
+        <div class="profile-menu-card">
+            <a href="profile.html" class="profile-link">
+                <div class="avatar-box">👤</div>
+                <div class="profile-info">
+                    <h2 id="userName">กำลังโหลด...</h2>
+                    <p id="userStatus">รหัสพนักงาน: -</p>
+                </div>
+            </a>
+            <button class="btn-logout-inline" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </div>
 
-        <a href="process.html" class="menu-card btn-process" id="menu-process">
-            <span class="emoji-icon">⚡</span>
-            <span class="menu-title">ประมวลผลข้อมูล</span>
-        </a>
+        <div id="admin-area" style="display: none;">
+            <div class="admin-section-title">เครื่องมือดูแลระบบ</div>
+            <div class="grid-menu">
+                <a href="process.html" class="menu-card">
+                    <div class="icon-box c-process"><i class="fas fa-sync-alt"></i></div>
+                    <div class="menu-title">ประมวลผลข้อมูล</div>
+                </a>
+                <a href="attendance.html" class="menu-card">
+                    <div class="icon-box c-att"><i class="fas fa-calendar-check"></i></div>
+                    <div class="menu-title">จัดการเวลา/ลา</div>
+                </a>
+                <a href="report.html" class="menu-card">
+                    <div class="icon-box c-report"><i class="fas fa-file-export"></i></div>
+                    <div class="menu-title">สรุปรายงาน</div>
+                </a>
+                <a href="settings.html" class="menu-card">
+                    <div class="icon-box c-setting"><i class="fas fa-tools"></i></div>
+                    <div class="menu-title">ตั้งค่าระบบ</div>
+                </a>
+            </div>
+        </div>
 
-        <a href="report.html" class="menu-card" id="menu-report">
-            <span class="emoji-icon">📊</span>
-            <span class="menu-title">รายงาน</span>
-        </a>
-
-        <a href="leave.html" class="menu-card">
-            <span class="emoji-icon">📝</span>
-            <span class="menu-title">บันทึกการลา</span>
-        </a>
-
-        <a href="db.html" class="menu-card" id="menu-db" style="border: 2px solid #e0e7ff; background: #f1f5f9;">
-            <span class="emoji-icon">🗄️</span>
-            <span class="menu-title">ฐานข้อมูลเวลา</span>
-        </a>
-
-        <a href="settings.html" class="menu-card" id="menu-settings">
-            <span class="emoji-icon">⚙️</span>
-            <span class="menu-title">ตั้งค่า</span>
-        </a>
+        <div id="vText" style="text-align:center; margin-top:40px; font-size:0.75rem; color:var(--muted);">TAS-SPB System</div>
     </div>
 
     <script>
-        // โหลดข้อมูล User
-        const user = checkAuth(); // ตอนนี้ config.js ยอมให้ทุกคนผ่านแล้ว
-        
-        if(user) {
-            const level = String(user.level || '0'); // ถ้าไม่มี level ให้เป็น 0
+        async function initMenu() {
+            const stored = localStorage.getItem('tas_user');
+            if (!stored) { window.location.href = 'login.html'; return; }
+            
+            const user = JSON.parse(stored);
             document.getElementById('userName').innerText = user.name;
-            document.getElementById('userBadge').innerText = `Level ${level}`;
+            document.getElementById('userStatus').innerText = `ID: ${user.personnel_id}`;
 
-            // รายการ ID ของเมนูที่ต้องควบคุม
-            const menuProcess = document.getElementById('menu-process');
-            const menuReport = document.getElementById('menu-report');
-            const menuDB = document.getElementById('menu-db');
-            const menuSettings = document.getElementById('menu-settings');
-
-            // --- Logic ควบคุมการแสดงผล ---
-            // เริ่มต้นซ่อนเมนู Admin/Manager ทั้งหมดก่อน
-            const hideAllAdmin = () => {
-                menuProcess.classList.add('hidden-menu');
-                menuReport.classList.add('hidden-menu');
-                menuDB.classList.add('hidden-menu');
-                menuSettings.classList.add('hidden-menu');
-            };
-            
-            hideAllAdmin();
-
-            if (level === '1') {
-                // ✅ Level 1: เห็นครบทุกอย่าง (เอา class hidden ออก)
-                menuProcess.classList.remove('hidden-menu');
-                menuReport.classList.remove('hidden-menu');
-                menuDB.classList.remove('hidden-menu');
-                menuSettings.classList.remove('hidden-menu');
-            
-            } else if (level === '2') {
-                // ✅ Level 2: เห็น Process + Report
-                menuProcess.classList.remove('hidden-menu');
-                menuReport.classList.remove('hidden-menu');
-                // DB, Settings ยังคงถูกซ่อน
+            if (String(user.level) === '1') {
+                document.getElementById('admin-area').style.display = 'block';
             }
-            
-            // ✅ Level อื่นๆ / ไม่ระบุ: จะเห็นแค่ ลงเวลาทำงาน (Profile) และ บันทึกการลา ตาม Default
+
+            try {
+                const { data } = await sbClient.from(TAS_CONFIG.TABLE_SETTINGS).select('value').eq('key', 'latest_version').single();
+                if (data) document.getElementById('vText').innerText = `Version ${data.value}`;
+            } catch (e) {}
         }
+
+        function logout() {
+            // ตรวจสอบว่า Swal พร้อมใช้งานหรือไม่
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'ออกจากระบบ?',
+                    text: "ต้องการปิดเซสชันการทำงานปัจจุบันหรือไม่",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#4f46e5',
+                    cancelButtonColor: '#94a3b8',
+                    confirmButtonText: 'ยืนยัน',
+                    cancelButtonText: 'ยกเลิก',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        localStorage.removeItem('tas_user');
+                        localStorage.removeItem('tas_remember');
+                        window.location.href = 'login.html';
+                    }
+                });
+            } else {
+                // Fallback กรณี Swal โหลดไม่สำเร็จ
+                if (confirm("ยืนยันการออกจากระบบ?")) {
+                    localStorage.removeItem('tas_user');
+                    localStorage.removeItem('tas_remember');
+                    window.location.href = 'login.html';
+                }
+            }
+        }
+
+        initMenu();
     </script>
 </body>
 </html>
