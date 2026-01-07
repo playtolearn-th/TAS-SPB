@@ -7,14 +7,29 @@
     <style>
         body { font-family: 'Sarabun', sans-serif; background: #f8fafc; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .container { width: 100%; max-width: 700px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; }
-        .btn-process { background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; border: none; padding: 15px 30px; border-radius: 30px; font-size: 1.2rem; font-weight: bold; cursor: pointer; margin: 20px 0; box-shadow: 0 4px 6px rgba(99, 102, 241, 0.3); transition: transform 0.2s; }
+        
+        /* ปุ่ม Start */
+        .btn-process { background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; border: none; padding: 15px 30px; border-radius: 30px; font-size: 1.2rem; font-weight: bold; cursor: pointer; margin: 20px 0; box-shadow: 0 4px 6px rgba(99, 102, 241, 0.3); transition: transform 0.2s; width: 100%; }
         .btn-process:active { transform: scale(0.95); }
-        .btn-process:disabled { background: #cbd5e1; cursor: not-allowed; }
+        .btn-process:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; box-shadow: none; }
+        
+        /* Log Box */
         .log-box { text-align: left; background: #1e293b; color: #10b981; border-radius: 10px; padding: 15px; height: 350px; overflow-y: auto; font-family: monospace; font-size: 0.9rem; border: 1px solid #e2e8f0; }
         .back-btn { text-decoration: none; color: #64748b; font-weight: bold; display: inline-block; margin-bottom: 20px; }
+        
+        /* Log Colors */
         .highlight { color: #fbbf24; } 
         .error { color: #ef4444; } 
         .info { color: #60a5fa; }
+        .timestamp { color: #94a3b8; margin-right: 5px; }
+
+        /* Controls */
+        .controls { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; background: #f1f5f9; padding: 15px; border-radius: 10px; text-align: left; }
+        .radio-group { display: flex; gap: 20px; margin-bottom: 10px; }
+        .radio-group label { cursor: pointer; font-weight: bold; color: #475569; display: flex; align-items: center; gap: 5px; }
+        .date-input-group { display: flex; gap: 10px; align-items: center; }
+        input[type="date"] { padding: 8px; border: 1px solid #cbd5e1; border-radius: 5px; font-family: 'Sarabun'; }
+        input[type="date"]:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
     </style>
     
     <script src="supabase.js"></script>
@@ -25,9 +40,29 @@
     <a href="menu.html" class="back-btn">⬅ กลับเมนูหลัก</a>
 
     <div class="container">
-        <h2>🔄 ระบบดึงข้อมูลจากตาราง HTML</h2>
-        <p>ระบบจะดึงข้อมูลจากหน้าเว็บรายงาน (HTTP) <br>และนำมารวมกับข้อมูลที่กดผ่านเว็บ</p>
+        <h2>🔄 ระบบประมวลผลเวลา</h2>
+        <p>ดึงข้อมูลจากเว็บรายงาน (HTTP) และ ข้อมูลภายใน (Manual) มารวมกัน</p>
         
+        <div class="controls">
+            <div class="radio-group">
+                <label>
+                    <input type="radio" name="processMode" value="auto" checked onchange="toggleInputs()"> 
+                    🤖 Auto Sync (ต่อเนื่องจากล่าสุด)
+                </label>
+                <label>
+                    <input type="radio" name="processMode" value="manual" onchange="toggleInputs()"> 
+                    📅 ระบุวันที่เอง
+                </label>
+            </div>
+            
+            <div class="date-input-group" id="manualDateGroup" style="opacity: 0.5; pointer-events: none;">
+                <label>เลือกวันที่:</label>
+                <input type="date" id="manualDate" value="">
+                <span>ถึง</span>
+                <input type="date" id="manualDateEnd" value="">
+            </div>
+        </div>
+
         <button id="btnStart" class="btn-process" onclick="startProcess()">🚀 เริ่มการประมวลผล</button>
         
         <div class="log-box" id="logDisplay">
@@ -38,6 +73,34 @@
     <script>
         const user = checkAuth();
 
+        // ตั้งค่าวันที่เริ่มต้นให้กับ Input Manual (เป็นวันปัจจุบัน)
+        document.addEventListener('DOMContentLoaded', () => {
+            const todayStr = new Date().toISOString().split('T')[0];
+            document.getElementById('manualDate').value = todayStr;
+            document.getElementById('manualDateEnd').value = todayStr;
+        });
+
+        function toggleInputs() {
+            const mode = document.querySelector('input[name="processMode"]:checked').value;
+            const group = document.getElementById('manualDateGroup');
+            const inputs = group.querySelectorAll('input');
+            
+            if (mode === 'manual') {
+                group.style.opacity = '1';
+                group.style.pointerEvents = 'auto';
+                inputs.forEach(i => i.disabled = false);
+            } else {
+                group.style.opacity = '0.5';
+                group.style.pointerEvents = 'none';
+                inputs.forEach(i => i.disabled = true);
+            }
+        }
+
+        function getTimeStr() {
+            const now = new Date();
+            return `[${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}]`;
+        }
+
         function log(msg, type = 'normal') {
             const box = document.getElementById('logDisplay');
             let colorClass = '';
@@ -45,7 +108,7 @@
             if(type === 'error') colorClass = 'class="error"';
             if(type === 'info') colorClass = 'class="info"';
             
-            box.innerHTML += `<div ${colorClass}>> ${msg}</div>`;
+            box.innerHTML += `<div ${colorClass}><span class="timestamp">${getTimeStr()}</span> ${msg}</div>`;
             box.scrollTop = box.scrollHeight;
         }
 
@@ -54,13 +117,12 @@
             return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
         }
 
-        // รูปแบบ URL วันที่ DDMMYYYY
         function formatDateURL(date) {
             const pad = (n) => String(n).padStart(2, '0');
             return `${pad(date.getDate())}${pad(date.getMonth() + 1)}${date.getFullYear()}`;
         }
 
-        // 🔥 ฟังก์ชันแปลง HTML เป็นข้อมูล (Scraping Logic)
+        // --- Scraping Logic ---
         function parseHTMLTable(htmlString, dateStr) {
             const parser = new DOMParser();
             const doc = parser.parseFromString(htmlString, "text/html");
@@ -78,18 +140,17 @@
                     let t_in = cols[2].innerText.trim();
                     let t_out = cols[3].innerText.trim();
 
-                    // แปลงเวลาว่างให้เป็น null (หรือข้าม)
                     if(t_in === "" || t_in === "-") t_in = null;
-                    else if(t_in.length === 5) t_in += ":00"; // 08:30 -> 08:30:00
+                    else if(t_in.length === 5) t_in += ":00";
 
                     if(t_out === "" || t_out === "-") t_out = null;
                     else if(t_out.length === 5) t_out += ":00";
 
-                    if (pid) {
+                    if (pid && pid !== "ไม่พบข้อมูล") { // กันกรณีตารางว่างแล้วมีข้อความ error
                         records.push({
                             personnel_id: pid,
                             full_name: name,
-                            work_date: dateStr, // ใช้วันที่จาก Loop
+                            work_date: dateStr,
                             time_in: t_in,
                             time_out: t_out
                         });
@@ -101,97 +162,109 @@
 
         async function startProcess() {
             const btn = document.getElementById('btnStart');
+            const mode = document.querySelector('input[name="processMode"]:checked').value;
+            
             btn.disabled = true;
-            document.getElementById('logDisplay').innerHTML = '<div>> เริ่มต้นกระบวนการ...</div>';
+            document.getElementById('logDisplay').innerHTML = ''; // เคลียร์ log เก่า
+            
+            log(`Starting process engine... Mode: ${mode.toUpperCase()}`);
 
             try {
-                // 1. ดึง Base URL จาก Settings
+                // 1. เตรียม Base URL
+                log("Connecting to settings...");
                 const { data: settingData } = await sbClient.from(TAS_CONFIG.TABLE_SETTINGS)
                     .select('value').eq('key', 'data_url').single();
                 
                 let baseURL = "";
-                // ถ้าค่าใน DB เป็น https://att4... ให้ใช้ได้เลย แต่ถ้าเป็น http ต้องผ่าน proxy
                 if (settingData && settingData.value) {
-                    // ตัดส่วน proxy เก่าออกถ้ามี เหลือแค่ url ดิบ
-                    let rawUrl = settingData.value.replace("https://api.allorigins.win/raw?url=", "");
-                    // บังคับใช้ Proxy เสมอ เพราะเป้าหมายเป็น HTTP
+                    let rawUrl = settingData.value;
+                    // Clean URL logic
+                    if(rawUrl.includes("api.allorigins.win")) {
+                        const match = rawUrl.match(/url=(.*)/);
+                        if(match) rawUrl = decodeURIComponent(match[1]);
+                    }
+                    if(!rawUrl.endsWith('/')) rawUrl += '/';
+                    
+                    // ใช้ Proxy เสมอ
                     baseURL = `https://api.allorigins.win/get?url=${encodeURIComponent(rawUrl)}`;
-                    log(`Proxy URL: ${baseURL}...`, 'info');
+                    log(`Proxy configured for: ${rawUrl}`, 'info');
                 } else {
-                    log("⚠️ ไม่พบ data_url ใน Settings (จะข้ามการดึงเว็บนอก)");
+                    log("⚠️ Warning: ไม่พบ 'data_url' ในการตั้งค่า (จะดึงเฉพาะข้อมูลภายใน)", 'error');
                 }
 
-                // 2. หาวันที่ล่าสุด
-                log("กำลังหาวันที่ล่าสุดในระบบ...");
-                const { data: latestRecord } = await sbClient.from(TAS_CONFIG.TABLE_TARGET)
-                    .select('work_date').order('work_date', { ascending: false }).limit(1).single();
-
+                // 2. กำหนดช่วงวันที่ (Loop Range)
                 let startDate = new Date();
-                if (latestRecord && latestRecord.work_date) {
-                    startDate = new Date(latestRecord.work_date);
-                    log(`📅 พบข้อมูลล่าสุดวันที่: ${formatDateDB(startDate)}`, 'highlight');
+                let endDate = new Date();
+
+                if (mode === 'manual') {
+                    // โหมดระบุวัน
+                    const sDateVal = document.getElementById('manualDate').value;
+                    const eDateVal = document.getElementById('manualDateEnd').value;
+                    if(!sDateVal || !eDateVal) throw new Error("กรุณาระบุวันที่ให้ครบถ้วน");
+                    
+                    startDate = new Date(sDateVal);
+                    endDate = new Date(eDateVal);
+                    log(`Manual Range: ${sDateVal} to ${eDateVal}`, 'highlight');
+
                 } else {
-                    log("⚠️ ไม่พบข้อมูลเก่า เริ่มประมวลผลจาก 'วันนี้'");
+                    // โหมด Auto
+                    log("Checking latest record in database...");
+                    const { data: latestRecord } = await sbClient.from(TAS_CONFIG.TABLE_TARGET)
+                        .select('work_date').order('work_date', { ascending: false }).limit(1).single();
+
+                    if (latestRecord && latestRecord.work_date) {
+                        startDate = new Date(latestRecord.work_date);
+                        log(`Found latest date: ${latestRecord.work_date}`, 'info');
+                        // เริ่มที่วันล่าสุด (เพื่อ Update ข้อมูลเผื่อมีการแก้ไข)
+                    } else {
+                        log("No previous records found. Starting from TODAY.", 'info');
+                    }
+                    // End date คือวันนี้เสมอสำหรับ Auto
+                    endDate = new Date();
                 }
 
-                // 3. วนลูป
-                const today = new Date();
-                today.setHours(0,0,0,0);
+                // 3. เริ่มวนลูป
                 startDate.setHours(0,0,0,0);
-                let loopDate = new Date(startDate); 
+                endDate.setHours(0,0,0,0);
+                
+                let loopDate = new Date(startDate);
+                let totalSaved = 0;
 
-                while (loopDate <= today) {
-                    const dateDBStr = formatDateDB(loopDate);   // YYYY-MM-DD
-                    const dateURLPart = formatDateURL(loopDate); // DDMMYYYY
+                while (loopDate <= endDate) {
+                    const dateDBStr = formatDateDB(loopDate);   
+                    const dateURLPart = formatDateURL(loopDate); 
                     
                     log(`-----------------------------------`);
-                    log(`⏳ กำลังประมวลผลวันที่: ${dateDBStr} ...`, 'highlight');
+                    log(`Processing Date: ${dateDBStr}...`, 'highlight');
 
-                    // 3.1 ดึง Web นอก (ผ่าน Proxy & Parse HTML)
+                    // 3.1 ดึง Web นอก
                     let externalData = [];
                     if (baseURL) {
                         try {
-                            // สร้าง URL ปลายทางที่ถูกต้อง (ต้องระวังเรื่อง / ท้าย url)
-                            // ตัวอย่าง Base ใน DB: http://att4.doomdns.com/rp/SPWTQtSA/
-                            // เป้าหมาย: http://att4.doomdns.com/rp/SPWTQtSA/29122025
+                            const targetUrl = `${baseURL.split('url=')[1]}${dateURLPart}`; // hack เพื่อประกอบร่าง url ใน proxy
+                            const finalProxyUrl = `https://api.allorigins.win/get?url=${targetUrl}`;
                             
-                            // ดึง URL ดิบจาก Setting อีกครั้งเพื่อความชัวร์
-                            let cleanBase = settingData.value;
-                            if(cleanBase.includes("allorigins")) {
-                                // ถ้า user เผลอใส่ proxy ไปใน db ให้แกะออกก่อน
-                                const match = cleanBase.match(/url=(.*)/);
-                                if(match) cleanBase = decodeURIComponent(match[1]);
-                            }
-                            if(!cleanBase.endsWith('/')) cleanBase += '/';
-
-                            const targetUrl = `${cleanBase}${dateURLPart}`;
-                            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
-                            
-                            // log(`   Target: ${targetUrl}`);
-                            const res = await fetch(proxyUrl);
+                            const res = await fetch(finalProxyUrl);
                             if (res.ok) {
-                                const jsonRes = await res.json(); // AllOrigins คืนค่าเป็น JSON ที่มี contents
-                                const htmlContent = jsonRes.contents; // นี่คือ HTML ดิบๆ
-                                
-                                // ส่งไปแกะข้อมูลจากตาราง
-                                externalData = parseHTMLTable(htmlContent, dateDBStr);
-                                log(`   ✅ ข้อมูลจากตาราง HTML: พบ ${externalData.length} รายการ`, 'info');
+                                const jsonRes = await res.json();
+                                externalData = parseHTMLTable(jsonRes.contents, dateDBStr);
+                                log(`   [External] Fetched ${externalData.length} records.`);
                             } else {
-                                log(`   ⚠️ Proxy เชื่อมต่อไม่ได้ (Status: ${res.status})`);
+                                log(`   [External] HTTP Error ${res.status}`, 'error');
                             }
                         } catch (e) {
-                            console.error(e);
-                            log(`   ❌ ดึงเว็บนอกล้มเหลว (อาจไม่มีรายงานวันนี้)`, 'error');
+                            log(`   [External] Failed: ${e.message}`, 'error');
                         }
                     }
 
-                    // 3.2 ดึง DB ภายใน
-                    const { data: internalData } = await sbClient
+                    // 3.2 ดึง DB ภายใน (TimeStampPlus)
+                    const { data: internalData, error: errInt } = await sbClient
                         .from(TAS_CONFIG.TABLE_SOURCE).select('*').eq('work_date', dateDBStr);
                     
-                    log(`   ✅ ข้อมูลภายใน (Web): พบ ${internalData ? internalData.length : 0} รายการ`);
+                    if(errInt) log(`   [Internal] DB Error: ${errInt.message}`, 'error');
+                    else log(`   [Internal] Found ${internalData ? internalData.length : 0} records.`);
 
-                    // 3.3 รวมข้อมูล (Merge)
+                    // 3.3 Merge
                     const mergedMap = {};
                     const processRecord = (rec) => {
                         const pid = rec.personnel_id;
@@ -205,7 +278,7 @@
                             };
                         } else {
                             const current = mergedMap[pid];
-                            // Logic: เช้าสุด / ดึกสุด
+                            // Logic: เอาเวลาเข้าที่น้อยที่สุด และเวลาออกที่มากที่สุด
                             if (rec.time_in && (!current.time_in || rec.time_in < current.time_in)) current.time_in = rec.time_in;
                             if (rec.time_out && (!current.time_out || rec.time_out > current.time_out)) current.time_out = rec.time_out;
                         }
@@ -216,39 +289,46 @@
 
                     const finalData = Object.values(mergedMap);
 
-                    // 3.4 บันทึก
+                    // 3.4 Save to Target (TimeStamp)
                     if (finalData.length > 0) {
                         const recordsToSave = finalData.map(item => ({
-                            id: `${dateURLPart}${item.personnel_id}`, // ID สูตร: DDMMYYYY + ID
+                            id: `${formatDateURL(new Date(item.work_date))}${item.personnel_id}`,
                             personnel_id: item.personnel_id,
                             full_name: item.full_name,
                             work_date: item.work_date,
                             time_in: item.time_in,
                             time_out: item.time_out,
-                            verified: 0
+                            verified: 0 // Default value
                         }));
 
                         const { error: errUpsert } = await sbClient
                             .from(TAS_CONFIG.TABLE_TARGET)
                             .upsert(recordsToSave, { onConflict: 'personnel_id, work_date' });
 
-                        if (errUpsert) log(`   ❌ บันทึกไม่สำเร็จ: ${errUpsert.message}`, 'error');
-                        else log(`   💾 บันทึกเรียบร้อย (${recordsToSave.length} รายการ)`);
+                        if (errUpsert) {
+                            log(`   ❌ Save Failed: ${errUpsert.message}`, 'error');
+                        } else {
+                            log(`   💾 Saved ${recordsToSave.length} records successfully.`, 'info');
+                            totalSaved += recordsToSave.length;
+                        }
                     } else {
-                        log(`   (ไม่มีข้อมูลใหม่ในวันนี้)`);
+                        log(`   (No data to save for this date)`);
                     }
 
+                    // ขยับวันถัดไป
                     loopDate.setDate(loopDate.getDate() + 1);
                 }
 
                 log(`-----------------------------------`);
-                log(`✅✅ เสร็จสิ้นกระบวนการทั้งหมด!`, 'highlight');
-                Swal.fire('สำเร็จ', 'ดึงข้อมูลจากตาราง HTML เรียบร้อย', 'success');
+                log(`All operations completed. Total Saved: ${totalSaved}`, 'highlight');
+                
+                if(totalSaved > 0) Swal.fire('เสร็จสิ้น', `บันทึกข้อมูลแล้ว ${totalSaved} รายการ`, 'success');
+                else Swal.fire('เสร็จสิ้น', 'ไม่พบข้อมูลใหม่ในช่วงเวลาที่เลือก', 'info');
 
             } catch (err) {
                 console.error(err);
-                log(`❌ Error: ${err.message}`, 'error');
-                Swal.fire('เกิดข้อผิดพลาด', err.message, 'error');
+                log(`CRITICAL ERROR: ${err.message}`, 'error');
+                Swal.fire('Error', err.message, 'error');
             } finally {
                 btn.disabled = false;
             }
