@@ -1,54 +1,302 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <title>ระบบประมวลผลข้อมูล - TAS-SPB</title>
     <link rel="icon" type="image/png" href="favicon.png">
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Fira+Code:wght@400&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Fira+Code:wght@400&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <style>
-        :root { --primary: #6366f1; --bg: #f3f4f6; --terminal-bg: #1e1e1e; --terminal-text: #d4d4d4; }
-        body { font-family: 'Sarabun', sans-serif; background: var(--bg); padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; }
-        .header-section { background: white; width: 100%; max-width: 1000px; padding: 20px 30px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .header-title { display: flex; align-items: center; gap: 15px; }
-        .icon-box { width: 50px; height: 50px; background: var(--primary); color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
-        .main-grid { display: grid; grid-template-columns: 350px 1fr; gap: 20px; width: 100%; max-width: 1000px; }
-        .control-panel { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); height: fit-content; }
-        .radio-group { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; }
-        .radio-option { display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 600; color: #374151; padding: 10px; border-radius: 8px; transition: 0.2s; border: 2px solid transparent; }
-        .radio-option:hover { background: #f9fafb; }
-        .radio-option.selected { border-color: var(--primary); background: #eef2ff; color: var(--primary); }
-        .radio-option input { display: none; }
-        .radio-circle { width: 18px; height: 18px; border: 2px solid #9ca3af; border-radius: 50%; position: relative; }
-        .radio-option.selected .radio-circle { border-color: var(--primary); }
-        .radio-option.selected .radio-circle::after { content: ''; width: 10px; height: 10px; background: var(--primary); border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-        .date-input { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-family: 'Sarabun'; margin-top: 10px; display: none; }
-        .btn-start { width: 100%; background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; border: none; padding: 15px; font-size: 1.1rem; font-weight: bold; border-radius: 10px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3); display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .btn-start:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(99, 102, 241, 0.4); }
-        .btn-start:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; box-shadow: none; }
-        .terminal-window { background: var(--terminal-bg); border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden; display: flex; flex-direction: column; height: 500px; }
-        .terminal-header { background: #2d2d2d; padding: 10px 15px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #333; }
-        .dot { width: 12px; height: 12px; border-radius: 50%; }
-        .red { background: #ff5f56; } .yellow { background: #ffbd2e; } .green { background: #27c93f; }
-        .terminal-title { margin-left: 15px; color: #9ca3af; font-size: 0.8rem; font-family: 'Sarabun'; }
-        .terminal-body { flex: 1; padding: 15px; overflow-y: auto; font-family: 'Fira Code', monospace; font-size: 0.85rem; color: var(--terminal-text); line-height: 1.6; }
-        .log-line { margin-bottom: 2px; display: flex; }
-        .ts { color: #6b7280; margin-right: 10px; min-width: 70px; user-select: none; }
-        .msg { white-space: pre-wrap; }
-        .c-info { color: #60a5fa; }
-        .c-success { color: #4ade80; }
-        .c-warn { color: #fbbf24; }
-        .c-error { color: #f87171; }
-        .c-highlight { color: #e879f9; font-weight: bold; }
-        .c-detail { color: #94a3b8; padding-left: 20px; font-size: 0.8rem; }
-        .checkbox-wrapper { margin-top: 15px; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: #6b7280; }
-        @media (max-width: 768px) { .main-grid { grid-template-columns: 1fr; } .header-section { flex-direction: column; align-items: flex-start; gap: 15px; } }
+        :root {
+            --primary: #6366f1;
+            --bg: #f3f4f6;
+            --terminal-bg: #1e1e1e;
+            --terminal-text: #d4d4d4;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: var(--bg);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .header-section {
+            background: white;
+            width: 100%;
+            max-width: 1000px;
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .icon-box {
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            color: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            height: fit-content;
+        }
+
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #374151;
+            padding: 10px;
+            border-radius: 8px;
+            transition: 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .radio-option:hover {
+            background: #f9fafb;
+        }
+
+        .radio-option.selected {
+            border-color: var(--primary);
+            background: #eef2ff;
+            color: var(--primary);
+        }
+
+        .radio-option input {
+            display: none;
+        }
+
+        .radio-circle {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #9ca3af;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .radio-option.selected .radio-circle {
+            border-color: var(--primary);
+        }
+
+        .radio-option.selected .radio-circle::after {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background: var(--primary);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .date-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-family: 'Sarabun';
+            margin-top: 10px;
+            display: none;
+        }
+
+        .btn-start {
+            width: 100%;
+            background: linear-gradient(135deg, #8b5cf6, #6366f1);
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-start:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .terminal-window {
+            background: var(--terminal-bg);
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 500px;
+        }
+
+        .terminal-header {
+            background: #2d2d2d;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid #333;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .red {
+            background: #ff5f56;
+        }
+
+        .yellow {
+            background: #ffbd2e;
+        }
+
+        .green {
+            background: #27c93f;
+        }
+
+        .terminal-title {
+            margin-left: 15px;
+            color: #9ca3af;
+            font-size: 0.8rem;
+            font-family: 'Sarabun';
+        }
+
+        .terminal-body {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            color: var(--terminal-text);
+            line-height: 1.6;
+        }
+
+        .log-line {
+            margin-bottom: 2px;
+            display: flex;
+        }
+
+        .ts {
+            color: #6b7280;
+            margin-right: 10px;
+            min-width: 70px;
+            user-select: none;
+        }
+
+        .msg {
+            white-space: pre-wrap;
+        }
+
+        .c-info {
+            color: #60a5fa;
+        }
+
+        .c-success {
+            color: #4ade80;
+        }
+
+        .c-warn {
+            color: #fbbf24;
+        }
+
+        .c-error {
+            color: #f87171;
+        }
+
+        .c-highlight {
+            color: #e879f9;
+            font-weight: bold;
+        }
+
+        .c-detail {
+            color: #94a3b8;
+            padding-left: 20px;
+            font-size: 0.8rem;
+        }
+
+        .checkbox-wrapper {
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-section {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+        }
     </style>
     <script src="supabase.js"></script>
     <script src="sweetalert2.js"></script>
     <script src="config.js"></script>
 </head>
+
 <body>
     <div class="header-section">
         <div class="header-title">
@@ -58,7 +306,8 @@
                 <span style="color:#6b7280; font-size:0.9rem;">ดึงและเชื่อมโยงข้อมูลเข้าระบบ (Web + DB)</span>
             </div>
         </div>
-        <a href="menu.html" style="text-decoration:none; color:#4b5563; font-weight:bold; background:#f3f4f6; padding:8px 16px; border-radius:20px;">
+        <a href="menu.html"
+            style="text-decoration:none; color:#4b5563; font-weight:bold; background:#f3f4f6; padding:8px 16px; border-radius:20px;">
             <i class="fas fa-home"></i> เมนู
         </a>
     </div>
@@ -93,7 +342,9 @@
         </div>
         <div class="terminal-window">
             <div class="terminal-header">
-                <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+                <div class="dot red"></div>
+                <div class="dot yellow"></div>
+                <div class="dot green"></div>
                 <span class="terminal-title">process_monitor.sh (V3.4 URL Fixed)</span>
             </div>
             <div class="terminal-body" id="console">
@@ -103,7 +354,50 @@
     </div>
 
     <script>
-        const user = checkAuth();
+        // ==========================================
+        // 1. ดึงข้อมูล User และ ตรวจสอบสิทธิ์ (Security Check)
+        // ==========================================
+        const storedUser = localStorage.getItem('tas_user');
+        if (!storedUser) {
+            window.location.href = 'login.html';
+        }
+
+        const user = JSON.parse(storedUser);
+        const userLevel = String(user.level || '').trim(); // แปลงเป็น String และตัดช่องว่างเพื่อความชัวร์
+
+        console.log("Checking Access for Level:", userLevel); // Debug ใน Console
+
+        // อนุญาตเฉพาะ Level 1 (Super Admin) และ 2 (Admin)
+        // ถ้าไม่ใช่ 1 และ ไม่ใช่ 2 ให้ดีดออก
+        if (userLevel !== '1' && userLevel !== '2') {
+            document.body.style.display = 'none'; // ซ่อนเนื้อหา
+
+            // รอให้โหลด Swal เสร็จ (เผื่อ Network ช้า)
+            setTimeout(() => {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'ไม่สามารถเข้าถึงได้',
+                        text: `สิทธิ์ของคุณคือระดับ ${userLevel} (ต้องการระดับ 1 หรือ 2)`,
+                        confirmButtonText: 'กลับหน้าเมนู',
+                        allowOutsideClick: false,
+                        backdrop: `rgba(0,0,0,0.9)`
+                    }).then(() => {
+                        window.location.replace('menu.html');
+                    });
+                } else {
+                    alert('ไม่สามารถเข้าถึงได้: สำหรับผู้ดูแลระบบเท่านั้น');
+                    window.location.replace('menu.html');
+                }
+            }, 100);
+
+            throw new Error("Unauthorized Access");
+        }
+
+        // ==========================================
+        // 2. เริ่มต้นระบบเมื่อผ่านการตรวจสอบ
+        // ==========================================
+
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('startDate').value = today;
         document.getElementById('endDate').value = today;
@@ -117,21 +411,21 @@
 
         function getTimeStr() {
             const now = new Date();
-            return `[${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}]`;
+            return `[${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}]`;
         }
 
         function log(msg, type = 'normal', detail = null) {
             const box = document.getElementById('console');
             const ts = getTimeStr();
             let colorClass = '';
-            if(type === 'info') colorClass = 'c-info';
-            else if(type === 'success') colorClass = 'c-success';
-            else if(type === 'warn') colorClass = 'c-warn';
-            else if(type === 'error') colorClass = 'c-error';
-            else if(type === 'highlight') colorClass = 'c-highlight';
-            
+            if (type === 'info') colorClass = 'c-info';
+            else if (type === 'success') colorClass = 'c-success';
+            else if (type === 'warn') colorClass = 'c-warn';
+            else if (type === 'error') colorClass = 'c-error';
+            else if (type === 'highlight') colorClass = 'c-highlight';
+
             box.innerHTML += `<div class="log-line"><span class="ts">${ts}</span> <span class="msg ${colorClass}">${msg}</span></div>`;
-            if(detail && document.getElementById('chkVerbose').checked) {
+            if (detail && document.getElementById('chkVerbose').checked) {
                 box.innerHTML += `<div class="log-line"><span class="ts"></span> <span class="msg c-detail">${detail}</span></div>`;
             }
             box.scrollTop = box.scrollHeight;
@@ -143,9 +437,9 @@
         function parseHTMLTable(htmlString, dateStr) {
             const parser = new DOMParser();
             const doc = parser.parseFromString(htmlString, "text/html");
-            let table = doc.getElementById('mainTable') || doc.querySelector('table'); 
-            if(!table) return [];
-            const rows = table.querySelectorAll('tr'); 
+            let table = doc.getElementById('mainTable') || doc.querySelector('table');
+            if (!table) return [];
+            const rows = table.querySelectorAll('tr');
             const records = [];
             rows.forEach(row => {
                 const cols = row.querySelectorAll('td');
@@ -154,9 +448,9 @@
                     const name = cols[1].innerText.trim();
                     let t_in = cols[2].innerText.trim();
                     let t_out = cols[3].innerText.trim();
-                    if(pid && pid !== "รหัสพนักงาน" && pid !== "ไม่พบข้อมูล") {
-                        if(t_in === "-" || t_in === "") t_in = null; else if(t_in.length===5) t_in+=":00";
-                        if(t_out === "-" || t_out === "") t_out = null; else if(t_out.length===5) t_out+=":00";
+                    if (pid && pid !== "รหัสพนักงาน" && pid !== "ไม่พบข้อมูล") {
+                        if (t_in === "-" || t_in === "") t_in = null; else if (t_in.length === 5) t_in += ":00";
+                        if (t_out === "-" || t_out === "") t_out = null; else if (t_out.length === 5) t_out += ":00";
                         records.push({ personnel_id: pid, full_name: name, work_date: dateStr, time_in: t_in, time_out: t_out });
                     }
                 }
@@ -168,70 +462,82 @@
             const btn = document.getElementById('btnStart');
             const mode = document.querySelector('input[name="mode"]:checked').value;
             btn.disabled = true;
-            document.getElementById('console').innerHTML = ''; 
+            document.getElementById('console').innerHTML = '';
             log("> Initializing Process Engine v3.4 (URL Pattern Fixed)...", 'highlight');
 
             try {
                 // 1. Config Check & URL Prep
                 const { data: configData } = await sbClient.from(TAS_CONFIG.TABLE_SETTINGS).select('value').eq('key', 'data_url').single();
                 let proxyBase = "";
-                if(configData?.value) {
+                if (configData?.value) {
                     let target = configData.value.trim();
                     // Clean mixed up proxy strings
-                    if(target.includes("url=")) target = decodeURIComponent(target.split("url=")[1]);
-                    
+                    if (target.includes("url=")) target = decodeURIComponent(target.split("url=")[1]);
+
                     // 🔥 Fix 1: Ensure trailing slash on Base URL
-                    if(!target.endsWith('/')) target += '/';
-                    
+                    if (!target.endsWith('/')) target += '/';
+
                     proxyBase = target;
-                    log(`Target Web Base: ...${target.slice(-25)}`, 'info');
+                    // ซ่อน Log Base URL ด้วย ถ้าไม่ใช่ระดับ 1
+                    if (userLevel === '1') {
+                        log(`Target Web Base: ...${target.slice(-25)}`, 'info');
+                    } else {
+                        log(`Target Web Base: [Protected]`, 'info');
+                    }
                 } else log("No 'data_url'. Skipping Web.", 'warn');
 
                 // 2. Date Range
                 let start, end;
-                const todayDate = new Date(); todayDate.setHours(0,0,0,0);
+                const todayDate = new Date(); todayDate.setHours(0, 0, 0, 0);
 
-                if(mode === 'manual') {
+                if (mode === 'manual') {
                     start = new Date(document.getElementById('startDate').value);
                     end = new Date(document.getElementById('endDate').value);
                 } else {
                     const { data: lastRec } = await sbClient.from(TAS_CONFIG.TABLE_TARGET)
-                        .select('work_date').order('work_date', {ascending: false}).limit(1).single();
+                        .select('work_date').order('work_date', { ascending: false }).limit(1).single();
                     start = lastRec ? new Date(lastRec.work_date) : new Date(todayDate);
-                    if(start > todayDate) start = new Date(todayDate);
+                    if (start > todayDate) start = new Date(todayDate);
                     log(`Last synced: ${formatDateDB(start)}`, 'info');
                     end = new Date(todayDate);
                 }
-                start.setHours(0,0,0,0); end.setHours(0,0,0,0);
+                start.setHours(0, 0, 0, 0); end.setHours(0, 0, 0, 0);
 
                 log(`PROCESSING RANGE: ${formatDateDB(start)} to ${formatDateDB(end)}`, 'highlight');
                 let loop = new Date(start);
                 let grandTotal = 0;
 
-                while(loop <= end) {
+                while (loop <= end) {
                     const dateStr = formatDateDB(loop);
                     const urlDate = formatDateURL(loop); // DDMMYYYY
                     log(`Processing Date: ${dateStr}`, 'highlight');
 
                     // 3.1 Web Fetch (With Final Slash Logic)
                     let webData = [];
-                    if(proxyBase) {
+                    if (proxyBase) {
                         try {
                             // 🔥 Fix 2: Construct exact URL (Base + Date + Slash)
-                            const targetUrl = `${proxyBase}${urlDate}/`; 
-                            
+                            const targetUrl = `${proxyBase}${urlDate}/`;
+
                             // Send via CORS Proxy
                             const finalUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
-                            
-                            log(`   GET: ${targetUrl}`, 'normal'); // Show real target URL
-                            
+
+                            // ============================================
+                            //  Hide URL from Non-Level 1 Users
+                            // ============================================
+                            if (userLevel === '1') {
+                                log(`   GET: ${targetUrl}`, 'normal'); // Show real target URL for Admin
+                            } else {
+                                log(`   GET: https://www.protectedtext.com/`, 'normal'); // Hide for Level 2
+                            }
+
                             const res = await fetch(finalUrl);
-                            if(res.ok) {
+                            if (res.ok) {
                                 const htmlText = await res.text();
                                 webData = parseHTMLTable(htmlText, dateStr);
                                 log(`   + Web: ${webData.length} records`, 'info');
                             } else log(`   - Web HTTP Error ${res.status}`, 'warn');
-                        } catch(e) { log(`   - Web Fetch Failed (Skip)`, 'warn', e.message); }
+                        } catch (e) { log(`   - Web Fetch Failed (Skip)`, 'warn', e.message); }
                     }
 
                     // 3.2 DB Fetch
@@ -239,24 +545,24 @@
                     const sourceTable = TAS_CONFIG.TABLE_SOURCE || "TimeStamp";
                     try {
                         const { data: internal, error: errInt } = await sbClient.from(sourceTable).select('*').eq('work_date', dateStr);
-                        if(errInt) throw errInt;
-                        if(internal) {
+                        if (errInt) throw errInt;
+                        if (internal) {
                             dbData = internal;
                             log(`   + DB (${sourceTable}): ${dbData.length} records`, 'info');
                         }
-                    } catch(e) {
+                    } catch (e) {
                         log(`   - DB Error: ${e.message}`, 'error');
                     }
 
                     // 3.3 Merge & Save
                     const map = {};
                     const addToMap = (rec, src) => {
-                        if(!map[rec.personnel_id]) map[rec.personnel_id] = { ...rec, sources: [src] };
+                        if (!map[rec.personnel_id]) map[rec.personnel_id] = { ...rec, sources: [src] };
                         else {
                             const cur = map[rec.personnel_id];
-                            if(!cur.sources.includes(src)) cur.sources.push(src);
-                            if(rec.time_in && (!cur.time_in || rec.time_in < cur.time_in)) cur.time_in = rec.time_in;
-                            if(rec.time_out && (!cur.time_out || rec.time_out > cur.time_out)) cur.time_out = rec.time_out;
+                            if (!cur.sources.includes(src)) cur.sources.push(src);
+                            if (rec.time_in && (!cur.time_in || rec.time_in < cur.time_in)) cur.time_in = rec.time_in;
+                            if (rec.time_out && (!cur.time_out || rec.time_out > cur.time_out)) cur.time_out = rec.time_out;
                         }
                     };
                     webData.forEach(r => addToMap(r, 'Web'));
@@ -268,14 +574,14 @@
                         work_date: item.work_date, time_in: item.time_in, time_out: item.time_out, verified: 0
                     }));
 
-                    if(payload.length > 0) {
+                    if (payload.length > 0) {
                         const { error: saveErr } = await sbClient.from(TAS_CONFIG.TABLE_TARGET).upsert(payload, { onConflict: 'personnel_id, work_date' });
-                        if(saveErr) log(`   ❌ Save Failed: ${saveErr.message}`, 'error');
+                        if (saveErr) log(`   ❌ Save Failed: ${saveErr.message}`, 'error');
                         else {
                             log(`   ✅ Saved: ${payload.length} records`, 'success');
                             grandTotal += payload.length;
-                            if(document.getElementById('chkVerbose').checked) {
-                                payload.forEach(p => log(`      > ${p.full_name}`, 'normal', `${p.time_in||'-'} / ${p.time_out||'-'} [${map[p.personnel_id].sources.join('+')}]`));
+                            if (document.getElementById('chkVerbose').checked) {
+                                payload.forEach(p => log(`      > ${p.full_name}`, 'normal', `${p.time_in || '-'} / ${p.time_out || '-'} [${map[p.personnel_id].sources.join('+')}]`));
                             }
                         }
                     } else log("   (No data)", 'normal');
@@ -283,7 +589,7 @@
                     loop.setDate(loop.getDate() + 1);
                     await new Promise(r => setTimeout(r, 200));
                 }
-                
+
                 log(`========================================`);
                 log(`SUMMARY: Total Saved ${grandTotal}`, 'highlight');
                 Swal.fire('สำเร็จ', `ประมวลผลเสร็จสิ้น ${grandTotal} รายการ`, 'success');
@@ -298,4 +604,5 @@
         }
     </script>
 </body>
+
 </html>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,36 +8,216 @@
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --amber: #f59e0b; --bg: #f8fafc; }
-        body { font-family: 'Sarabun', sans-serif; background: var(--bg); padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; width: 100%; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        .card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .setting-row { display: flex; flex-direction: column; padding: 15px 0; border-bottom: 1px solid #f1f5f9; gap: 10px; }
-        @media (min-width: 600px) { .setting-row { flex-direction: row; align-items: center; } }
-        .label { flex: 1; font-weight: 700; color: #334155; }
-        .input-group { flex: 2; display: flex; gap: 10px; }
-        input { flex: 1; padding: 12px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-family: 'Sarabun'; }
-        .btn-save { background: var(--amber); color: white; border: none; padding: 10px 15px; border-radius: 10px; cursor: pointer; font-weight: bold; }
-        .back-btn { background: white; color: #64748b; padding: 10px 18px; border-radius: 15px; text-decoration: none; font-weight: bold; border: 1px solid #e2e8f0; }
+        :root {
+            --amber: #f59e0b;
+            --bg: #f8fafc;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: var(--bg);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* --- New Header Style (Matches Report/Process Page) --- */
+        .header-section {
+            background: white;
+            width: 100%;
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .icon-box {
+            width: 50px;
+            height: 50px;
+            background: var(--amber);
+            color: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .header-text h2 {
+            margin: 0;
+            color: #1f2937;
+            font-size: 1.5rem;
+        }
+
+        .header-text span {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .btn-home {
+            text-decoration: none;
+            color: #4b5563;
+            font-weight: bold;
+            background: #f3f4f6;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-home:hover {
+            background: #e5e7eb;
+        }
+
+        /* --- Settings Card Style --- */
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .setting-row {
+            display: flex;
+            flex-direction: column;
+            padding: 15px 0;
+            border-bottom: 1px solid #f1f5f9;
+            gap: 10px;
+        }
+
+        .label {
+            flex: 1;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        .input-group {
+            flex: 2;
+            display: flex;
+            gap: 10px;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            font-family: 'Sarabun';
+        }
+
+        .btn-save {
+            background: var(--amber);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        @media (min-width: 600px) {
+            .setting-row {
+                flex-direction: row;
+                align-items: center;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .header-section {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .btn-home {
+                align-self: flex-start;
+            }
+        }
     </style>
-    <script src="supabase.js"></script><script src="sweetalert2.js"></script><script src="config.js"></script>
+    <script src="supabase.js"></script>
+    <script src="sweetalert2.js"></script>
+    <script src="config.js"></script>
 </head>
+
 <body>
     <div class="container">
-        <div class="header">
-            <h2><i class="fas fa-cogs" style="color:var(--amber)"></i> ตั้งค่าระบบ</h2>
-            <a href="menu.html" class="back-btn"><i class="fas fa-arrow-left"></i> กลับ</a>
+        <!-- New Header Section -->
+        <div class="header-section">
+            <div class="header-title">
+                <div class="icon-box"><i class="fas fa-cogs"></i></div>
+                <div class="header-text">
+                    <h2>ตั้งค่าระบบ</h2>
+                    <span>กำหนดค่าตัวแปรต่างๆ ของระบบ</span>
+                </div>
+            </div>
+            <a href="menu.html" class="btn-home">
+                <i class="fas fa-home"></i> เมนู
+            </a>
         </div>
+
         <div class="card" id="settingsList">
             <p style="text-align:center; color:#94a3b8;">กำลังดึงข้อมูลการตั้งค่า...</p>
         </div>
         <div style="text-align:center; color:#94a3b8; font-size:0.8rem;">TAS-SPB Online v2.1.0</div>
     </div>
     <script>
+        // ==========================================
+        // Security Check: Only Level 1 Allowed
+        // ==========================================
+        const storedUser = localStorage.getItem('tas_user');
+        if (!storedUser) { window.location.href = 'login.html'; }
+
+        const user = JSON.parse(storedUser);
+        const userLevel = String(user.level || '').trim();
+
+        if (userLevel !== '1') {
+            document.body.style.display = 'none'; // ซ่อนเนื้อหาทันที
+            setTimeout(() => {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'ไม่สามารถเข้าถึงได้',
+                        text: `สิทธิ์ของคุณคือระดับ ${userLevel} (ต้องการระดับ 1)`,
+                        confirmButtonText: 'กลับหน้าเมนู',
+                        allowOutsideClick: false,
+                        backdrop: `rgba(0,0,0,0.9)`
+                    }).then(() => { window.location.replace('menu.html'); });
+                } else {
+                    alert('ไม่สามารถเข้าถึงได้: เฉพาะผู้ดูแลระบบสูงสุด (Level 1) เท่านั้น');
+                    window.location.replace('menu.html');
+                }
+            }, 100);
+            throw new Error("Unauthorized Access");
+        }
+
         async function loadSettings() {
-            const { data } = await sbClient.from('Settings').select('*').order('key');
+            // ใช้ table name จาก config หรือ fallback เป็น 'Settings'
+            const tableName = (typeof TAS_CONFIG !== 'undefined' && TAS_CONFIG.TABLE_SETTINGS) ? TAS_CONFIG.TABLE_SETTINGS : 'Settings';
+
+            const { data, error } = await sbClient.from(tableName).select('*').order('key');
             const container = document.getElementById('settingsList');
+
+            if (error) {
+                container.innerHTML = `<p style="text-align:center; color:red;">Error loading settings: ${error.message}</p>`;
+                return;
+            }
+
             if (data) {
                 container.innerHTML = data.map(s => `
                     <div class="setting-row">
@@ -49,12 +230,22 @@
                 `).join('');
             }
         }
+
         async function updateSet(key) {
+            const tableName = (typeof TAS_CONFIG !== 'undefined' && TAS_CONFIG.TABLE_SETTINGS) ? TAS_CONFIG.TABLE_SETTINGS : 'Settings';
             const val = document.getElementById(`val-${key}`).value;
-            const { error } = await sbClient.from('Settings').update({ value: val }).eq('key', key);
-            if (!error) Swal.fire({ icon:'success', title:'อัปเดตแล้ว', timer:1000, showConfirmButton:false });
+
+            const { error } = await sbClient.from(tableName).update({ value: val }).eq('key', key);
+
+            if (!error) {
+                Swal.fire({ icon: 'success', title: 'อัปเดตแล้ว', timer: 1000, showConfirmButton: false });
+            } else {
+                Swal.fire({ icon: 'error', title: 'บันทึกไม่สำเร็จ', text: error.message });
+            }
         }
+
         loadSettings();
     </script>
 </body>
+
 </html>

@@ -19,17 +19,28 @@
         body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--text); padding: 15px; padding-bottom: 50px; }
         .container { max-width: 500px; margin: 0 auto; }
 
-        .header-card {
-            background: var(--white); padding: 15px 20px; border-radius: 16px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); margin-bottom: 20px;
-            display: flex; justify-content: space-between; align-items: center;
+        /* --- Header Section (Matches Report Style) --- */
+        .header-section { 
+            background: var(--white); width: 100%; padding: 20px 30px; 
+            border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; 
         }
-        .header-title { display: flex; align-items: center; gap: 10px; color: var(--primary); font-weight: 700; }
-        .back-btn {
-            text-decoration: none; color: var(--muted); background: #f9fafb; padding: 8px 15px;
-            border-radius: 20px; border: 1px solid #e5e7eb; font-size: 0.9rem; display: flex; align-items: center; gap: 5px;
+        .header-title { display: flex; align-items: center; gap: 15px; }
+        .icon-box { 
+            width: 50px; height: 50px; background: var(--primary); color: white; 
+            border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; 
         }
+        .header-text h2 { margin: 0; color: var(--text); font-size: 1.5rem; line-height: 1.2; }
+        .header-text span { color: var(--muted); font-size: 0.9rem; }
+        
+        .btn-home { 
+            text-decoration: none; color: var(--muted); font-weight: bold; 
+            background: #f9fafb; padding: 8px 16px; border-radius: 20px; transition: 0.2s; 
+            display: flex; align-items: center; gap: 5px;
+        }
+        .btn-home:hover { background: #e5e7eb; }
 
+        /* Card & Layout */
         .card { background: var(--white); border-radius: 24px; padding: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 15px; }
         .profile-info { text-align: center; margin-bottom: 15px; }
         .user-emoji { font-size: 4rem; display: block; margin-bottom: 10px; }
@@ -45,9 +56,10 @@
             display: flex; justify-content: space-between; align-items: center;
             border-left: 5px solid #cbd5e1; 
         }
-        .item-db { border-left-color: #10b981; } 
-        .item-url { border-left-color: #3b82f6; }
-        .item-leave { border-left-color: #f59e0b; } 
+        .item-db { border-left-color: #10b981; } /* ครบถ้วน */
+        .item-partial { border-left-color: #f59e0b; } /* ไม่ครบ */
+        .item-url { border-left-color: #3b82f6; } /* จากเว็บ */
+        .item-leave { border-left-color: #8b5cf6; } 
 
         .day-label { font-size: 0.8rem; font-weight: 700; color: var(--muted); margin-bottom: 2px; }
         .item-date { font-weight: 700; font-size: 0.95rem; color: var(--text); }
@@ -55,20 +67,44 @@
         .time-badge { padding: 4px 8px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; min-width: 55px; text-align: center; }
         .t-in { background: #dcfce7; color: #15803d; }
         .t-out { background: #fee2e2; color: #b91c1c; }
-        .btn-check-url { border: none; background: #f0f4ff; color: #4338ca; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 600; cursor: pointer; }
+        
+        /* ปุ่มไอคอนเช็คเว็บ */
+        .btn-check-url { 
+            border: none; background: #eff6ff; color: #3b82f6; 
+            width: 40px; height: 40px; border-radius: 12px;
+            font-size: 1.1rem; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.2s;
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+        }
+        .btn-check-url:active { transform: scale(0.95); background: #dbeafe; }
 
         .week-info { text-align: center; font-size: 0.85rem; color: var(--primary); font-weight: 700; margin-bottom: 10px; }
         .pagination { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
         .btn-page { padding: 10px 18px; border: none; border-radius: 12px; background: var(--white); color: var(--primary); font-weight: 600; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .btn-page:disabled { opacity: 0.5; }
         .btn-action { width: 100%; padding: 16px; border: none; border-radius: 16px; background: var(--primary); color: white; font-weight: 700; cursor: pointer; }
+
+        @media (max-width: 600px) {
+            .header-section { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .btn-home { align-self: flex-start; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header-card">
-            <div class="header-title"><i class="fas fa-user-circle"></i> <span>โปรไฟล์</span></div>
-            <div onclick="window.location.href='menu.html'" class="back-btn"><i class="fas fa-arrow-left"></i> เมนู</div>
+        <!-- New Header Section -->
+        <div class="header-section">
+            <div class="header-title">
+                <div class="icon-box"><i class="fas fa-user-circle"></i></div>
+                <div class="header-text">
+                    <h2>โปรไฟล์</h2>
+                    <span>ข้อมูลส่วนตัวและประวัติการลงเวลา</span>
+                </div>
+            </div>
+            <a href="menu.html" class="btn-home">
+                <i class="fas fa-home"></i> เมนู
+            </a>
         </div>
 
         <div class="card">
@@ -130,12 +166,10 @@
             document.getElementById(`tab-${tab}`).classList.add('active');
         }
 
-        // --- ระบบคำนวณวัน อาทิตย์ - เสาร์ ---
         async function loadAttendance() {
             const container = document.getElementById('att-list');
             container.innerHTML = '<p style="text-align:center; padding:20px; color:var(--muted);">กำลังโหลดข้อมูลสัปดาห์นี้...</p>';
             
-            // คำนวณวันอาทิตย์ของสัปดาห์ที่เลือก
             const now = new Date();
             const startOfWeek = new Date(now);
             startOfWeek.setDate(now.getDate() - now.getDay() - (7 * weekOffset));
@@ -148,7 +182,6 @@
             let html = "";
             const dbDates = {};
 
-            // ดึงข้อมูลจาก DB ในช่วงสัปดาห์นั้น
             const { data: dbData } = await sbClient.from(TAS_CONFIG.TABLE_TARGET)
                 .select('work_date, time_in, time_out')
                 .eq('personnel_id', user.personnel_id)
@@ -158,71 +191,28 @@
 
             if (dbData) dbData.forEach(item => dbDates[item.work_date] = item);
 
-            // วนลูปสร้าง 7 วัน (เสาร์ ถอยไป อาทิตย์)
             for (let i = 6; i >= 0; i--) {
                 const targetDate = new Date(startOfWeek);
                 targetDate.setDate(startOfWeek.getDate() + i);
                 const dateISO = targetDate.toISOString().split('T')[0];
-                const dataInDB = dbDates[dateISO];
+                const inDB = dbDates[dateISO];
                 const dayName = targetDate.toLocaleDateString('th-TH', { weekday: 'short' });
 
-                if (dataInDB) {
-                    html += renderItem(dataInDB, 'DB', dayName);
+                const hasIn = inDB && inDB.time_in;
+                const hasOut = inDB && inDB.time_out;
+                const isComplete = hasIn && hasOut;
+
+                if (isComplete) {
+                    html += renderCompleteItem(inDB, dayName);
                 } else {
-                    html += `
-                    <div class="history-item">
-                        <div>
-                            <div class="day-label">${dayName}</div>
-                            <div class="item-date">${formatThaiDate(dateISO)}</div>
-                            <div class="item-source">ไม่มีในระบบหลัก</div>
-                        </div>
-                        <button class="btn-check-url" onclick="fetchFromURL('${dateISO}', this)">
-                            <i class="fas fa-sync-alt"></i> เช็คจากเว็บ
-                        </button>
-                    </div>`;
+                    html += renderPartialOrEmpty(inDB, dateISO, dayName);
                 }
             }
             container.innerHTML = html;
             document.getElementById('att-next').disabled = weekOffset <= 0;
         }
 
-        async function fetchFromURL(dateStr, btn) {
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            const targetDate = new Date(dateStr);
-            const dateURL = formatDateURL(targetDate);
-            const dayName = targetDate.toLocaleDateString('th-TH', { weekday: 'short' });
-            const proxyURL = `https://api.allorigins.win/get?url=${encodeURIComponent(externalBaseURL + dateURL)}`;
-
-            try {
-                const res = await fetch(proxyURL);
-                const json = await res.json();
-                const records = parseHTML(json.contents, dateStr);
-                const myRecord = records.find(r => r.personnel_id === user.personnel_id);
-
-                if (myRecord) {
-                    const parent = btn.parentElement;
-                    parent.classList.add('item-url');
-                    parent.innerHTML = `
-                        <div>
-                            <div class="day-label">${dayName}</div>
-                            <div class="item-date">${formatThaiDate(dateStr)}</div>
-                            <div class="item-source">รายงานภายนอก (URL)</div>
-                        </div>
-                        <div style="display:flex; gap:5px;">
-                            <span class="time-badge t-in">${myRecord.time_in || '--:--'}</span>
-                            <span class="time-badge t-out">${myRecord.time_out || '--:--'}</span>
-                        </div>`;
-                } else {
-                    Swal.fire({ icon: 'info', title: 'ไม่พบข้อมูล', text: 'ไม่พบรายการลงเวลาในหน้าเว็บ' });
-                    btn.disabled = false; btn.innerHTML = '<i class="fas fa-sync-alt"></i> เช็คจากเว็บ';
-                }
-            } catch (err) {
-                btn.disabled = false; btn.innerHTML = 'ลองใหม่';
-            }
-        }
-
-        function renderItem(item, src, dayName) {
+        function renderCompleteItem(item, dayName) {
             return `
             <div class="history-item item-db">
                 <div>
@@ -237,9 +227,98 @@
             </div>`;
         }
 
+        function renderPartialOrEmpty(item, dateISO, dayName) {
+            let timeHtml = '';
+            let sourceText = 'ไม่มีข้อมูลในระบบ';
+            let borderClass = 'item-empty'; // สีเทา (default)
+
+            if (item) {
+                sourceText = 'ข้อมูลไม่ครบถ้วน';
+                borderClass = 'item-partial'; // สีส้ม
+                timeHtml = `
+                <div style="display:flex; gap:5px; margin-top:4px;">
+                    <span class="time-badge ${item.time_in ? 't-in' : 'bg-gray'}" style="opacity:0.8">${item.time_in ? item.time_in.slice(0,5) : '--:--'}</span>
+                    <span class="time-badge ${item.time_out ? 't-out' : 'bg-gray'}" style="opacity:0.8">${item.time_out ? item.time_out.slice(0,5) : '--:--'}</span>
+                </div>`;
+            }
+
+            return `
+            <div class="history-item ${borderClass}">
+                <div>
+                    <div class="day-label">${dayName}</div>
+                    <div class="item-date">${formatThaiDate(dateISO)}</div>
+                    <div class="item-source">${sourceText}</div>
+                    ${timeHtml}
+                </div>
+                <button class="btn-check-url" onclick="fetchFromURL('${dateISO}', this)" title="เช็คข้อมูลจากเว็บ">
+                    <i class="fas fa-cloud-download-alt"></i>
+                </button>
+            </div>`;
+        }
+
+        async function fetchFromURL(dateStr, btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            
+            const targetDate = new Date(dateStr);
+            const pad = (n) => String(n).padStart(2, '0');
+            const urlDate = `${pad(targetDate.getDate())}${pad(targetDate.getMonth() + 1)}${targetDate.getFullYear()}`;
+            
+            let baseUrl = externalBaseURL.trim();
+            if(baseUrl.includes("url=")) baseUrl = decodeURIComponent(baseUrl.split("url=")[1]);
+            if(!baseUrl.endsWith('/')) baseUrl += '/';
+
+            const targetUrl = `${baseUrl}${urlDate}/`;
+            const proxyURL = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
+
+            try {
+                const res = await fetch(proxyURL);
+                if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+                
+                const htmlText = await res.text();
+                const records = parseHTML(htmlText, dateStr);
+                const myRecord = records.find(r => r.personnel_id === user.personnel_id);
+
+                if (myRecord) {
+                    const parent = btn.parentElement;
+                    parent.className = "history-item item-url"; 
+                    parent.innerHTML = `
+                        <div>
+                            <div class="day-label">${targetDate.toLocaleDateString('th-TH', { weekday: 'short' })}</div>
+                            <div class="item-date">${formatThaiDate(dateStr)}</div>
+                            <div class="item-source">ข้อมูลจากเว็บ (URL)</div>
+                        </div>
+                        <div style="display:flex; gap:5px;">
+                            <span class="time-badge t-in">${myRecord.time_in || '--:--'}</span>
+                            <span class="time-badge t-out">${myRecord.time_out || '--:--'}</span>
+                        </div>`;
+                } else {
+                    Swal.fire({ icon: 'info', title: 'ไม่พบข้อมูล', text: 'ไม่พบรายการลงเวลาในหน้าเว็บ', timer: 1500, showConfirmButton: false });
+                    btn.disabled = false; btn.innerHTML = '<i class="fas fa-cloud-download-alt"></i>';
+                }
+            } catch (err) {
+                console.error("Fetch error:", err);
+                btn.disabled = false; btn.innerHTML = '<i class="fas fa-exclamation"></i>';
+            }
+        }
+
         async function loadLeaves() {
             const container = document.getElementById('leave-list');
-            const { data } = await sbClient.from('Leave_records').select('*').eq('personnel_id', user.personnel_id).neq('leave_type', 'ยกเว้น').order('leave_date', { ascending: false }).range(leavePage * 5, (leavePage + 1) * 5 - 1);
+            
+            // --- UPDATED: Add .neq('leave_type', 'ยกเว้น') to hide excluded leaves ---
+            const { data, error } = await sbClient.from('Leave_records')
+                .select('*')
+                .eq('personnel_id', user.personnel_id)
+                .neq('leave_type', 'ยกเว้น') // กรองประเภท "ยกเว้น" ออก
+                .order('leave_date', { ascending: false })
+                .range(leavePage * 5, (leavePage + 1) * 5 - 1);
+            
+            if (error) {
+                console.error("Error loading leaves:", error);
+                container.innerHTML = `<p style="text-align:center; padding:20px; color:red;">เกิดข้อผิดพลาดในการโหลดข้อมูล</p>`;
+                return;
+            }
+
             if (data && data.length > 0) {
                 container.innerHTML = data.map(item => `
                     <div class="history-item item-leave">
@@ -250,26 +329,42 @@
                         </div>
                         <div style="font-size:0.8rem; font-weight:700; color:var(--primary);">${item.status || 'อนุมัติ'}</div>
                     </div>`).join('');
-            } else container.innerHTML = '<p style="text-align:center; padding:20px; color:var(--muted);">ไม่พบประวัติการลา</p>';
+            } else {
+                container.innerHTML = '<p style="text-align:center; padding:20px; color:var(--muted);">ไม่พบประวัติการลา</p>';
+            }
             document.getElementById('leave-prev').disabled = leavePage === 0;
         }
 
         function parseHTML(html, d) {
-            const parser = new DOMParser(), doc = parser.parseFromString(html, "text/html"), table = doc.getElementById('mainTable'), recs = [];
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, "text/html");
+            let table = doc.getElementById('mainTable') || doc.querySelector('table'); 
             if (!table) return [];
-            table.querySelectorAll('tbody tr').forEach(row => {
+            
+            const recs = [];
+            table.querySelectorAll('tr').forEach(row => {
                 const cols = row.querySelectorAll('td');
-                if (cols.length >= 4) recs.push({ personnel_id: cols[0].innerText.trim(), time_in: cols[2].innerText.trim(), time_out: cols[3].innerText.trim() });
-            }); return recs;
+                if (cols.length >= 4) {
+                    const pid = cols[0].innerText.trim();
+                    if(pid && pid !== "รหัสพนักงาน") {
+                        recs.push({ 
+                            personnel_id: pid, 
+                            time_in: cols[2].innerText.trim(), 
+                            time_out: cols[3].innerText.trim() 
+                        });
+                    }
+                }
+            }); 
+            return recs;
         }
 
-        function formatDateURL(date) { const pad = (n) => String(n).padStart(2, '0'); return `${pad(date.getDate())}${pad(date.getMonth() + 1)}${date.getFullYear()}/`; }
+        function formatDateURL(date) { const pad = (n) => String(n).padStart(2, '0'); return `${pad(date.getDate())}${pad(date.getMonth() + 1)}${date.getFullYear()}/`; } 
         function formatThaiDate(s) { const d = new Date(s); return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }); }
         function changeAttWeek(s) { weekOffset += s; loadAttendance(); }
         function changeLeavePage(s) { leavePage += s; loadLeaves(); }
 
         async function changePassword() {
-            const { value: newPass } = await Swal.fire({ title: 'เปลี่ยนรหัสผ่าน', input: 'password', showCancelButton: true });
+            const { value: newPass } = await Swal.fire({ title: 'เปลี่ยนรหัสผ่าน', input: 'password', showCancelButton: true, confirmButtonColor: '#4f46e5' });
             if (newPass) {
                 await sbClient.from(TAS_CONFIG.TABLE_USER).update({ Password: newPass }).eq('personnel_id', user.personnel_id);
                 Swal.fire('สำเร็จ', 'บันทึกแล้ว', 'success');
