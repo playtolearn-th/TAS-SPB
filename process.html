@@ -3,7 +3,6 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ระบบประมวลผลข้อมูล - TAS-SPB</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <link
@@ -19,8 +18,6 @@
             --terminal-text: #d4d4d4;
         }
 
-        * { box-sizing: border-box; }
-
         body {
             font-family: 'Sarabun', sans-serif;
             background: var(--bg);
@@ -30,10 +27,8 @@
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            color: #1f2937;
         }
 
-        /* --- Header Section --- */
         .header-section {
             background: white;
             width: 100%;
@@ -45,21 +40,17 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
-            gap: 15px;
-            flex-wrap: wrap; /* รองรับจอเล็ก */
         }
 
         .header-title {
             display: flex;
             align-items: center;
             gap: 15px;
-            flex-grow: 1;
         }
 
         .icon-box {
             width: 50px;
             height: 50px;
-            min-width: 50px; /* ป้องกันการบีบ */
             background: var(--primary);
             color: white;
             border-radius: 12px;
@@ -69,31 +60,14 @@
             font-size: 1.5rem;
         }
 
-        .btn-home {
-            text-decoration: none;
-            color: #4b5563;
-            font-weight: bold;
-            background: #f3f4f6;
-            padding: 10px 20px;
-            border-radius: 20px;
-            white-space: nowrap;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .btn-home:hover { background: #e5e7eb; }
-
-        /* --- Main Layout --- */
         .main-grid {
             display: grid;
-            grid-template-columns: 350px 1fr; /* Desktop: ซ้าย 350px, ขวาที่เหลือ */
+            grid-template-columns: 350px 1fr;
             gap: 20px;
             width: 100%;
             max-width: 1000px;
         }
 
-        /* --- Control Panel (Left) --- */
         .control-panel {
             background: white;
             padding: 25px;
@@ -116,14 +90,15 @@
             cursor: pointer;
             font-weight: 600;
             color: #374151;
-            padding: 12px;
-            border-radius: 10px;
+            padding: 10px;
+            border-radius: 8px;
             transition: 0.2s;
-            border: 2px solid #e5e7eb;
-            background: #fff;
+            border: 2px solid transparent;
         }
 
-        .radio-option:hover { border-color: #c7d2fe; }
+        .radio-option:hover {
+            background: #f9fafb;
+        }
 
         .radio-option.selected {
             border-color: var(--primary);
@@ -131,18 +106,21 @@
             color: var(--primary);
         }
 
-        .radio-option input { display: none; }
+        .radio-option input {
+            display: none;
+        }
 
         .radio-circle {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             border: 2px solid #9ca3af;
             border-radius: 50%;
             position: relative;
-            flex-shrink: 0;
         }
 
-        .radio-option.selected .radio-circle { border-color: var(--primary); }
+        .radio-option.selected .radio-circle {
+            border-color: var(--primary);
+        }
 
         .radio-option.selected .radio-circle::after {
             content: '';
@@ -151,7 +129,8 @@
             background: var(--primary);
             border-radius: 50%;
             position: absolute;
-            top: 50%; left: 50%;
+            top: 50%;
+            left: 50%;
             transform: translate(-50%, -50%);
         }
 
@@ -162,7 +141,7 @@
             border-radius: 8px;
             font-family: 'Sarabun';
             margin-top: 10px;
-            font-size: 1rem;
+            display: none;
         }
 
         .btn-start {
@@ -173,7 +152,7 @@
             padding: 15px;
             font-size: 1.1rem;
             font-weight: bold;
-            border-radius: 12px;
+            border-radius: 10px;
             cursor: pointer;
             transition: 0.2s;
             box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
@@ -183,38 +162,59 @@
             gap: 10px;
         }
 
-        .btn-start:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(99, 102, 241, 0.4); }
-        .btn-start:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(99, 102, 241, 0.4);
+        }
 
-        /* --- Terminal Window (Right) --- */
+        .btn-start:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
         .terminal-window {
             background: var(--terminal-bg);
-            border-radius: 15px;
+            border-radius: 10px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            height: 600px; /* Default height */
+            height: 500px;
         }
 
         .terminal-header {
             background: #2d2d2d;
-            padding: 12px 15px;
+            padding: 10px 15px;
             display: flex;
             align-items: center;
             gap: 8px;
             border-bottom: 1px solid #333;
         }
 
-        .dot { width: 12px; height: 12px; border-radius: 50%; }
-        .red { background: #ff5f56; }
-        .yellow { background: #ffbd2e; }
-        .green { background: #27c93f; }
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .red {
+            background: #ff5f56;
+        }
+
+        .yellow {
+            background: #ffbd2e;
+        }
+
+        .green {
+            background: #27c93f;
+        }
 
         .terminal-title {
             margin-left: 15px;
             color: #9ca3af;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-family: 'Sarabun';
         }
 
@@ -223,77 +223,73 @@
             padding: 15px;
             overflow-y: auto;
             font-family: 'Fira Code', monospace;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: var(--terminal-text);
             line-height: 1.6;
         }
 
-        /* --- Log Styling --- */
-        .log-line { margin-bottom: 4px; display: flex; word-break: break-word; }
-        .ts { color: #6b7280; margin-right: 10px; min-width: 75px; user-select: none; font-size: 0.8rem; }
-        .msg { white-space: pre-wrap; flex: 1; }
-        
-        .c-info { color: #60a5fa; }
-        .c-success { color: #4ade80; }
-        .c-warn { color: #fbbf24; }
-        .c-error { color: #f87171; }
-        .c-highlight { color: #e879f9; font-weight: bold; }
-        .c-detail { color: #94a3b8; padding-left: 20px; font-size: 0.8rem; }
+        .log-line {
+            margin-bottom: 2px;
+            display: flex;
+        }
+
+        .ts {
+            color: #6b7280;
+            margin-right: 10px;
+            min-width: 70px;
+            user-select: none;
+        }
+
+        .msg {
+            white-space: pre-wrap;
+        }
+
+        .c-info {
+            color: #60a5fa;
+        }
+
+        .c-success {
+            color: #4ade80;
+        }
+
+        .c-warn {
+            color: #fbbf24;
+        }
+
+        .c-error {
+            color: #f87171;
+        }
+
+        .c-highlight {
+            color: #e879f9;
+            font-weight: bold;
+        }
+
+        .c-detail {
+            color: #94a3b8;
+            padding-left: 20px;
+            font-size: 0.8rem;
+        }
 
         .checkbox-wrapper {
             margin-top: 15px;
             display: flex;
             align-items: center;
             gap: 8px;
-            font-size: 0.95rem;
-            color: #4b5563;
-            cursor: pointer;
+            font-size: 0.9rem;
+            color: #6b7280;
         }
 
-        /* --- Responsive Breakpoints --- */
-        
-        /* Tablet & Mobile: Stack Columns */
-        @media (max-width: 850px) {
+        @media (max-width: 768px) {
             .main-grid {
-                grid-template-columns: 1fr; /* คอลัมน์เดียว */
+                grid-template-columns: 1fr;
             }
-            .terminal-window {
-                height: 450px; /* ลดความสูง Terminal บนจอเล็ก */
-            }
-        }
 
-        /* Mobile Small: Adjust Layout & Padding */
-        @media (max-width: 480px) {
-            body { padding: 10px; }
-            
             .header-section {
-                padding: 15px;
                 flex-direction: column;
-                align-items: stretch;
-                text-align: center;
+                align-items: flex-start;
+                gap: 15px;
             }
-
-            .header-title {
-                flex-direction: column;
-                justify-content: center;
-                text-align: center;
-            }
-            
-            .header-title h2 { font-size: 1.3rem; }
-
-            .btn-home {
-                justify-content: center;
-                margin-top: 5px;
-            }
-
-            .control-panel { padding: 20px; }
-            
-            .terminal-window {
-                height: 350px; /* ลดความสูงอีกสำหรับมือถือ */
-            }
-            
-            .ts { display: none; /* ซ่อนเวลาใน Terminal ถ้าจอเล็กมากเพื่อให้เนื้อหาพอดี */ }
-            .log-line { font-size: 0.8rem; }
         }
     </style>
     <script src="supabase.js"></script>
@@ -310,8 +306,9 @@
                 <span style="color:#6b7280; font-size:0.9rem;">ดึงและเชื่อมโยงข้อมูลเข้าระบบ (Web + DB)</span>
             </div>
         </div>
-        <a href="menu.html" class="btn-home">
-            <i class="fas fa-home"></i> กลับหน้าเมนู
+        <a href="menu.html"
+            style="text-decoration:none; color:#4b5563; font-weight:bold; background:#f3f4f6; padding:8px 16px; border-radius:20px;">
+            <i class="fas fa-home"></i> เมนู
         </a>
     </div>
 
@@ -334,8 +331,8 @@
                 <input type="date" id="startDate" class="date-input" style="display:block;">
                 <input type="date" id="endDate" class="date-input" style="display:block; margin-top:5px;">
             </div>
-            <div class="checkbox-wrapper" onclick="toggleCheckbox()">
-                <input type="checkbox" id="chkVerbose" checked style="width:18px; height:18px;">
+            <div class="checkbox-wrapper">
+                <input type="checkbox" id="chkVerbose" checked>
                 <label for="chkVerbose" style="cursor:pointer;">แสดงรายชื่อละเอียด (Verbose)</label>
             </div>
             <hr style="border:0; border-top:1px solid #e5e7eb; margin:20px 0;">
@@ -410,11 +407,6 @@
             document.querySelector(`input[value="${mode}"]`).parentElement.classList.add('selected');
             document.querySelector(`input[value="${mode}"]`).checked = true;
             document.getElementById('dateGroup').style.display = (mode === 'manual') ? 'block' : 'none';
-        }
-
-        function toggleCheckbox() {
-            const chk = document.getElementById('chkVerbose');
-            chk.checked = !chk.checked;
         }
 
         function getTimeStr() {

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>จัดการข้อมูล - TAS-SPB</title>
+    <title>จัดการเวลาและการลา - TAS-SPB</title>
 
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="favicon.png">
@@ -20,6 +20,7 @@
     <style>
         :root {
             --primary-color: #ec4899;
+            /* Pink to match menu icon */
             --bg: #f3f4f6;
             --white: #ffffff;
             --text: #1f2937;
@@ -30,7 +31,11 @@
             --danger: #ef4444;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         body {
             font-family: 'Sarabun', sans-serif;
@@ -50,7 +55,7 @@
             width: 100%;
         }
 
-        /* --- Header Section --- */
+        /* --- Header Section (Matches Report/Settings) --- */
         .header-section {
             background: white;
             width: 100%;
@@ -63,25 +68,51 @@
             margin-bottom: 25px;
         }
 
-        .header-title { display: flex; align-items: center; gap: 15px; }
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
 
         .icon-box {
-            width: 50px; height: 50px;
-            background: var(--primary-color); color: white;
+            width: 50px;
+            height: 50px;
+            background: var(--primary-color);
+            color: white;
             border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 1.5rem;
         }
 
-        .header-text h2 { margin: 0; color: #1f2937; font-size: 1.5rem; }
-        .header-text span { color: #6b7280; font-size: 0.9rem; }
+        .header-text h2 {
+            margin: 0;
+            color: #1f2937;
+            font-size: 1.5rem;
+        }
+
+        .header-text span {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
 
         .btn-home {
-            text-decoration: none; color: #4b5563; font-weight: bold;
-            background: #f3f4f6; padding: 8px 16px; border-radius: 20px;
-            transition: 0.2s; display: flex; align-items: center; gap: 5px;
+            text-decoration: none;
+            color: #4b5563;
+            font-weight: bold;
+            background: #f3f4f6;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
-        .btn-home:hover { background: #e5e7eb; }
+
+        .btn-home:hover {
+            background: #e5e7eb;
+        }
 
         /* --- Controls --- */
         .controls-card {
@@ -96,101 +127,272 @@
         }
 
         .date-input {
-            width: 100%; padding: 12px;
+            width: 100%;
+            padding: 12px;
             border: 1px solid var(--border);
             border-radius: 10px;
-            font-family: 'Sarabun'; font-size: 1rem;
+            font-family: 'Sarabun';
+            font-size: 1rem;
             background: #f9fafb;
         }
 
         /* Filter Status Buttons */
-        .filter-status { display: flex; gap: 10px; margin-bottom: 15px; }
+        .filter-status {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
 
         .btn-filter {
-            padding: 8px 16px; border-radius: 10px; font-size: 0.9rem; font-weight: 600;
-            cursor: pointer; border: 1px solid transparent;
-            display: flex; align-items: center; gap: 5px; transition: 0.2s;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: 0.2s;
         }
-        .btn-filter.active { box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
 
-        /* Search Box */
+        .btn-filter.active {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Search Box in Leave Tab */
         .search-box-container {
-            display: flex; gap: 10px; margin-bottom: 15px;
-            flex-wrap: wrap; background: white; padding: 10px;
-            border-radius: 12px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            background: white;
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
         /* Tabs */
-        .tabs { display: flex; background: #e5e7eb; padding: 5px; border-radius: 12px; }
-        .tab-btn {
-            flex: 1; padding: 12px; border: none; background: transparent;
-            border-radius: 8px; cursor: pointer; font-weight: bold;
-            color: var(--muted); font-family: 'Sarabun'; transition: all 0.2s;
+        .tabs {
+            display: flex;
+            background: #e5e7eb;
+            padding: 5px;
+            border-radius: 12px;
         }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--muted);
+            font-family: 'Sarabun';
+            transition: all 0.2s;
+        }
+
         .tab-btn.active {
-            background: var(--white); color: var(--primary-color);
+            background: var(--white);
+            color: var(--primary-color);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         /* Content Sections */
-        .content-section { display: none; animation: fadeIn 0.3s; }
-        .content-section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .content-section {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
         /* Data Items */
-        .data-list { display: grid; gap: 15px; }
+        .data-list {
+            display: grid;
+            gap: 15px;
+        }
+
         .data-item {
-            background: var(--white); padding: 15px; border-radius: 12px;
+            background: var(--white);
+            padding: 15px;
+            border-radius: 12px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             border-left: 5px solid transparent;
-            display: flex; justify-content: space-between; align-items: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .item-att { border-left-color: var(--primary-color); }
-        .item-leave { border-left-color: var(--warning); }
 
-        .info h4 { margin: 0; font-size: 1rem; }
-        .info p { margin: 5px 0 0; font-size: 0.85rem; color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; }
+        .item-att {
+            border-left-color: var(--primary-color);
+        }
 
-        .badge { padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
-        .bg-green { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-        .bg-red { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-        .bg-orange { background: #ffedd5; color: #9a3412; border: 1px solid #fed7aa; }
-        .bg-gray { background: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db; }
+        .item-leave {
+            border-left-color: var(--warning);
+        }
 
-        .actions { display: flex; gap: 8px; }
+        .info h4 {
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        .info p {
+            margin: 5px 0 0;
+            font-size: 0.85rem;
+            color: var(--muted);
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .bg-green {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .bg-red {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .bg-orange {
+            background: #ffedd5;
+            color: #9a3412;
+            border: 1px solid #fed7aa;
+        }
+
+        .bg-gray {
+            background: #f3f4f6;
+            color: #4b5563;
+            border: 1px solid #d1d5db;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
         .btn-icon {
-            width: 36px; height: 36px; border-radius: 8px; border: none;
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .btn-edit { background: #fffbeb; color: #d97706; }
-        .btn-del { background: #fef2f2; color: #dc2626; }
 
-        /* Pagination */
-        .pagination { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px; padding: 10px; }
-        .btn-page {
-            padding: 8px 16px; border-radius: 12px; border: none;
-            background: white; color: var(--text); font-weight: bold;
-            cursor: pointer; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            display: flex; align-items: center; gap: 5px;
+        .btn-edit {
+            background: #fffbeb;
+            color: #d97706;
         }
-        .btn-page:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-del {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        /* Pagination Styles */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+            padding: 10px;
+        }
+
+        .btn-page {
+            padding: 8px 16px;
+            border-radius: 12px;
+            border: none;
+            background: white;
+            color: var(--text);
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-page:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
 
         /* FAB */
         .fab {
-            position: fixed; bottom: 20px; right: 20px;
-            background: var(--success); color: white;
-            width: 60px; height: 60px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.5rem; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
-            cursor: pointer; border: none; z-index: 100;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--success);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+            cursor: pointer;
+            border: none;
+            z-index: 100;
         }
 
         @media (max-width: 600px) {
-            .header-section { flex-direction: column; align-items: flex-start; gap: 15px; }
-            .btn-home { align-self: flex-start; }
-            .data-item { flex-direction: column; align-items: flex-start; gap: 10px; }
-            .actions { width: 100%; justify-content: flex-end; border-top: 1px solid #eee; padding-top: 10px; }
-            .search-box-container { flex-direction: column; }
+            .header-section {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .btn-home {
+                align-self: flex-start;
+            }
+
+            .data-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .actions {
+                width: 100%;
+                justify-content: flex-end;
+                border-top: 1px solid #eee;
+                padding-top: 10px;
+            }
+
+            .search-box-container {
+                flex-direction: column;
+            }
         }
     </style>
 
@@ -201,13 +403,13 @@
 
 <body>
     <div class="container">
-        <!-- Header Section -->
+        <!-- New Header Section -->
         <div class="header-section">
             <div class="header-title">
                 <div class="icon-box"><i class="fas fa-calendar-check"></i></div>
                 <div class="header-text">
-                    <h2 id="page-title">จัดการเวลา/ลา</h2>
-                    <span id="page-desc">แก้ไขข้อมูลการลงเวลาและบันทึกการลา</span>
+                    <h2>จัดการเวลา/ลา</h2>
+                    <span>แก้ไขข้อมูลการลงเวลาและบันทึกการลา</span>
                 </div>
             </div>
             <a href="menu.html" class="btn-home">
@@ -216,14 +418,12 @@
         </div>
 
         <div class="controls-card">
-            <!-- Date Control (Hidden for Level 2) -->
+            <!-- Date input only for Attendance Tab -->
             <div id="date-control-group">
                 <label style="font-weight:bold; color:#6b7280;">📅 วันที่ทำงาน:</label>
                 <input type="date" id="filterDate" class="date-input" onchange="loadAttendance()">
             </div>
-            
-            <!-- Tabs (Hidden for Level 2 - force Leave tab) -->
-            <div class="tabs" id="tab-container">
+            <div class="tabs">
                 <button id="btn-tab-att" class="tab-btn active" onclick="switchTab('att')">🕒 เวลาทำงาน</button>
                 <button id="btn-tab-leave" class="tab-btn" onclick="switchTab('leave')">✈️ การลา (ทั้งหมด)</button>
             </div>
@@ -247,6 +447,7 @@
 
         <!-- Leave Tab (Paginated + Filter) -->
         <div id="tab-leave" class="content-section">
+            <!-- New Leave Filter -->
             <div class="search-box-container">
                 <div style="flex: 2; min-width: 200px;">
                     <input type="text" id="leave-search-name" class="date-input" placeholder="🔍 ค้นหาชื่อ..."
@@ -283,7 +484,7 @@
 
     <script>
         // ==========================================
-        // Security & Level Check
+        // Security Check: Only Level 1 Allowed
         // ==========================================
         const storedUser = localStorage.getItem('tas_user');
         if (!storedUser) { window.location.href = 'login.html'; }
@@ -291,32 +492,34 @@
         const user = JSON.parse(storedUser);
         const userLevel = String(user.level || '').trim();
 
-        // Config Levels
-        // Level 1: Super Admin (All Access)
-        // Level 2: Manager (Leave Only)
-        
-        if (userLevel !== '1' && userLevel !== '2') {
-            document.body.style.display = 'none';
+        if (userLevel !== '1') {
+            document.body.style.display = 'none'; // ซ่อนเนื้อหา
             setTimeout(() => {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'ไม่สามารถเข้าถึงได้',
-                    text: 'หน้านี้สำหรับระดับ 1 หรือ 2 เท่านั้น',
-                    confirmButtonText: 'กลับหน้าเมนู',
-                    allowOutsideClick: false,
-                    backdrop: `rgba(0,0,0,0.9)`
-                }).then(() => window.location.replace('menu.html'));
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'ไม่สามารถเข้าถึงได้',
+                        text: `สิทธิ์ของคุณคือระดับ ${userLevel} (ต้องการระดับ 1)`,
+                        confirmButtonText: 'กลับหน้าเมนู',
+                        allowOutsideClick: false,
+                        backdrop: `rgba(0,0,0,0.9)`
+                    }).then(() => { window.location.replace('menu.html'); });
+                } else {
+                    alert('ไม่สามารถเข้าถึงได้: เฉพาะผู้ดูแลระบบสูงสุด (Level 1) เท่านั้น');
+                    window.location.replace('menu.html');
+                }
             }, 100);
             throw new Error("Unauthorized Access");
         }
 
         if (typeof sbClient === 'undefined') Swal.fire('Error', 'Supabase Client Not Found', 'error');
 
-        // Global State
         let currentTab = 'att';
         let statusFilter = 'all';
         let personnelMap = {};
         let leaveTypes = [];
+
+        // Variables for Pagination & Filter
         let leavePage = 0;
         const LEAVE_PER_PAGE = 10;
 
@@ -325,32 +528,8 @@
             if (!dateInput.value) {
                 dateInput.value = new Date().toISOString().split('T')[0];
             }
-
-            // --- LEVEL 2 ADJUSTMENTS ---
-            if (userLevel === '2') {
-                // เปลี่ยน Title
-                document.getElementById('page-title').innerText = 'จัดการวันลา';
-                document.getElementById('page-desc').innerText = 'บันทึกและจัดการข้อมูลการลา';
-                document.title = 'จัดการวันลา - TAS-SPB';
-
-                // ซ่อน Control เวลาทำงาน
-                document.getElementById('date-control-group').style.display = 'none';
-                document.getElementById('tab-container').style.display = 'none'; // ซ่อน Tabs
-
-                // Force switch to Leave tab
-                switchTab('leave');
-            } else {
-                // Level 1: Default load master data & att
-                await loadMasterData();
-                loadAttendance();
-            }
-            
-            // Load master data for Level 2 as well if not already loaded
-            if (Object.keys(personnelMap).length === 0) {
-                await loadMasterData();
-            }
-            
-            // Level 2 loads leaves automatically via switchTab
+            await loadMasterData();
+            loadAttendance();
         });
 
         window.setStatusFilter = function (status) {
@@ -374,32 +553,21 @@
 
         window.switchTab = function (tabName) {
             currentTab = tabName;
-            
-            // UI Update
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            const btn = document.getElementById(`btn-tab-${tabName}`);
-            if(btn) btn.classList.add('active');
-            
+            document.getElementById(`btn-tab-${tabName}`).classList.add('active');
             document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
             document.getElementById(`tab-${tabName}`).classList.add('active');
 
-            // Logic Switch
+            // Toggle controls based on tab
             const dateControl = document.getElementById('date-control-group');
-            const filterContainer = document.getElementById('filter-container');
 
-            if (tabName === 'att') {
-                if (userLevel === '1') {
-                    dateControl.style.display = 'block';
-                    filterContainer.style.display = 'flex'; // Restore if previously hidden
-                    loadAttendance();
-                }
+            if (tabName !== 'att') {
+                document.getElementById('filter-container').style.display = 'none';
+                if (dateControl) dateControl.style.display = 'none'; // Hide date for leaves
+                loadLeaves(); // Reload leaves
             } else {
-                // Leave Tab
-                if (userLevel === '1') {
-                    dateControl.style.display = 'none';
-                    filterContainer.style.display = 'none';
-                }
-                loadLeaves();
+                if (dateControl) dateControl.style.display = 'block'; // Show date for attendance
+                loadAttendance();
             }
         }
 
@@ -414,11 +582,9 @@
         }
 
         // --------------------------------------------------------
-        // Attendance Logic (Level 1 Only)
+        // Attendance Logic (Daily View)
         // --------------------------------------------------------
         async function loadAttendance() {
-            if (userLevel !== '1') return; // Security guard
-
             const date = document.getElementById('filterDate').value;
             const container = document.getElementById('list-att');
             const filterContainer = document.getElementById('filter-container');
@@ -462,14 +628,19 @@
                     </div>
                 </div>`).join('');
             } catch (err) {
+                filterContainer.style.display = 'none';
                 container.innerHTML = `<div style="text-align:center; color:red;">โหลดไม่สำเร็จ</div>`;
             }
         }
 
         // --------------------------------------------------------
-        // Leave Logic (Level 1 & 2)
+        // Leave Logic (All Items + Pagination + Filters)
         // --------------------------------------------------------
-        function searchLeave() { leavePage = 0; loadLeaves(); }
+        function searchLeave() {
+            leavePage = 0; // Reset to first page
+            loadLeaves();
+        }
+
         function clearLeaveFilter() {
             document.getElementById('leave-search-name').value = '';
             document.getElementById('leave-search-date').value = '';
@@ -483,28 +654,45 @@
             const btnNext = document.getElementById('leave-next-btn');
             const pageNumDisplay = document.getElementById('leave-page-num');
 
+            // Get Filters
             const nameSearch = document.getElementById('leave-search-name').value.trim().toLowerCase();
             const dateSearch = document.getElementById('leave-search-date').value;
 
             container.innerHTML = `<div style="text-align:center; padding:20px; color:#f59e0b;">⏳ กำลังโหลดการลา...</div>`;
 
+            // Calculate Range
             const start = leavePage * LEAVE_PER_PAGE;
             const end = start + LEAVE_PER_PAGE - 1;
 
             try {
+                // เพิ่ม .neq('leave_type', 'ยกเว้น') เพื่อกรองออก
                 let query = sbClient.from('Leave_records').select('*').neq('leave_type', 'ยกเว้น');
 
-                if (dateSearch) query = query.eq('leave_date', dateSearch);
+                // Apply Filters
+                if (dateSearch) {
+                    query = query.eq('leave_date', dateSearch);
+                }
+
                 if (nameSearch) {
+                    // Filter IDs from personnelMap first
                     const matchingIds = Object.keys(personnelMap).filter(id =>
                         (personnelMap[id] || '').toLowerCase().includes(nameSearch) ||
                         id.includes(nameSearch)
                     );
-                    if (matchingIds.length > 0) query = query.in('personnel_id', matchingIds);
-                    else query = query.eq('personnel_id', 'no_match');
+
+                    if (matchingIds.length > 0) {
+                        query = query.in('personnel_id', matchingIds);
+                    } else {
+                        // No match found in map, force empty result or try raw ID
+                        query = query.eq('personnel_id', 'no_match');
+                    }
                 }
 
-                const { data, error } = await query.order('leave_date', { ascending: false }).range(start, end);
+                // Apply Order & Pagination
+                const { data, error } = await query
+                    .order('leave_date', { ascending: false })
+                    .range(start, end);
+
                 if (error) throw error;
 
                 if (!data || data.length === 0) {
@@ -530,6 +718,7 @@
                     </div>
                 </div>`).join('');
 
+                // Update Pagination Controls
                 btnPrev.disabled = (leavePage === 0);
                 btnNext.disabled = (data.length < LEAVE_PER_PAGE);
                 pageNumDisplay.innerText = `หน้า ${leavePage + 1}`;
@@ -555,95 +744,31 @@
         // --------------------------------------------------------
         // Modals & Actions
         // --------------------------------------------------------
-        window.handleAddClick = function () {
-            // Level 2 can only add Leave
-            if (userLevel === '2') {
-                openLeaveModal();
-            } else {
-                // Level 1 depends on tab
-                if (currentTab === 'att') openAttModal(); else openLeaveModal();
-            }
-        }
+        window.handleAddClick = function () { if (currentTab === 'att') openAttModal(); else openLeaveModal(); }
 
         async function openAttModal() {
-            // Level 1 Only
-            if (userLevel !== '1') return;
-
-            const filterDate = document.getElementById('filterDate').value;
+            const date = document.getElementById('filterDate').value;
             const curTime = new Date().toTimeString().slice(0, 5);
-            
             const { value: f } = await Swal.fire({
                 title: '➕ ลงเวลาทำงาน',
-                html: `
-                <div class="modal-form">
-                    <div style="position:relative;">
-                        <label style="font-weight:bold;">ค้นหาพนักงาน:</label>
-                        <input id="s-pid-att" class="date-input" placeholder="พิมพ์ชื่อ..." autocomplete="off">
-                        <div id="s-res-att" class="search-results"></div>
-                    </div>
-                    <div>
-                        <label>พนักงาน:</label>
-                        <input id="a-pid" class="date-input" readonly style="background:#f3f4f6">
-                        <input id="a-name" type="hidden">
-                    </div>
-                    <div>
-                        <label style="font-weight:bold;">วันที่ทำงาน:</label>
-                        <input type="date" id="a-date" class="date-input" value="${filterDate}">
-                    </div>
-                    <div style="display:flex; gap:10px;">
-                        <div style="flex:1">
-                            <label>เวลา</label>
-                            <input type="time" id="a-time" class="date-input" value="${curTime}">
-                        </div>
-                        <div style="flex:1">
-                            <label>ประเภท</label>
-                            <select id="a-type" class="date-input">
-                                <option value="in">เข้างาน</option>
-                                <option value="out">เลิกงาน</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>`,
+                html: `<div class="modal-form"><div style="position:relative;"><label style="font-weight:bold;">ค้นหาพนักงาน:</label><input id="s-pid-att" class="date-input" placeholder="พิมพ์ชื่อ..." autocomplete="off"><div id="s-res-att" class="search-results"></div></div><div><label>พนักงาน:</label><input id="a-pid" class="date-input" readonly style="background:#f3f4f6"><input id="a-name" type="hidden"></div><div style="display:flex; gap:10px;"><div style="flex:1"><label>เวลา</label><input type="time" id="a-time" class="date-input" value="${curTime}"></div><div style="flex:1"><label>ประเภท</label><select id="a-type" class="date-input"><option value="in">เข้างาน</option><option value="out">เลิกงาน</option></select></div></div></div>`,
                 showCancelButton: true, confirmButtonText: 'บันทึก', cancelButtonText: 'ยกเลิก',
                 didOpen: () => setupSearch('s-pid-att', 's-res-att', 'a-pid', 'a-name'),
-                preConfirm: () => { 
-                    const pid = document.getElementById('a-pid').value; 
-                    const date = document.getElementById('a-date').value;
-                    if (!pid) return Swal.showValidationMessage('กรุณาเลือกพนักงาน'); 
-                    if (!date) return Swal.showValidationMessage('กรุณาเลือกวันที่'); 
-                    return { 
-                        pid: pid, 
-                        name: document.getElementById('a-name').value, 
-                        date: date,
-                        time: document.getElementById('a-time').value, 
-                        type: document.getElementById('a-type').value 
-                    } 
-                }
+                preConfirm: () => { const pid = document.getElementById('a-pid').value; if (!pid) return Swal.showValidationMessage('กรุณาเลือกพนักงาน'); return { pid: pid, name: document.getElementById('a-name').value, time: document.getElementById('a-time').value, type: document.getElementById('a-type').value } }
             });
-
             if (f) {
-                const targetDate = f.date;
-                const { data: existing } = await sbClient.from(TAS_CONFIG.TABLE_TARGET).select('id,time_in,time_out').eq('personnel_id', f.pid).eq('work_date', targetDate).maybeSingle();
-
+                const { data: existing } = await sbClient.from(TAS_CONFIG.TABLE_TARGET).select('id,time_in,time_out').eq('personnel_id', f.pid).eq('work_date', date).maybeSingle();
                 if (existing) {
                     let up = {};
-                    if (f.type === 'in') up.time_in = f.time;
-                    if (f.type === 'out') up.time_out = f.time;
-                    if (Object.keys(up).length > 0) { 
-                        await sbClient.from(TAS_CONFIG.TABLE_TARGET).update(up).eq('id', existing.id); 
-                        Swal.fire('สำเร็จ', 'บันทึกข้อมูลเรียบร้อยแล้ว', 'success'); 
-                    }
+                    if (f.type === 'in' && (!existing.time_in || f.time < existing.time_in)) up.time_in = f.time;
+                    if (f.type === 'out' && (!existing.time_out || f.time > existing.time_out)) up.time_out = f.time;
+                    if (Object.keys(up).length > 0) { await sbClient.from(TAS_CONFIG.TABLE_TARGET).update(up).eq('id', existing.id); Swal.fire('อัปเดต', 'บันทึกเวลาที่ดีกว่าแล้ว', 'success'); }
+                    else Swal.fire('Info', 'เวลาเดิมดีกว่าอยู่แล้ว', 'info');
                 } else {
-                    await sbClient.from(TAS_CONFIG.TABLE_TARGET).insert([{ 
-                        id: Date.now().toString(), 
-                        personnel_id: f.pid, full_name: f.name, work_date: targetDate, 
-                        time_in: f.type === 'in' ? f.time : null, 
-                        time_out: f.type === 'out' ? f.time : null, 
-                        verified: 0 
-                    }]);
+                    await sbClient.from(TAS_CONFIG.TABLE_TARGET).insert([{ id: Date.now().toString(), personnel_id: f.pid, full_name: f.name, work_date: date, time_in: f.type === 'in' ? f.time : null, time_out: f.type === 'out' ? f.time : null, verified: 0 }]);
                     Swal.fire('สำเร็จ', 'บันทึกรายการใหม่', 'success');
                 }
-                if (targetDate === document.getElementById('filterDate').value) loadAttendance();
+                loadAttendance();
             }
         }
 
@@ -652,15 +777,23 @@
             const today = new Date().toISOString().split('T')[0];
             const typeOpts = leaveTypes.map(t => `<option value="${t}" ${t === type ? 'selected' : ''}>${t}</option>`).join('');
 
+            let userOptions = '';
+            if (!isEdit) {
+                try {
+                    const { data: att } = await sbClient.from(TAS_CONFIG.TABLE_USER).select('personnel_id, name').limit(100);
+                    att?.forEach(u => { userOptions += `<option value="${u.personnel_id}">${u.name} (${u.personnel_id})</option>`; });
+                } catch (e) { }
+            }
+
             const htmlContent = `
                 <div class="modal-form">
                     ${!isEdit ?
                     `<div><label style="font-weight:bold;">วันที่ลา:</label><input type="date" id="l-date" class="date-input" value="${today}"></div>
-                     <div><label style="font-weight:bold;">พนักงาน:</label>
-                     <input id="s-pid-leave" class="date-input" placeholder="ค้นหาชื่อ..." autocomplete="off">
-                     <div id="s-res-leave" class="search-results"></div>
-                     <input type="hidden" id="l-pid">
-                     </div>`
+                         <div><label style="font-weight:bold;">พนักงาน:</label>
+                         <input id="s-pid-leave" class="date-input" placeholder="ค้นหาชื่อ..." autocomplete="off">
+                         <div id="s-res-leave" class="search-results"></div>
+                         <input type="hidden" id="l-pid">
+                         </div>`
                     :
                     `<div><label>พนักงาน:</label><input class="date-input" value="${personnelMap[pid] || pid}" readonly style="background:#f3f4f6"><input type="hidden" id="l-pid-val" value="${pid}"></div>`}
                     <div><label style="font-weight:bold;">ประเภทการลา:</label><select id="l-type" class="date-input">${typeOpts}</select></div>
