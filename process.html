@@ -6,34 +6,35 @@
     <link rel="icon" type="image/png" href="favicon.png">
     <style>
         body { font-family: 'Sarabun', sans-serif; background: #f1f5f9; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .container { width: 100%; max-width: 800px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .container { width: 100%; max-width: 850px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         
-        h2 { text-align: center; color: #1e293b; margin-bottom: 25px; }
+        h2 { text-align: center; color: #1e293b; margin-bottom: 25px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
 
         /* Control Panel */
         .controls { background: #f8fafc; padding: 20px; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 20px; }
         .control-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
         
-        .radio-group label { margin-right: 15px; cursor: pointer; font-weight: 600; color: #475569; }
-        .date-inputs { display: flex; align-items: center; gap: 10px; opacity: 0.5; pointer-events: none; transition: 0.3s; }
+        .radio-group label { margin-right: 15px; cursor: pointer; font-weight: 600; color: #475569; display: inline-flex; align-items: center; gap: 5px; }
+        .date-inputs { display: flex; align-items: center; gap: 10px; opacity: 0.5; pointer-events: none; transition: 0.3s; background: #fff; padding: 5px 10px; border-radius: 5px; border: 1px solid #cbd5e1; }
         .date-inputs.active { opacity: 1; pointer-events: auto; }
-        input[type="date"] { padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Sarabun'; }
+        input[type="date"] { padding: 6px; border: 1px solid #94a3b8; border-radius: 4px; font-family: 'Sarabun'; }
 
         /* Start Button */
         .btn-start { width: 100%; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 15px; font-size: 1.1rem; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2); }
         .btn-start:hover { background: linear-gradient(135deg, #2563eb, #1d4ed8); transform: translateY(-1px); }
-        .btn-start:disabled { background: #94a3b8; cursor: not-allowed; transform: none; }
+        .btn-start:disabled { background: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none; }
 
         /* Log Monitor */
-        .log-container { margin-top: 20px; border: 1px solid #334155; border-radius: 8px; overflow: hidden; background: #0f172a; }
+        .log-container { margin-top: 20px; border: 1px solid #334155; border-radius: 8px; overflow: hidden; background: #0f172a; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); }
         .log-header { background: #1e293b; color: #e2e8f0; padding: 10px 15px; font-weight: bold; font-size: 0.9rem; display: flex; justify-content: space-between; border-bottom: 1px solid #334155; }
-        .log-content { height: 400px; overflow-y: auto; padding: 15px; font-family: 'Consolas', 'Monaco', monospace; font-size: 0.85rem; color: #cbd5e1; line-height: 1.6; }
+        .log-content { height: 450px; overflow-y: auto; padding: 15px; font-family: 'Consolas', 'Monaco', monospace; font-size: 0.85rem; color: #cbd5e1; line-height: 1.6; }
 
         /* Log Styling */
-        .log-line { margin-bottom: 4px; border-bottom: 1px dashed #334155; padding-bottom: 2px; }
-        .ts { color: #64748b; margin-right: 8px; font-size: 0.8rem; }
-        .tag { padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-right: 6px; display: inline-block; min-width: 35px; text-align: center; }
-        
+        .log-line { margin-bottom: 4px; border-bottom: 1px dashed #1e293b; padding-bottom: 2px; display: flex; align-items: baseline; }
+        .ts { color: #64748b; margin-right: 10px; font-size: 0.8rem; min-width: 65px; }
+        .tag { padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-right: 8px; min-width: 45px; text-align: center; display: inline-block; }
+        .msg { flex: 1; }
+
         .tag.info { background: #3b82f6; color: white; }
         .tag.success { background: #10b981; color: white; }
         .tag.warn { background: #f59e0b; color: white; }
@@ -41,10 +42,11 @@
         .tag.web { background: #8b5cf6; color: white; } 
         .tag.db { background: #ec4899; color: white; }  
 
-        .detail-item { padding-left: 55px; color: #94a3b8; font-size: 0.8rem; border-left: 2px solid #334155; margin-left: 10px; margin-bottom: 4px; }
+        .detail-item { padding-left: 85px; color: #94a3b8; font-size: 0.8rem; border-left: 2px solid #334155; margin-left: 10px; margin-bottom: 2px; white-space: pre-wrap; }
         .highlight { color: #facc15; font-weight: bold; }
         
         .back-link { display: inline-block; margin-bottom: 15px; text-decoration: none; color: #64748b; font-weight: 600; }
+        .back-link:hover { color: #3b82f6; }
     </style>
     
     <script src="supabase.js"></script>
@@ -55,7 +57,7 @@
     <a href="menu.html" class="back-link">⬅ กลับเมนูหลัก</a>
 
     <div class="container">
-        <h2>📟 Monitor: ประมวลผลเวลาเข้า-ออก</h2>
+        <h2>📟 Monitor: ระบบประมวลผลเวลา</h2>
         
         <div class="controls">
             <div class="control-row">
@@ -64,13 +66,15 @@
                     <label><input type="radio" name="mode" value="manual" onchange="toggleDate(true)"> 📅 เลือกวันที่เอง</label>
                 </div>
                 <div class="checkbox-group">
-                     <label><input type="checkbox" id="chkVerbose" checked> แสดงรายละเอียดรายบุคคล</label>
+                     <label style="cursor: pointer;"><input type="checkbox" id="chkVerbose" checked> แสดงรายละเอียดรายบุคคล</label>
                 </div>
             </div>
             
             <div class="date-inputs" id="dateGroup">
-                <span>จาก:</span> <input type="date" id="startDate">
-                <span>ถึง:</span> <input type="date" id="endDate">
+                <strong>ช่วงเวลา:</strong>
+                <input type="date" id="startDate">
+                <span>ถึง</span>
+                <input type="date" id="endDate">
             </div>
         </div>
 
@@ -82,7 +86,7 @@
                 <span id="statusText">Ready</span>
             </div>
             <div class="log-content" id="logBox">
-                <div class="log-line">> System Ready... Waiting for command.</div>
+                <div class="log-line"><span class="ts">--:--:--</span> <span class="msg">System Ready... Waiting for command.</span></div>
             </div>
         </div>
     </div>
@@ -101,10 +105,14 @@
             else el.classList.remove('active');
         }
 
+        function getTimeStr() {
+            const now = new Date();
+            return `[${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}]`;
+        }
+
         function log(msg, type = 'normal', detail = null) {
             const box = document.getElementById('logBox');
-            const now = new Date();
-            const ts = `[${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}]`;
+            const ts = getTimeStr();
             
             let tagHtml = '';
             if(type === 'info') tagHtml = `<span class="tag info">INFO</span>`;
@@ -113,9 +121,9 @@
             else if(type === 'error') tagHtml = `<span class="tag error">ERR</span>`;
             else if(type === 'web') tagHtml = `<span class="tag web">WEB</span>`;
             else if(type === 'db') tagHtml = `<span class="tag db">DB</span>`;
-            else tagHtml = `<span class="tag" style="background:#64748b;color:white">LOG</span>`;
+            else tagHtml = `<span class="tag" style="background:#475569;color:#cbd5e1">LOG</span>`;
 
-            let html = `<div class="log-line"><span class="ts">${ts}</span>${tagHtml} ${msg}</div>`;
+            let html = `<div class="log-line"><span class="ts">${ts}</span>${tagHtml} <span class="msg">${msg}</span></div>`;
             
             if(detail && document.getElementById('chkVerbose').checked) {
                 html += `<div class="detail-item">${detail}</div>`;
@@ -139,10 +147,13 @@
         function parseHTMLTable(htmlString, dateStr) {
             const parser = new DOMParser();
             const doc = parser.parseFromString(htmlString, "text/html");
-            const table = doc.getElementById('mainTable'); // เช็ค id ตาราง
+            // ปรับ Selector ให้ยืดหยุ่นขึ้น (บางที id เปลี่ยน)
+            let table = doc.getElementById('mainTable'); 
+            if(!table) table = doc.querySelector('table'); 
+
             if(!table) return [];
 
-            const rows = table.querySelectorAll('tbody tr');
+            const rows = table.querySelectorAll('tr'); // เอา tbody ออกเพื่อให้ครอบคลุม
             const records = [];
             rows.forEach(row => {
                 const cols = row.querySelectorAll('td');
@@ -152,7 +163,8 @@
                     let t_in = cols[2].innerText.trim();
                     let t_out = cols[3].innerText.trim();
 
-                    if(pid && pid !== "ไม่พบข้อมูล") {
+                    // กรองหัวตารางและข้อมูลว่าง
+                    if(pid && pid !== "รหัสพนักงาน" && pid !== "ไม่พบข้อมูล") {
                         if(t_in === "-" || t_in === "") t_in = null; else if(t_in.length===5) t_in+=":00";
                         if(t_out === "-" || t_out === "") t_out = null; else if(t_out.length===5) t_out+=":00";
                         records.push({ personnel_id: pid, full_name: name, work_date: dateStr, time_in: t_in, time_out: t_out });
@@ -169,7 +181,7 @@
             
             btn.disabled = true;
             document.getElementById('logBox').innerHTML = ''; 
-            log("🚀 Initializing Process Engine...", 'info');
+            log("🚀 Initializing Process Engine (Detailed Mode)...", 'info');
 
             try {
                 // 1. Get Config
@@ -184,7 +196,7 @@
                     }
                     if(!target.endsWith('/')) target += '/';
                     proxyUrl = target;
-                    log(`Target URL configured: ...${target.slice(-15)}`, 'info');
+                    log(`Target URL configured`, 'info', `...${target.slice(-25)}`);
                 } else {
                     log("No 'data_url' setting found. Using Internal DB only.", 'warn');
                 }
@@ -206,9 +218,8 @@
                         start = new Date(lastRec.work_date);
                         log(`Last synced: ${lastRec.work_date}`, 'info');
                         
-                        // ป้องกันกรณีวันที่ใน DB เป็นอนาคต
                         if(start > todayDate) {
-                            log(`⚠️ Last sync date is in FUTURE! Resetting start to Today.`, 'warn');
+                            log(`Last sync date is in FUTURE! Resetting to Today.`, 'warn');
                             start = new Date(todayDate);
                         }
                     } else {
@@ -218,11 +229,10 @@
                     end = new Date(todayDate);
                 }
 
-                // Set Time to Midnight
                 start.setHours(0,0,0,0);
                 end.setHours(0,0,0,0);
                 
-                log(`📅 Processing Range: ${formatDateDB(start)} to ${formatDateDB(end)}`, 'highlight');
+                log(`Processing Range: ${formatDateDB(start)} to ${formatDateDB(end)}`, 'highlight');
 
                 if(start > end) {
                     throw new Error("Start Date cannot be after End Date.");
@@ -236,7 +246,7 @@
                     const dateStr = formatDateDB(loop);
                     const urlDate = formatDateURL(loop);
                     
-                    log(`Processing: <span class="highlight">${dateStr}</span> ...`, 'info');
+                    log(`Processing Date: <span class="highlight">${dateStr}</span>`, 'info');
 
                     // 3.1 Fetch Web
                     let webData = [];
@@ -247,7 +257,7 @@
                             if(res.ok) {
                                 const json = await res.json();
                                 webData = parseHTMLTable(json.contents, dateStr);
-                                log(`Fetched Web Report`, 'web', `Found ${webData.length} records.`);
+                                log(`Fetched Web`, 'web', `Found ${webData.length} records.`);
                             } else {
                                 log(`HTTP Error ${res.status}`, 'error');
                             }
@@ -310,20 +320,21 @@
                                 payload.forEach(p => {
                                     const src = map[p.personnel_id].sources.join('+');
                                     log(`> ${p.full_name} (${p.personnel_id})`, 'normal', 
-                                        `Time: ${p.time_in || '-'} / ${p.time_out || '-'} [Src: ${src}]`);
+                                        `  Time: ${p.time_in || '-'} - ${p.time_out || '-'} [Src: ${src}]`);
                                 });
                             }
                         }
                     }
                     
                     loop.setDate(loop.getDate() + 1);
-                    await new Promise(r => setTimeout(r, 200)); // Delay กันค้าง
+                    await new Promise(r => setTimeout(r, 200)); // Delay
                 }
 
                 log(`----------------------------------------`);
                 log(`✅ Operation Complete. Total Processed: ${grandTotal}`, 'success');
+                
                 if(grandTotal > 0) Swal.fire('สำเร็จ', `ประมวลผลเสร็จสิ้น ${grandTotal} รายการ`, 'success');
-                else Swal.fire('เสร็จสิ้น', 'ไม่พบข้อมูลใหม่', 'info');
+                else Swal.fire('เสร็จสิ้น', 'ไม่พบข้อมูลใหม่ในช่วงเวลาที่เลือก', 'info');
 
             } catch (err) {
                 console.error(err);
