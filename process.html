@@ -94,7 +94,7 @@
         <div class="terminal-window">
             <div class="terminal-header">
                 <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
-                <span class="terminal-title">process_monitor.sh (Corrected)</span>
+                <span class="terminal-title">process_monitor.sh (V3.4 URL Fixed)</span>
             </div>
             <div class="terminal-body" id="console">
                 <div class="log-line"><span class="ts">--:--:--</span> <span class="msg">> System Ready...</span></div>
@@ -169,17 +169,22 @@
             const mode = document.querySelector('input[name="mode"]:checked').value;
             btn.disabled = true;
             document.getElementById('console').innerHTML = ''; 
-            log("> Initializing Process Engine v3.2...", 'highlight');
+            log("> Initializing Process Engine v3.4 (URL Pattern Fixed)...", 'highlight');
 
             try {
-                // 1. Config Check
+                // 1. Config Check & URL Prep
                 const { data: configData } = await sbClient.from(TAS_CONFIG.TABLE_SETTINGS).select('value').eq('key', 'data_url').single();
-                let proxyUrl = "";
+                let proxyBase = "";
                 if(configData?.value) {
-                    let target = configData.value.replace("https://api.allorigins.win/get?url=", "");
+                    let target = configData.value.trim();
+                    // Clean mixed up proxy strings
+                    if(target.includes("url=")) target = decodeURIComponent(target.split("url=")[1]);
+                    
+                    // 🔥 Fix 1: Ensure trailing slash on Base URL
                     if(!target.endsWith('/')) target += '/';
-                    proxyUrl = target;
-                    log(`Target Web URL: ...${target.slice(-20)}`, 'info');
+                    
+                    proxyBase = target;
+                    log(`Target Web Base: ...${target.slice(-25)}`, 'info');
                 } else log("No 'data_url'. Skipping Web.", 'warn');
 
                 // 2. Date Range
@@ -205,28 +210,33 @@
 
                 while(loop <= end) {
                     const dateStr = formatDateDB(loop);
-                    const urlDate = formatDateURL(loop);
+                    const urlDate = formatDateURL(loop); // DDMMYYYY
                     log(`Processing Date: ${dateStr}`, 'highlight');
 
-                    // 3.1 Web Fetch
+                    // 3.1 Web Fetch (With Final Slash Logic)
                     let webData = [];
-                    if(proxyUrl) {
+                    if(proxyBase) {
                         try {
-                            const finalUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(proxyUrl + urlDate)}`;
+                            // 🔥 Fix 2: Construct exact URL (Base + Date + Slash)
+                            const targetUrl = `${proxyBase}${urlDate}/`; 
+                            
+                            // Send via CORS Proxy
+                            const finalUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
+                            
+                            log(`   GET: ${targetUrl}`, 'normal'); // Show real target URL
+                            
                             const res = await fetch(finalUrl);
                             if(res.ok) {
-                                const json = await res.json();
-                                webData = parseHTMLTable(json.contents, dateStr);
+                                const htmlText = await res.text();
+                                webData = parseHTMLTable(htmlText, dateStr);
                                 log(`   + Web: ${webData.length} records`, 'info');
                             } else log(`   - Web HTTP Error ${res.status}`, 'warn');
                         } catch(e) { log(`   - Web Fetch Failed (Skip)`, 'warn', e.message); }
                     }
 
-                    // 3.2 DB Fetch (FIXED: Fallback is now "TimeStamp")
+                    // 3.2 DB Fetch
                     let dbData = [];
-                    // 🔥 ใช้ค่าสำรองเป็น "TimeStamp" ตามที่แจ้ง
                     const sourceTable = TAS_CONFIG.TABLE_SOURCE || "TimeStamp";
-                    
                     try {
                         const { data: internal, error: errInt } = await sbClient.from(sourceTable).select('*').eq('work_date', dateStr);
                         if(errInt) throw errInt;
