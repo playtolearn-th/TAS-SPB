@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <title>ระบบประมวลผลเวลา (Detailed Monitor) - TAS-SPB</title>
+    <title>Monitor: ระบบประมวลผลเวลา - TAS-SPB</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <style>
         body { font-family: 'Sarabun', sans-serif; background: #f1f5f9; padding: 20px; display: flex; flex-direction: column; align-items: center; }
@@ -32,16 +32,16 @@
         /* Log Styling */
         .log-line { margin-bottom: 4px; border-bottom: 1px dashed #334155; padding-bottom: 2px; }
         .ts { color: #64748b; margin-right: 8px; font-size: 0.8rem; }
-        .tag { padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-right: 6px; }
+        .tag { padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; margin-right: 6px; display: inline-block; min-width: 35px; text-align: center; }
         
         .tag.info { background: #3b82f6; color: white; }
         .tag.success { background: #10b981; color: white; }
         .tag.warn { background: #f59e0b; color: white; }
         .tag.error { background: #ef4444; color: white; }
-        .tag.web { background: #8b5cf6; color: white; } /* Purple */
-        .tag.db { background: #ec4899; color: white; }  /* Pink */
+        .tag.web { background: #8b5cf6; color: white; } 
+        .tag.db { background: #ec4899; color: white; }  
 
-        .detail-item { padding-left: 20px; color: #94a3b8; font-size: 0.8rem; }
+        .detail-item { padding-left: 55px; color: #94a3b8; font-size: 0.8rem; border-left: 2px solid #334155; margin-left: 10px; margin-bottom: 4px; }
         .highlight { color: #facc15; font-weight: bold; }
         
         .back-link { display: inline-block; margin-bottom: 15px; text-decoration: none; color: #64748b; font-weight: 600; }
@@ -108,11 +108,12 @@
             
             let tagHtml = '';
             if(type === 'info') tagHtml = `<span class="tag info">INFO</span>`;
-            if(type === 'success') tagHtml = `<span class="tag success">OK</span>`;
-            if(type === 'warn') tagHtml = `<span class="tag warn">WARN</span>`;
-            if(type === 'error') tagHtml = `<span class="tag error">ERR</span>`;
-            if(type === 'web') tagHtml = `<span class="tag web">WEB</span>`;
-            if(type === 'db') tagHtml = `<span class="tag db">DB</span>`;
+            else if(type === 'success') tagHtml = `<span class="tag success">OK</span>`;
+            else if(type === 'warn') tagHtml = `<span class="tag warn">WARN</span>`;
+            else if(type === 'error') tagHtml = `<span class="tag error">ERR</span>`;
+            else if(type === 'web') tagHtml = `<span class="tag web">WEB</span>`;
+            else if(type === 'db') tagHtml = `<span class="tag db">DB</span>`;
+            else tagHtml = `<span class="tag" style="background:#64748b;color:white">LOG</span>`;
 
             let html = `<div class="log-line"><span class="ts">${ts}</span>${tagHtml} ${msg}</div>`;
             
@@ -138,7 +139,10 @@
         function parseHTMLTable(htmlString, dateStr) {
             const parser = new DOMParser();
             const doc = parser.parseFromString(htmlString, "text/html");
-            const rows = doc.querySelectorAll('#mainTable tbody tr');
+            const table = doc.getElementById('mainTable'); // เช็ค id ตาราง
+            if(!table) return [];
+
+            const rows = table.querySelectorAll('tbody tr');
             const records = [];
             rows.forEach(row => {
                 const cols = row.querySelectorAll('td');
@@ -172,16 +176,24 @@
                 const { data: configData } = await sbClient.from(TAS_CONFIG.TABLE_SETTINGS).select('value').eq('key', 'data_url').single();
                 let proxyUrl = "";
                 if(configData?.value) {
-                    let target = configData.value.replace("https://api.allorigins.win/get?url=", ""); 
+                    let target = configData.value;
+                    // Clean URL
+                    if(target.includes("api.allorigins.win")) {
+                        const match = target.match(/url=(.*)/);
+                        if(match) target = decodeURIComponent(match[1]);
+                    }
                     if(!target.endsWith('/')) target += '/';
                     proxyUrl = target;
-                    log(`Target URL: ${target}`, 'info');
+                    log(`Target URL configured: ...${target.slice(-15)}`, 'info');
                 } else {
                     log("No 'data_url' setting found. Using Internal DB only.", 'warn');
                 }
 
                 // 2. Determine Date Range
                 let start, end;
+                const todayDate = new Date();
+                todayDate.setHours(0,0,0,0);
+
                 if(mode === 'manual') {
                     start = new Date(document.getElementById('startDate').value);
                     end = new Date(document.getElementById('endDate').value);
@@ -190,18 +202,31 @@
                     const { data: lastRec } = await sbClient.from(TAS_CONFIG.TABLE_TARGET)
                         .select('work_date').order('work_date', {ascending: false}).limit(1).single();
                     
-                    if(lastRec) {
+                    if(lastRec && lastRec.work_date) {
                         start = new Date(lastRec.work_date);
-                        log(`Last synced: ${lastRec.work_date} -> Starting from there.`, 'info');
+                        log(`Last synced: ${lastRec.work_date}`, 'info');
+                        
+                        // ป้องกันกรณีวันที่ใน DB เป็นอนาคต
+                        if(start > todayDate) {
+                            log(`⚠️ Last sync date is in FUTURE! Resetting start to Today.`, 'warn');
+                            start = new Date(todayDate);
+                        }
                     } else {
-                        start = new Date();
+                        start = new Date(todayDate);
                         log("No history found. Starting from Today.", 'info');
                     }
-                    end = new Date(); // Today
+                    end = new Date(todayDate);
                 }
 
+                // Set Time to Midnight
                 start.setHours(0,0,0,0);
                 end.setHours(0,0,0,0);
+                
+                log(`📅 Processing Range: ${formatDateDB(start)} to ${formatDateDB(end)}`, 'highlight');
+
+                if(start > end) {
+                    throw new Error("Start Date cannot be after End Date.");
+                }
 
                 // 3. Loop Dates
                 let loop = new Date(start);
@@ -211,8 +236,7 @@
                     const dateStr = formatDateDB(loop);
                     const urlDate = formatDateURL(loop);
                     
-                    log(`----------------------------------------`);
-                    log(`📅 Processing Date: <span class="highlight">${dateStr}</span>`, 'info');
+                    log(`Processing: <span class="highlight">${dateStr}</span> ...`, 'info');
 
                     // 3.1 Fetch Web
                     let webData = [];
@@ -246,8 +270,8 @@
                             map[rec.personnel_id] = { ...rec, sources: [source] };
                         } else {
                             const cur = map[rec.personnel_id];
-                            cur.sources.push(source);
-                            // Merge Logic: Best times
+                            if(!cur.sources.includes(source)) cur.sources.push(source);
+                            // Merge Logic
                             if(rec.time_in && (!cur.time_in || rec.time_in < cur.time_in)) cur.time_in = rec.time_in;
                             if(rec.time_out && (!cur.time_out || rec.time_out > cur.time_out)) cur.time_out = rec.time_out;
                         }
@@ -261,8 +285,6 @@
                     if(mergedList.length === 0) {
                         log("No data found for this date.", 'warn');
                     } else {
-                        log(`Merging data... Total unique persons: ${mergedList.length}`, 'info');
-
                         // 3.4 Save
                         const payload = mergedList.map(item => ({
                             id: `${formatDateURL(new Date(item.work_date))}${item.personnel_id}`,
@@ -280,10 +302,10 @@
                         if(saveErr) {
                             log(`Save Failed: ${saveErr.message}`, 'error');
                         } else {
-                            log(`Saved ${payload.length} records to Database.`, 'success');
+                            log(`Saved ${payload.length} records.`, 'success');
                             grandTotal += payload.length;
 
-                            // Verbose Log for individuals
+                            // Verbose Log
                             if(document.getElementById('chkVerbose').checked) {
                                 payload.forEach(p => {
                                     const src = map[p.personnel_id].sources.join('+');
@@ -295,12 +317,13 @@
                     }
                     
                     loop.setDate(loop.getDate() + 1);
-                    await new Promise(r => setTimeout(r, 500)); // Delay กันค้าง
+                    await new Promise(r => setTimeout(r, 200)); // Delay กันค้าง
                 }
 
                 log(`----------------------------------------`);
                 log(`✅ Operation Complete. Total Processed: ${grandTotal}`, 'success');
-                Swal.fire('สำเร็จ', `ประมวลผลเสร็จสิ้นรวม ${grandTotal} รายการ`, 'success');
+                if(grandTotal > 0) Swal.fire('สำเร็จ', `ประมวลผลเสร็จสิ้น ${grandTotal} รายการ`, 'success');
+                else Swal.fire('เสร็จสิ้น', 'ไม่พบข้อมูลใหม่', 'info');
 
             } catch (err) {
                 console.error(err);
