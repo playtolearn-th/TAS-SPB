@@ -1,225 +1,401 @@
 <!DOCTYPE html>
 <html lang="th">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ตั้งค่าระบบ - TAS-SPB</title>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --amber: #f59e0b;
-            --bg: #f8fafc;
-        }
-
-        body {
-            font-family: 'Sarabun', sans-serif;
-            background: var(--bg);
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        /* --- New Header Style (Matches Report/Process Page) --- */
-        .header-section {
-            background: white;
-            width: 100%;
-            padding: 20px 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-        }
-
-        .header-title {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .icon-box {
-            width: 50px;
-            height: 50px;
-            background: var(--amber);
-            color: white;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-        }
-
-        .header-text h2 {
-            margin: 0;
-            color: #1f2937;
-            font-size: 1.5rem;
-        }
-
-        .header-text span {
-            color: #6b7280;
-            font-size: 0.9rem;
-        }
-
-        .btn-home {
-            text-decoration: none;
-            color: #4b5563;
-            font-weight: bold;
-            background: #f3f4f6;
-            padding: 8px 16px;
-            border-radius: 20px;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .btn-home:hover {
-            background: #e5e7eb;
-        }
-
-        /* --- Settings Card Style --- */
-        .card {
-            background: white;
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            margin-bottom: 20px;
-        }
-
-        .setting-row {
-            display: flex;
-            flex-direction: column;
-            padding: 15px 0;
-            border-bottom: 1px solid #f1f5f9;
-            gap: 10px;
-        }
-
-        .label {
-            flex: 1;
-            font-weight: 700;
-            color: #334155;
-        }
-
-        .input-group {
-            flex: 2;
-            display: flex;
-            gap: 10px;
-        }
-
-        input {
-            flex: 1;
-            padding: 12px;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 10px;
-            font-family: 'Sarabun';
-        }
-
-        .btn-save {
-            background: var(--amber);
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        @media (min-width: 600px) {
-            .setting-row {
-                flex-direction: row;
-                align-items: center;
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>ตั้งค่าระบบ - TAS-SPB</title>
+        <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <style>
+            :root {
+                --amber: #f59e0b;
+                --blue: #3b82f6;
+                --bg: #f8fafc;
             }
-        }
 
-        @media (max-width: 600px) {
+            body {
+                font-family: 'Sarabun', sans-serif;
+                background: var(--bg);
+                padding: 20px;
+            }
+
+            .container {
+                max-width: 800px;
+                margin: 0 auto;
+                width: 100%;
+            }
+
+            /* --- Header Style --- */
             .header-section {
-                flex-direction: column;
-                align-items: flex-start;
+                background: white;
+                width: 100%;
+                padding: 20px 30px;
+                border-radius: 15px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 25px;
+            }
+
+            .header-title {
+                display: flex;
+                align-items: center;
                 gap: 15px;
             }
 
-            .btn-home {
-                align-self: flex-start;
+            .icon-box {
+                width: 50px;
+                height: 50px;
+                background: var(--amber);
+                color: white;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5rem;
             }
-        }
-    </style>
-    <script src="supabase.js"></script>
-    <script src="sweetalert2.js"></script>
-    <script src="config.js"></script>
-</head>
 
-<body>
-    <div class="container">
-        <!-- New Header Section -->
-        <div class="header-section">
-            <div class="header-title">
-                <div class="icon-box"><i class="fas fa-cogs"></i></div>
-                <div class="header-text">
-                    <h2>ตั้งค่าระบบ</h2>
-                    <span>กำหนดค่าตัวแปรต่างๆ ของระบบ</span>
+            .header-text h2 {
+                margin: 0;
+                color: #1f2937;
+                font-size: 1.5rem;
+            }
+
+            .header-text span {
+                color: #6b7280;
+                font-size: 0.9rem;
+            }
+
+            .btn-home {
+                text-decoration: none;
+                color: #4b5563;
+                font-weight: bold;
+                background: #f3f4f6;
+                padding: 8px 16px;
+                border-radius: 20px;
+                transition: 0.2s;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+
+            .btn-home:hover {
+                background: #e5e7eb;
+            }
+
+            /* --- Card Style --- */
+            .card {
+                background: white;
+                border-radius: 20px;
+                padding: 25px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+                margin-bottom: 20px;
+            }
+
+            .card-title {
+                font-size: 1.1rem;
+                font-weight: 700;
+                color: #1e293b;
+                margin-bottom: 15px;
+                border-bottom: 2px solid #f1f5f9;
+                padding-bottom: 10px;
+            }
+
+            /* --- Input & Settings --- */
+            .setting-row {
+                display: flex;
+                flex-direction: column;
+                padding: 15px 0;
+                border-bottom: 1px solid #f1f5f9;
+                gap: 10px;
+            }
+
+            .label {
+                flex: 1;
+                font-weight: 700;
+                color: #334155;
+            }
+
+            .input-group {
+                flex: 2;
+                display: flex;
+                gap: 10px;
+            }
+
+            input,
+            select {
+                flex: 1;
+                padding: 12px;
+                border: 1.5px solid #e2e8f0;
+                border-radius: 10px;
+                font-family: 'Sarabun';
+                font-size: 1rem;
+            }
+
+            .btn-save {
+                background: var(--amber);
+                color: white;
+                border: none;
+                padding: 10px 15px;
+                border-radius: 10px;
+                cursor: pointer;
+                font-weight: bold;
+                white-space: nowrap;
+            }
+
+            .btn-search {
+                background: var(--blue);
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 10px;
+                cursor: pointer;
+                font-weight: bold;
+            }
+
+            /* --- Search Result Style --- */
+            .user-result-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background: #f8fafc;
+                padding: 10px;
+                border-radius: 10px;
+                margin-bottom: 10px;
+                border: 1px solid #e2e8f0;
+            }
+
+            .user-info h4 {
+                margin: 0;
+                font-size: 1rem;
+                color: #334155;
+            }
+
+            .user-info small {
+                color: #64748b;
+            }
+
+            .level-control {
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+
+            @media (min-width: 600px) {
+                .setting-row {
+                    flex-direction: row;
+                    align-items: center;
+                }
+            }
+
+            @media (max-width: 600px) {
+                .header-section {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 15px;
+                }
+
+                .btn-home {
+                    align-self: flex-start;
+                }
+
+                .user-result-item {
+                    flex-direction: column;
+                    gap: 10px;
+                    align-items: flex-start;
+                }
+
+                .level-control {
+                    width: 100%;
+                }
+            }
+        </style>
+        <script src="supabase.js"></script>
+        <script src="sweetalert2.js"></script>
+        <script src="config.js"></script>
+    </head>
+
+    <body>
+        <div class="container">
+            <div class="header-section">
+                <div class="header-title">
+                    <div class="icon-box"><i class="fas fa-cogs"></i></div>
+                    <div class="header-text">
+                        <h2>ตั้งค่าระบบ</h2>
+                        <span>กำหนดค่าตัวแปร และจัดการสิทธิ์</span>
+                    </div>
+                </div>
+                <a href="menu.html" class="btn-home">
+                    <i class="fas fa-home"></i> เมนู
+                </a>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><i class="fas fa-users-cog"></i> จัดการสิทธิ์ผู้ใช้งาน (User Level)</div>
+
+                <div class="input-group" style="margin-bottom: 20px;">
+                    <input type="text" id="searchInput" placeholder="พิมพ์ชื่อ หรือ รหัสพนักงาน..."
+                        oninput="handleSearchInput(this.value)">
+                    <button class="btn-search" onclick="searchUser()"><i class="fas fa-search"></i> ค้นหา</button>
+                </div>
+
+                <div id="userResults">
+                    <p style="text-align:center; color:#94a3b8; font-size:0.9rem;">ผลลัพธ์การค้นหาจะแสดงที่นี่...</p>
                 </div>
             </div>
-            <a href="menu.html" class="btn-home">
-                <i class="fas fa-home"></i> เมนู
-            </a>
+
+            <div class="card" id="settingsList">
+                <div class="card-title"><i class="fas fa-sliders-h"></i> ตั้งค่าตัวแปรระบบ</div>
+                <p style="text-align:center; color:#94a3b8;">กำลังดึงข้อมูลการตั้งค่า...</p>
+            </div>
+
+            <div id="vText" style="text-align:center; color:#94a3b8; font-size:0.8rem; margin-top: 20px;">
+                TAS-SPB System
+            </div>
         </div>
 
-        <div class="card" id="settingsList">
-            <p style="text-align:center; color:#94a3b8;">กำลังดึงข้อมูลการตั้งค่า...</p>
-        </div>
-        <div style="text-align:center; color:#94a3b8; font-size:0.8rem;">TAS-SPB Online v2.1.0</div>
-    </div>
-    <script>
-        // ==========================================
-        // Security Check: Only Level 1 Allowed
-        // ==========================================
-        const storedUser = localStorage.getItem('tas_user');
-        if (!storedUser) { window.location.href = 'login.html'; }
+        <script>
+            // ==========================================
+            // Security Check: Only Level 1 Allowed
+            // ==========================================
+            const storedUser = localStorage.getItem('tas_user');
+            if (!storedUser) { window.location.href = 'login.html'; }
 
-        const user = JSON.parse(storedUser);
-        const userLevel = String(user.level || '').trim();
+            const user = JSON.parse(storedUser);
+            const userLevel = String(user.level || '').trim();
 
-        if (userLevel !== '1') {
-            document.body.style.display = 'none'; // ซ่อนเนื้อหาทันที
-            setTimeout(() => {
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'ไม่สามารถเข้าถึงได้',
-                        text: `สิทธิ์ของคุณคือระดับ ${userLevel} (ต้องการระดับ 1)`,
-                        confirmButtonText: 'กลับหน้าเมนู',
-                        allowOutsideClick: false,
-                        backdrop: `rgba(0,0,0,0.9)`
-                    }).then(() => { window.location.replace('menu.html'); });
-                } else {
-                    alert('ไม่สามารถเข้าถึงได้: เฉพาะผู้ดูแลระบบสูงสุด (Level 1) เท่านั้น');
-                    window.location.replace('menu.html');
-                }
-            }, 100);
-            throw new Error("Unauthorized Access");
-        }
-
-        async function loadSettings() {
-            // ใช้ table name จาก config หรือ fallback เป็น 'Settings'
-            const tableName = (typeof TAS_CONFIG !== 'undefined' && TAS_CONFIG.TABLE_SETTINGS) ? TAS_CONFIG.TABLE_SETTINGS : 'Settings';
-
-            const { data, error } = await sbClient.from(tableName).select('*').order('key');
-            const container = document.getElementById('settingsList');
-
-            if (error) {
-                container.innerHTML = `<p style="text-align:center; color:red;">Error loading settings: ${error.message}</p>`;
-                return;
+            if (userLevel !== '1') {
+                document.body.style.display = 'none';
+                setTimeout(() => {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'ไม่สามารถเข้าถึงได้',
+                            text: `สิทธิ์ของคุณคือระดับ ${userLevel} (ต้องการระดับ 1)`,
+                            confirmButtonText: 'กลับหน้าเมนู',
+                            allowOutsideClick: false,
+                            backdrop: `rgba(0,0,0,0.9)`
+                        }).then(() => { window.location.replace('menu.html'); });
+                    } else {
+                        alert('ไม่สามารถเข้าถึงได้: เฉพาะผู้ดูแลระบบสูงสุด (Level 1) เท่านั้น');
+                        window.location.replace('menu.html');
+                    }
+                }, 100);
+                throw new Error("Unauthorized Access");
             }
 
-            if (data) {
-                container.innerHTML = data.map(s => `
+            // ==========================================
+            // Part 1: User Management Functions (Smart Search)
+            // ==========================================
+
+            let searchTimeout = null;
+
+            function handleSearchInput(val) {
+                if (searchTimeout) clearTimeout(searchTimeout);
+                if (!val.trim()) {
+                    document.getElementById('userResults').innerHTML = '<p style="text-align:center; color:#94a3b8; font-size:0.9rem;">ผลลัพธ์การค้นหาจะแสดงที่นี่...</p>';
+                    return;
+                }
+                searchTimeout = setTimeout(() => {
+                    searchUser();
+                }, 500);
+            }
+
+            async function searchUser() {
+                const query = document.getElementById('searchInput').value.trim();
+                const container = document.getElementById('userResults');
+
+                if (!query) return;
+
+                container.innerHTML = '<p style="text-align:center;">กำลังค้นหา...</p>';
+
+                try {
+                    const { data, error } = await sbClient
+                        .from('Personnel')
+                        .select('*')
+                        .or(`name.ilike.%${query}%,personnel_id.ilike.%${query}%`)
+                        .limit(10);
+
+                    if (error) throw error;
+
+                    if (!data || data.length === 0) {
+                        container.innerHTML = '<p style="text-align:center; color:#ef4444;">ไม่พบข้อมูลพนักงาน</p>';
+                        return;
+                    }
+
+                    container.innerHTML = data.map(u => `
+                    <div class="user-result-item">
+                        <div class="user-info">
+                            <h4>${u.name || 'ไม่ระบุชื่อ'}</h4>
+                            <small>ID: ${u.personnel_id} | Type: ${u.personnel_type || '-'}</small>
+                        </div>
+                        <div class="level-control">
+                            <label style="font-size:0.85rem; font-weight:bold; white-space:nowrap;">Level:</label>
+                            <select id="lvl-${u.personnel_id}" style="width:80px; padding:8px;">
+                                <option value="0" ${u.level == 0 ? 'selected' : ''}>0 (User)</option>
+                                <option value="2" ${u.level == 2 ? 'selected' : ''}>2 (Admin)</option>
+                                <option value="1" ${u.level == 1 ? 'selected' : ''}>1 (Super)</option>
+                            </select>
+                            <button class="btn-save" onclick="updateUserLevel('${u.personnel_id}')">บันทึก</button>
+                        </div>
+                    </div>
+                `).join('');
+
+                } catch (e) {
+                    console.error(e);
+                    container.innerHTML = `<p style="text-align:center; color:red;">เกิดข้อผิดพลาด: ${e.message}</p>`;
+                }
+            }
+
+            async function updateUserLevel(pid) {
+                const newLevel = document.getElementById(`lvl-${pid}`).value;
+
+                const confirm = await Swal.fire({
+                    title: 'ยืนยันการแก้ไข',
+                    text: `ต้องการเปลี่ยนสิทธิ์พนักงาน ${pid} เป็น Level ${newLevel} ใช่หรือไม่?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'ใช่, บันทึก',
+                    cancelButtonText: 'ยกเลิก'
+                });
+
+                if (confirm.isConfirmed) {
+                    try {
+                        const { error } = await sbClient
+                            .from('Personnel')
+                            .update({ level: parseInt(newLevel) })
+                            .eq('personnel_id', pid);
+
+                        if (error) throw error;
+
+                        Swal.fire('สำเร็จ', 'อัปเดตสิทธิ์เรียบร้อยแล้ว', 'success');
+                    } catch (e) {
+                        Swal.fire('ผิดพลาด', e.message, 'error');
+                    }
+                }
+            }
+
+
+            // ==========================================
+            // Part 2: General Settings Functions (Existing)
+            // ==========================================
+            async function loadSettings() {
+                const tableName = (typeof TAS_CONFIG !== 'undefined' && TAS_CONFIG.TABLE_SETTINGS) ? TAS_CONFIG.TABLE_SETTINGS : 'Settings';
+
+                const { data, error } = await sbClient.from(tableName).select('*').order('key');
+                const container = document.getElementById('settingsList');
+
+                if (error) {
+                    container.innerHTML = `<p style="text-align:center; color:red;">Error loading settings: ${error.message}</p>`;
+                    return;
+                }
+
+                let html = '<div class="card-title"><i class="fas fa-sliders-h"></i> ตั้งค่าตัวแปรระบบ</div>';
+
+                if (data) {
+                    html += data.map(s => `
                     <div class="setting-row">
                         <div class="label">${s.note || s.key}</div>
                         <div class="input-group">
@@ -228,24 +404,31 @@
                         </div>
                     </div>
                 `).join('');
+                }
+                container.innerHTML = html;
+
+                // [แก้ไข] ดึงข้อความเครดิตจาก Config มาแสดงที่ Footer (ถ้ามี)
+                if (typeof TAS_CONFIG !== 'undefined' && TAS_CONFIG.REPORT_CREDIT) {
+                    document.getElementById('vText').innerText = TAS_CONFIG.REPORT_CREDIT;
+                }
             }
-        }
 
-        async function updateSet(key) {
-            const tableName = (typeof TAS_CONFIG !== 'undefined' && TAS_CONFIG.TABLE_SETTINGS) ? TAS_CONFIG.TABLE_SETTINGS : 'Settings';
-            const val = document.getElementById(`val-${key}`).value;
+            async function updateSet(key) {
+                const tableName = (typeof TAS_CONFIG !== 'undefined' && TAS_CONFIG.TABLE_SETTINGS) ? TAS_CONFIG.TABLE_SETTINGS : 'Settings';
+                const val = document.getElementById(`val-${key}`).value;
 
-            const { error } = await sbClient.from(tableName).update({ value: val }).eq('key', key);
+                const { error } = await sbClient.from(tableName).update({ value: val }).eq('key', key);
 
-            if (!error) {
-                Swal.fire({ icon: 'success', title: 'อัปเดตแล้ว', timer: 1000, showConfirmButton: false });
-            } else {
-                Swal.fire({ icon: 'error', title: 'บันทึกไม่สำเร็จ', text: error.message });
+                if (!error) {
+                    Swal.fire({ icon: 'success', title: 'อัปเดตแล้ว', timer: 1000, showConfirmButton: false });
+                } else {
+                    Swal.fire({ icon: 'error', title: 'บันทึกไม่สำเร็จ', text: error.message });
+                }
             }
-        }
 
-        loadSettings();
-    </script>
-</body>
+            // Start Functions
+            loadSettings();
+        </script>
+    </body>
 
 </html>
