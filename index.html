@@ -71,7 +71,6 @@
             z-index: 0;
         }
 
-        /* ลบ background และ box-shadow ออก */
         .logo-box {
             position: relative;
             width: 100px;
@@ -84,7 +83,6 @@
             z-index: 1;
         }
 
-        /* ปรับขนาดรูปภาพให้ใหญ่ขึ้นเล็กน้อยเพราะไม่มีกรอบแล้ว */
         .logo-box img {
             width: 100%;
             height: 100%;
@@ -146,8 +144,9 @@
             border-radius: 50%;
         }
 
+        /* ปุ่มเข้าสู่ระบบ (เริ่มต้นจะซ่อน) */
         .btn-start {
-            display: flex;
+            display: none; /* ซ่อนเป็นค่าเริ่มต้น */
             align-items: center;
             justify-content: center;
             gap: 10px;
@@ -174,8 +173,9 @@
             transform: scale(0.98);
         }
 
+        /* ปุ่มติดตั้ง (เริ่มต้นจะแสดง แต่ JS จะจัดการอีกที) */
         .btn-install {
-            display: none;
+            display: none; /* ซ่อนก่อน รอ JS เช็ค */
             align-items: center;
             justify-content: center;
             gap: 8px;
@@ -190,10 +190,23 @@
             margin-top: 15px;
             cursor: pointer;
             transition: all 0.2s;
+            animation: pulse 2s infinite;
         }
 
         .btn-install:hover {
             background: var(--secondary);
+        }
+
+        .install-alert {
+            display: none;
+            color: #ef4444;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 20px;
+            border: 1px solid #fee2e2;
+            background: #fef2f2;
+            padding: 10px;
+            border-radius: 10px;
         }
 
         .ios-prompt-overlay {
@@ -270,26 +283,20 @@
             text-align: center;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); }
+            70% { transform: scale(1.02); box-shadow: 0 0 0 10px rgba(79, 70, 229, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+        }
 
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         @keyframes slideUp {
-            from {
-                transform: translateY(100%);
-            }
-
-            to {
-                transform: translateY(0);
-            }
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
         }
     </style>
 </head>
@@ -308,8 +315,12 @@
             <div class="feature-item"><i class="fas fa-shield-alt"></i><span>ปลอดภัย</span></div>
         </div>
 
-        <div onclick="window.location.href='login.html'" class="btn-start">
+        <div id="enterSystemBtn" onclick="window.location.href='login.html'" class="btn-start">
             เข้าสู่ระบบลงเวลา <i class="fas fa-arrow-right"></i>
+        </div>
+
+        <div id="installAlert" class="install-alert">
+            <i class="fas fa-exclamation-circle"></i> กรุณาติดตั้งแอปเพื่อเข้าใช้งาน
         </div>
 
         <button id="installBtn" class="btn-install" onclick="installApp()">
@@ -324,7 +335,7 @@
             <button class="close-prompt" onclick="closeIosPrompt()">&times;</button>
             <h3 style="margin-top:0; color:#1f2937;">ติดตั้ง TAS-SPB</h3>
             <p style="color:#6b7280; font-size:0.9rem; margin-bottom:20px;">
-                เพิ่มแอปลงหน้าจอโฮมเพื่อการใช้งานที่สะดวกขึ้น</p>
+                เพิ่มแอปลงหน้าจอโฮมเพื่อเข้าใช้งานระบบ</p>
 
             <div class="ios-step">
                 <i class="fas fa-share-square"></i>
@@ -343,50 +354,77 @@
     </div>
 
     <script>
-        // --- ส่วนตรวจสอบการจดจำรหัสผ่าน ---
+        // เช็คว่ารันในโหมด App (Standalone) หรือไม่
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        const enterSystemBtn = document.getElementById('enterSystemBtn');
+        const installBtn = document.getElementById('installBtn');
+        const installAlert = document.getElementById('installAlert');
+        const iosPrompt = document.getElementById('iosPrompt');
+
+        // ตัวแปรสำหรับจัดการการติดตั้ง
+        let deferredPrompt;
+        const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+
+        // --- Logic หลัก: ตรวจสอบการเข้าใช้งาน ---
         document.addEventListener('DOMContentLoaded', () => {
             const isRemembered = localStorage.getItem('tas_remember') === 'true';
             const userData = localStorage.getItem('tas_user');
 
-            // หากเลือกจดจำและมีข้อมูลผู้ใช้ ให้เปลี่ยนหน้าไปยัง menu.html ทันที
-            if (isRemembered && userData) {
-                window.location.href = 'menu.html';
+            if (isStandalone) {
+                // [กรณี 1] ติดตั้งแล้ว (เปิดผ่านแอป) -> แสดงปุ่มเข้าสู่ระบบ
+                enterSystemBtn.style.display = 'flex';
+                installBtn.style.display = 'none';
+                installAlert.style.display = 'none';
+
+                // ถ้าจำรหัสไว้ ให้ Auto Login ได้เลย
+                if (isRemembered && userData) {
+                    window.location.href = 'menu.html';
+                }
+            } else {
+                // [กรณี 2] ยังไม่ติดตั้ง (เปิดผ่าน Browser) -> บังคับติดตั้ง
+                enterSystemBtn.style.display = 'none'; // ซ่อนปุ่มเข้า
+                installBtn.style.display = 'flex';     // แสดงปุ่มติดตั้ง
+                installAlert.style.display = 'block';  // แสดงคำเตือน
             }
         });
 
-        // --- ส่วนจัดการปุ่มติดตั้ง ---
-        let deferredPrompt;
-        const installBtn = document.getElementById('installBtn');
-        const iosPrompt = document.getElementById('iosPrompt');
-
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-        const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
-
-        if (!isStandalone) {
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                deferredPrompt = e;
+        // --- Event สำหรับ Chrome/Android Install Prompt ---
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            // ถ้ายังไม่ได้ติดตั้ง ให้มั่นใจว่าปุ่มติดตั้งแสดงอยู่
+            if (!isStandalone) {
                 installBtn.style.display = 'flex';
-            });
-
-            if (isIOS) {
-                installBtn.style.display = 'flex';
+                installAlert.style.display = 'block';
+                enterSystemBtn.style.display = 'none';
             }
-        }
+        });
 
+        // --- ฟังก์ชันกดปุ่มติดตั้ง ---
         function installApp() {
             if (isIOS) {
+                // iOS: แสดงวิธีติดตั้ง Manual
                 iosPrompt.style.display = 'flex';
             } else if (deferredPrompt) {
+                // Android/Desktop: เรียก Prompt อัตโนมัติ
                 deferredPrompt.prompt();
                 deferredPrompt.userChoice.then((choiceResult) => {
                     if (choiceResult.outcome === 'accepted') {
+                        // ถ้ากดยอมรับติดตั้ง ให้ซ่อนปุ่ม (หรือรอรีโหลดเข้าแอป)
                         installBtn.style.display = 'none';
+                        installAlert.style.display = 'none';
+                        // อาจจะขึ้นข้อความให้เปิดผ่านแอป
+                        alert('กำลังติดตั้ง... กรุณาเปิดใช้งานผ่านไอคอนบนหน้าจอโฮม');
                     }
                     deferredPrompt = null;
                 });
             } else {
-                alert('กรุณากดเมนูของเบราว์เซอร์แล้วเลือก "Add to Home Screen"');
+                // Fallback กรณีไม่รองรับ auto prompt
+                if (isStandalone) {
+                    alert('คุณติดตั้งแอปแล้ว กรุณาใช้งานผ่านไอคอนบนหน้าจอ');
+                } else {
+                    alert('กรุณากดเมนูของเบราว์เซอร์แล้วเลือก "Add to Home Screen" (เพิ่มไปยังหน้าจอโฮม) เพื่อใช้งาน');
+                }
             }
         }
 
