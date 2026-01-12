@@ -413,7 +413,6 @@
                 const duration = 3000; // 3 seconds
 
                 const startPress = (e) => {
-                    // Ignore clicks on buttons inside the item
                     if (e.target.closest('button')) return;
 
                     item.classList.add('pressing');
@@ -423,10 +422,8 @@
                         item.classList.add('captured');
                         setTimeout(() => item.classList.remove('captured'), 500);
                         
-                        // Vibrate if supported
                         if (navigator.vibrate) navigator.vibrate(100);
                         
-                        // Capture
                         captureAndShare(item);
                     }, duration);
                 };
@@ -436,15 +433,12 @@
                     item.classList.remove('pressing');
                 };
 
-                // Mouse events
                 item.addEventListener('mousedown', startPress);
                 item.addEventListener('mouseup', cancelPress);
                 item.addEventListener('mouseleave', cancelPress);
-
-                // Touch events
                 item.addEventListener('touchstart', startPress, { passive: true });
                 item.addEventListener('touchend', cancelPress);
-                item.addEventListener('touchmove', cancelPress); // Cancel if scrolling
+                item.addEventListener('touchmove', cancelPress);
             });
         }
 
@@ -457,22 +451,23 @@
             });
 
             try {
-                // Temporarily hide action buttons
+                // Hide actions
                 const actionsDiv = element.querySelector('.actions');
                 if(actionsDiv) actionsDiv.style.visibility = 'hidden';
 
                 const canvas = await html2canvas(element, {
                     backgroundColor: '#ffffff',
-                    scale: 2 // Higher resolution
+                    scale: 3, 
+                    useCORS: true
                 });
 
-                // Restore action buttons
+                // Restore actions
                 if(actionsDiv) actionsDiv.style.visibility = 'visible';
 
                 const dataUrl = canvas.toDataURL('image/png');
 
                 Swal.fire({
-                    title: '📸 บันทึกรายการ',
+                    title: '📸 รูปภาพพร้อมแล้ว',
                     imageUrl: dataUrl,
                     imageAlt: 'Captured Item',
                     showDenyButton: true,
@@ -483,8 +478,8 @@
                     confirmButtonColor: '#3b82f6',
                     denyButtonColor: '#10b981'
                 }).then(async (result) => {
+                    // --- Share ---
                     if (result.isConfirmed) {
-                        // Share
                         if (navigator.share) {
                             const blob = await (await fetch(dataUrl)).blob();
                             const file = new File([blob], "tas-card.png", { type: blob.type });
@@ -500,14 +495,30 @@
                         } else {
                             Swal.fire('ขออภัย', 'อุปกรณ์ของคุณไม่รองรับการแชร์โดยตรง', 'info');
                         }
-                    } else if (result.isDenied) {
-                        // Download
-                        const link = document.createElement('a');
-                        link.download = `tas-card-${Date.now()}.png`;
-                        link.href = dataUrl;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
+                    } 
+                    // --- Save ---
+                    else if (result.isDenied) {
+                        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+                        if (isMobile) {
+                            // Mobile: Show image and instruct user
+                            Swal.fire({
+                                title: 'วิธีบันทึกรูป',
+                                text: 'แตะค้างที่รูปภาพด้านล่าง แล้วเลือก "บันทึกไปยังแอปรูปภาพ" (Save to Photos)',
+                                imageUrl: dataUrl,
+                                imageWidth: 400,
+                                confirmButtonText: 'รับทราบ',
+                                showClass: { popup: 'animate__animated animate__fadeInUp' }
+                            });
+                        } else {
+                            // PC: Download
+                            const link = document.createElement('a');
+                            link.download = `tas-card-${Date.now()}.png`;
+                            link.href = dataUrl;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                        }
                     }
                 });
 
@@ -571,7 +582,6 @@
                 </div>
             </div>`).join('');
             
-            // Activate Long Press
             attachLongPress('list-att');
 
             } catch (err) { container.innerHTML = `<div style="text-align:center; color:red;">โหลดไม่สำเร็จ</div>`; }
@@ -627,7 +637,6 @@
                 </div>
             </div>`).join('');
             
-                // Activate Long Press
                 attachLongPress('list-leave');
 
                 btnPrev.disabled = (leavePage === 0); btnNext.disabled = (data.length < LEAVE_PER_PAGE);
@@ -681,8 +690,6 @@
                 }
 
                 container.innerHTML = data.map(p => {
-                    // Level 1: เห็นปุ่มแก้ไข/ลบ
-                    // Level 2: ไม่เห็นปุ่ม (Empty string)
                     const actionsHtml = (userLevel === '1') ? 
                     `<div class="actions">
                         <button class="btn-icon btn-edit" onclick='openPersonnelModal(${JSON.stringify(p).replace(/'/g, "&#39;")})'><i class="fas fa-pen"></i></button>
@@ -703,7 +710,6 @@
                     </div>`;
                 }).join('');
 
-                // Activate Long Press
                 attachLongPress('list-personnel');
 
                 btnPrev.disabled = (personnelPage === 0);
