@@ -145,44 +145,6 @@
                 white-space: nowrap;
             }
 
-            .btn-search {
-                background: var(--blue);
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 10px;
-                cursor: pointer;
-                font-weight: bold;
-            }
-
-            /* --- Search Result Style --- */
-            .user-result-item {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                background: #f8fafc;
-                padding: 10px;
-                border-radius: 10px;
-                margin-bottom: 10px;
-                border: 1px solid #e2e8f0;
-            }
-
-            .user-info h4 {
-                margin: 0;
-                font-size: 1rem;
-                color: #334155;
-            }
-
-            .user-info small {
-                color: #64748b;
-            }
-
-            .level-control {
-                display: flex;
-                align-items: center;
-                gap: 5px;
-            }
-
             @media (min-width: 600px) {
                 .setting-row {
                     flex-direction: row;
@@ -200,16 +162,6 @@
                 .btn-home {
                     align-self: flex-start;
                 }
-
-                .user-result-item {
-                    flex-direction: column;
-                    gap: 10px;
-                    align-items: flex-start;
-                }
-
-                .level-control {
-                    width: 100%;
-                }
             }
         </style>
         <script src="supabase.js"></script>
@@ -224,26 +176,12 @@
                     <div class="icon-box"><i class="fas fa-cogs"></i></div>
                     <div class="header-text">
                         <h2>ตั้งค่าระบบ</h2>
-                        <span>กำหนดค่าตัวแปร และจัดการสิทธิ์</span>
+                        <span>กำหนดค่าตัวแปรระบบ</span>
                     </div>
                 </div>
                 <a href="menu.html" class="btn-home">
                     <i class="fas fa-home"></i> เมนู
                 </a>
-            </div>
-
-            <div class="card">
-                <div class="card-title"><i class="fas fa-users-cog"></i> จัดการสิทธิ์ผู้ใช้งาน (User Level)</div>
-
-                <div class="input-group" style="margin-bottom: 20px;">
-                    <input type="text" id="searchInput" placeholder="พิมพ์ชื่อ หรือ รหัสพนักงาน..."
-                        oninput="handleSearchInput(this.value)">
-                    <button class="btn-search" onclick="searchUser()"><i class="fas fa-search"></i> ค้นหา</button>
-                </div>
-
-                <div id="userResults">
-                    <p style="text-align:center; color:#94a3b8; font-size:0.9rem;">ผลลัพธ์การค้นหาจะแสดงที่นี่...</p>
-                </div>
             </div>
 
             <div class="card" id="settingsList">
@@ -287,99 +225,7 @@
             }
 
             // ==========================================
-            // Part 1: User Management Functions (Smart Search)
-            // ==========================================
-
-            let searchTimeout = null;
-
-            function handleSearchInput(val) {
-                if (searchTimeout) clearTimeout(searchTimeout);
-                if (!val.trim()) {
-                    document.getElementById('userResults').innerHTML = '<p style="text-align:center; color:#94a3b8; font-size:0.9rem;">ผลลัพธ์การค้นหาจะแสดงที่นี่...</p>';
-                    return;
-                }
-                searchTimeout = setTimeout(() => {
-                    searchUser();
-                }, 500);
-            }
-
-            async function searchUser() {
-                const query = document.getElementById('searchInput').value.trim();
-                const container = document.getElementById('userResults');
-
-                if (!query) return;
-
-                container.innerHTML = '<p style="text-align:center;">กำลังค้นหา...</p>';
-
-                try {
-                    const { data, error } = await sbClient
-                        .from('Personnel')
-                        .select('*')
-                        .or(`name.ilike.%${query}%,personnel_id.ilike.%${query}%`)
-                        .limit(10);
-
-                    if (error) throw error;
-
-                    if (!data || data.length === 0) {
-                        container.innerHTML = '<p style="text-align:center; color:#ef4444;">ไม่พบข้อมูลพนักงาน</p>';
-                        return;
-                    }
-
-                    container.innerHTML = data.map(u => `
-                    <div class="user-result-item">
-                        <div class="user-info">
-                            <h4>${u.name || 'ไม่ระบุชื่อ'}</h4>
-                            <small>ID: ${u.personnel_id} | Type: ${u.personnel_type || '-'}</small>
-                        </div>
-                        <div class="level-control">
-                            <label style="font-size:0.85rem; font-weight:bold; white-space:nowrap;">Level:</label>
-                            <select id="lvl-${u.personnel_id}" style="width:80px; padding:8px;">
-                                <option value="0" ${u.level == 0 ? 'selected' : ''}>0 (User)</option>
-                                <option value="2" ${u.level == 2 ? 'selected' : ''}>2 (Admin)</option>
-                                <option value="1" ${u.level == 1 ? 'selected' : ''}>1 (Super)</option>
-                            </select>
-                            <button class="btn-save" onclick="updateUserLevel('${u.personnel_id}')">บันทึก</button>
-                        </div>
-                    </div>
-                `).join('');
-
-                } catch (e) {
-                    console.error(e);
-                    container.innerHTML = `<p style="text-align:center; color:red;">เกิดข้อผิดพลาด: ${e.message}</p>`;
-                }
-            }
-
-            async function updateUserLevel(pid) {
-                const newLevel = document.getElementById(`lvl-${pid}`).value;
-
-                const confirm = await Swal.fire({
-                    title: 'ยืนยันการแก้ไข',
-                    text: `ต้องการเปลี่ยนสิทธิ์พนักงาน ${pid} เป็น Level ${newLevel} ใช่หรือไม่?`,
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'ใช่, บันทึก',
-                    cancelButtonText: 'ยกเลิก'
-                });
-
-                if (confirm.isConfirmed) {
-                    try {
-                        const { error } = await sbClient
-                            .from('Personnel')
-                            .update({ level: parseInt(newLevel) })
-                            .eq('personnel_id', pid);
-
-                        if (error) throw error;
-
-                        Swal.fire('สำเร็จ', 'อัปเดตสิทธิ์เรียบร้อยแล้ว', 'success');
-                    } catch (e) {
-                        Swal.fire('ผิดพลาด', e.message, 'error');
-                    }
-                }
-            }
-
-
-            // ==========================================
-            // Part 2: General Settings Functions (Existing)
+            // General Settings Functions
             // ==========================================
             async function loadSettings() {
                 const tableName = (typeof TAS_CONFIG !== 'undefined' && TAS_CONFIG.TABLE_SETTINGS) ? TAS_CONFIG.TABLE_SETTINGS : 'Settings';
@@ -407,7 +253,7 @@
                 }
                 container.innerHTML = html;
 
-                // [แก้ไข] ดึงข้อความเครดิตจาก Config มาแสดงที่ Footer (ถ้ามี)
+                // ดึงข้อความเครดิตจาก Config มาแสดงที่ Footer (ถ้ามี)
                 if (typeof TAS_CONFIG !== 'undefined' && TAS_CONFIG.REPORT_CREDIT) {
                     document.getElementById('vText').innerText = TAS_CONFIG.REPORT_CREDIT;
                 }
