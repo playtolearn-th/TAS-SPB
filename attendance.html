@@ -29,16 +29,19 @@
         body { font-family: 'Sarabun', sans-serif; background-color: var(--bg); color: var(--text); padding: 20px; padding-bottom: 100px; }
         .container { max-width: 800px; margin: 0 auto; width: 100%; }
 
-        /* UI Components */
+        /* UI Blocks */
         .header-section { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 4px solid var(--primary-color); }
         .controls-card { background: white; padding: 20px; border-radius: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.03); }
+        
+        /* Tab System */
         .tabs { display: flex; background: #fdf2f8; padding: 6px; border-radius: 16px; margin-bottom: 15px; border: 1px solid #fbcfe8; }
         .tab-btn { flex: 1; padding: 12px; border: none; background: transparent; border-radius: 12px; cursor: pointer; font-weight: 700; color: var(--muted); transition: 0.3s; font-family: 'Sarabun'; }
         .tab-btn.active { background: var(--primary-color); color: white; box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3); }
 
-        /* Search Box for Leave */
-        .filter-box { background: #f9fafb; padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid var(--border); }
-        .filter-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        /* Nested Tabs (Inside Leave Tab) */
+        .sub-tabs { display: flex; gap: 10px; margin-bottom: 15px; background: #f3f4f6; padding: 5px; border-radius: 12px; }
+        .sub-btn { flex: 1; padding: 8px; border: none; background: transparent; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: bold; color: var(--muted); }
+        .sub-btn.active { background: white; color: var(--primary-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 
         /* List UI */
         .data-list { display: grid; gap: 12px; }
@@ -52,12 +55,11 @@
         .bg-red { background: #fee2e2; color: #991b1b; }
         .bg-orange { background: #ffedd5; color: #9a3412; }
 
-        .btn-icon { width: 38px; height: 38px; border-radius: 10px; border: none; cursor: pointer; background: #f3f4f6; color: var(--muted); display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-        .btn-icon:hover { background: #e5e7eb; color: var(--text); }
-        .date-input { flex: 1; min-width: 120px; padding: 10px; border: 1px solid var(--border); border-radius: 10px; font-family: 'Sarabun'; }
+        .btn-icon { width: 38px; height: 38px; border-radius: 10px; border: none; cursor: pointer; background: #f3f4f6; color: var(--muted); display: flex; align-items: center; justify-content: center; }
+        .date-input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; font-family: 'Sarabun'; font-size: 1rem; }
         
-        /* Pagination */
-        .pager-container { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px; padding: 10px; }
+        /* Pager */
+        .pager-container { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px; }
         .fab { position: fixed; bottom: 25px; right: 25px; background: var(--success); color: white; width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; box-shadow: 0 4px 15px rgba(16,185,129,0.4); border: none; z-index: 100; cursor: pointer; }
     </style>
 </head>
@@ -67,15 +69,15 @@
     <div class="header-section">
         <div style="display:flex; align-items:center; gap:12px;">
             <div style="font-size: 1.5rem; color: var(--primary-color);"><i class="fas fa-user-shield"></i></div>
-            <div><h2 style="font-size:1.2rem; color:var(--text);">จัดการระบบ</h2><p style="font-size:0.8rem; color:var(--muted);">TAS-SPB Admin</p></div>
+            <div><h2 style="font-size:1.2rem; color:var(--text);">จัดการระบบ</h2><p style="font-size:0.8rem; color:var(--muted);">แอดมิน TAS-SPB</p></div>
         </div>
         <a href="menu.html" style="text-decoration:none; color:var(--primary-color); font-weight:bold;"><i class="fas fa-home"></i></a>
     </div>
 
     <div class="controls-card">
         <div id="date-area">
-            <label style="font-weight:bold; color:var(--muted); font-size:0.9rem;">📅 เลือกวันที่ดูการลงเวลา:</label>
-            <input type="date" id="filterDate" class="date-input" style="width:100%; margin-top:5px;" onchange="loadAttendance()">
+            <label style="font-weight:bold; color:var(--muted); font-size:0.85rem;">📅 วันที่สำหรับการลงเวลา:</label>
+            <input type="date" id="filterDate" class="date-input" style="margin-top:5px;" onchange="loadAttendance()">
         </div>
         <div class="tabs" style="margin-top:15px;">
             <button id="btn-tab-att" class="tab-btn active" onclick="switchTab('att')">🕒 ลงเวลา</button>
@@ -89,19 +91,20 @@
     </div>
 
     <div id="tab-leave" class="content-section" style="display:none;">
-        <div class="filter-box">
-            <div style="font-size: 0.85rem; font-weight: bold; color: var(--muted); margin-bottom: 8px;">🔍 ค้นหาประวัติการลา (ช่วงวันที่)</div>
-            <div class="filter-row">
-                <input type="date" id="leave-start" class="date-input" onchange="resetAndLoadLeave()">
-                <span>-</span>
-                <input type="date" id="leave-end" class="date-input" onchange="resetAndLoadLeave()">
-                <button class="btn-icon" onclick="clearLeaveFilter()"><i class="fas fa-undo"></i></button>
-            </div>
+        <div class="sub-tabs">
+            <button id="sub-leave-all" class="sub-btn active" onclick="switchLeaveMode('all')">แสดงทั้งหมด</button>
+            <button id="sub-leave-date" class="sub-btn" onclick="switchLeaveMode('date')">แสดงตามวันที่</button>
         </div>
+
+        <div id="leave-search-box" style="display:none; margin-bottom:15px;">
+            <input type="date" id="searchLeaveDate" class="date-input" onchange="loadLeaves()">
+        </div>
+
         <div id="list-leave" class="data-list"></div>
+
         <div id="pager-leave" class="pager-container" style="display:none;">
             <button id="prevL" class="btn-icon" onclick="changeLPage(-1)"><i class="fas fa-chevron-left"></i></button>
-            <span id="infoL" style="font-weight:bold; font-size:0.9rem;"></span>
+            <span id="infoL" style="font-size:0.9rem; font-weight:bold;"></span>
             <button id="nextL" class="btn-icon" onclick="changeLPage(1)"><i class="fas fa-chevron-right"></i></button>
         </div>
     </div>
@@ -115,7 +118,7 @@
 
 <script>
     const user = JSON.parse(localStorage.getItem('tas_user') || '{}');
-    let personnelMap = {}, lPage = 1;
+    let personnelMap = {}, leaveMode = 'all', lPage = 1;
     const PAGE_SIZE = 10;
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -134,75 +137,80 @@
         document.getElementById(`btn-tab-${t}`).classList.add('active');
         document.querySelectorAll('.content-section').forEach(s => s.style.display = 'none');
         document.getElementById(`tab-${t}`).style.display = 'block';
-        document.getElementById('date-area').style.display = (t === 'person' || t === 'leave') ? 'none' : 'block';
+        document.getElementById('date-area').style.display = (t === 'att') ? 'block' : 'none';
         
         if(t==='att') loadAttendance(); 
-        else if(t==='leave') resetAndLoadLeave();
+        else if(t==='leave') switchLeaveMode('all');
         else loadPersonnel();
     }
 
-    // --- Tab: Attendance ---
+    // --- Tab 1: Attendance Logic ---
     async function loadAttendance() {
         const date = document.getElementById('filterDate').value;
         const container = document.getElementById('list-att');
         container.innerHTML = '⏳ กำลังโหลด...';
-        const { data } = await sbClient.from('TimeStamp').select('*').eq('work_date', date).order('time_in', { ascending: true });
+        const { data } = await sbClient.from('TimeStamp').select('*').eq('work_date', date).order('time_in');
         if (!data || data.length === 0) { container.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">ไม่มีข้อมูล</div>'; return; }
         container.innerHTML = data.map(r => `
             <div class="data-item item-att">
                 <div>
                     <h4 style="font-weight:bold;">${personnelMap[r.personnel_id] || r.full_name || r.personnel_id}</h4>
-                    <p style="font-size:0.85rem; margin-top:4px;">
-                        <span class="badge ${r.time_in ? 'bg-green' : 'bg-red'}">เข้า: ${r.time_in ? r.time_in.slice(0,5) : '--:--'}</span>
-                        <span class="badge ${r.time_out ? 'bg-green' : 'bg-red'}">ออก: ${r.time_out ? r.time_out.slice(0,5) : '--:--'}</span>
-                    </p>
+                    <p style="margin-top:5px;"><span class="badge ${r.time_in ? 'bg-green' : 'bg-red'}">เข้า: ${r.time_in ? r.time_in.slice(0,5) : '--:--'}</span></p>
                 </div>
                 <button class="btn-icon" onclick="delRec('TimeStamp','${r.id}', loadAttendance)"><i class="fas fa-trash" style="color:var(--danger)"></i></button>
             </div>`).join('');
     }
 
-    // --- Tab: Leave Logic ---
-    function resetAndLoadLeave() { lPage = 1; loadLeaves(); }
-    function clearLeaveFilter() {
-        document.getElementById('leave-start').value = '';
-        document.getElementById('leave-end').value = '';
-        resetAndLoadLeave();
+    // --- Tab 2: Leave Logic ---
+    function switchLeaveMode(mode) {
+        leaveMode = mode;
+        lPage = 1;
+        document.getElementById('sub-leave-all').classList.toggle('active', mode === 'all');
+        document.getElementById('sub-leave-date').classList.toggle('active', mode === 'date');
+        document.getElementById('leave-search-box').style.display = (mode === 'date') ? 'block' : 'none';
+        if(mode === 'date' && !document.getElementById('searchLeaveDate').value) {
+            document.getElementById('searchLeaveDate').value = new Date().toISOString().split('T')[0];
+        }
+        loadLeaves();
     }
+
     function changeLPage(step) { lPage += step; loadLeaves(); }
 
     async function loadLeaves() {
         const container = document.getElementById('list-leave');
         const pager = document.getElementById('pager-leave');
-        const start = document.getElementById('leave-start').value;
-        const end = document.getElementById('leave-end').value;
         container.innerHTML = '⏳ กำลังโหลด...';
-        
+
         let query = sbClient.from('Leave_records').select('*', { count: 'exact' });
-        if (start) query = query.gte('leave_date', start);
-        if (end) query = query.lte('leave_date', end);
 
-        const from = (lPage - 1) * PAGE_SIZE;
-        const to = from + PAGE_SIZE - 1;
+        if (leaveMode === 'date') {
+            const d = document.getElementById('searchLeaveDate').value;
+            query = query.eq('leave_date', d);
+            pager.style.display = 'none';
+        } else {
+            const from = (lPage - 1) * PAGE_SIZE;
+            const to = from + PAGE_SIZE - 1;
+            query = query.order('leave_date', { ascending: false }).range(from, to);
+        }
 
-        const { data, count, error } = await query.order('leave_date', { ascending: false }).range(from, to);
-
-        if(!data || data.length === 0) { 
-            container.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">ไม่พบประวัติการลา</div>'; 
+        const { data, count, error } = await query;
+        if (error || !data || data.length === 0) { 
+            container.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">ไม่พบข้อมูล</div>'; 
             pager.style.display = 'none';
             return; 
         }
 
-        pager.style.display = 'flex';
-        document.getElementById('infoL').innerText = `หน้า ${lPage} / ${Math.ceil(count / PAGE_SIZE)}`;
-        document.getElementById('prevL').disabled = lPage === 1;
-        document.getElementById('nextL').disabled = lPage >= Math.ceil(count / PAGE_SIZE);
+        if (leaveMode === 'all') {
+            pager.style.display = 'flex';
+            document.getElementById('infoL').innerText = `หน้า ${lPage} / ${Math.ceil(count / PAGE_SIZE)}`;
+        }
 
         container.innerHTML = data.map(r => `
             <div class="data-item item-leave">
-                <div style="flex:1;">
+                <div>
                     <div style="font-size:0.75rem; color:var(--primary-color); font-weight:bold;">📅 ${new Date(r.leave_date).toLocaleDateString('th-TH')}</div>
                     <h4 style="margin:2px 0;">${personnelMap[r.personnel_id] || 'ID: '+r.personnel_id}</h4>
-                    <p><span class="badge bg-orange">${r.leave_type || 'ลา'}</span> <small style="color:gray;">(${r.status})</small></p>
+                    <p><span class="badge bg-orange">${r.leave_type || 'ลา'}</span></p>
                 </div>
                 <div class="actions" style="display:flex; gap:5px;">
                     <button class="btn-icon" onclick="editLeave('${r.id}', '${r.leave_date}', '${r.leave_type}')"><i class="fas fa-edit" style="color:var(--primary-color)"></i></button>
@@ -213,31 +221,22 @@
 
     async function editLeave(id, oldDate, oldType) {
         const { value: f } = await Swal.fire({
-            title: 'แก้ไขข้อมูลการลา',
+            title: 'แก้ไขการลา',
             html: `
                 <div style="text-align:left;">
-                    <label style="font-size:0.8rem;">วันที่ลา:</label>
-                    <input type="date" id="edit-l-date" class="date-input" style="width:100%; margin-bottom:10px;" value="${oldDate}">
-                    <label style="font-size:0.8rem;">ประเภท:</label>
-                    <select id="edit-l-type" class="date-input" style="width:100%;">
-                        <option value="ลาป่วย" ${oldType==='ลาป่วย'?'selected':''}>ลาป่วย</option>
-                        <option value="ลากิจ" ${oldType==='ลากิจ'?'selected':''}>ลากิจ</option>
-                        <option value="ลาพักร้อน" ${oldType==='ลาพักร้อน'?'selected':''}>ลาพักร้อน</option>
-                    </select>
+                    <label>วันที่ลา:</label><input type="date" id="e-l-date" class="date-input" style="margin-bottom:10px;" value="${oldDate}">
+                    <label>ประเภท:</label><select id="e-l-type" class="date-input"><option value="ลาป่วย" ${oldType==='ลาป่วย'?'selected':''}>ลาป่วย</option><option value="ลากิจ" ${oldType==='ลากิจ'?'selected':''}>ลากิจ</option><option value="ลาพักร้อน" ${oldType==='ลาพักร้อน'?'selected':''}>ลาพักร้อน</option></select>
                 </div>`,
             showCancelButton: true,
-            preConfirm: () => ({
-                leave_date: document.getElementById('edit-l-date').value,
-                leave_type: document.getElementById('edit-l-type').value
-            })
+            preConfirm: () => ({ leave_date: document.getElementById('e-l-date').value, leave_type: document.getElementById('e-l-type').value })
         });
         if(f) {
-            const { error } = await sbClient.from('Leave_records').update(f).eq('id', id);
-            if(error) Swal.fire('Error', error.message, 'error'); else loadLeaves();
+            await sbClient.from('Leave_records').update(f).eq('id', id);
+            loadLeaves();
         }
     }
 
-    // --- Tab: Personnel ---
+    // --- Tab 3: Personnel Logic ---
     async function loadPersonnel() {
         const container = document.getElementById('list-person');
         container.innerHTML = '⏳ กำลังโหลด...';
@@ -249,12 +248,12 @@
             </div>`).join('');
     }
 
-    // --- Helpers ---
+    // --- Common Functions ---
     async function delRec(tbl, id, cb) {
-        if(!confirm('ยืนยันการลบข้อมูล?')) return;
+        if(!confirm('ยืนยันการลบ?')) return;
         const col = (tbl === 'Personnel') ? 'personnel_id' : 'id';
-        const { error } = await sbClient.from(tbl).delete().eq(col, id);
-        if(error) alert(error.message); else cb();
+        await sbClient.from(tbl).delete().eq(col, id);
+        cb();
     }
 
     async function handleAdd() {
@@ -262,33 +261,21 @@
         if(activeTab.includes('leave')) {
             const { data: ps } = await sbClient.from('Personnel').select('personnel_id, name');
             const { value: f } = await Swal.fire({
-                title: 'บันทึกการลาใหม่',
+                title: 'บันทึกการลา',
                 html: `
-                    <input type="date" id="l-date" class="date-input" style="width:100%; margin-bottom:10px;" value="${new Date().toISOString().split('T')[0]}">
-                    <select id="l-pid" class="date-input" style="width:100%; margin-bottom:10px;">
-                        ${ps.map(p=>`<option value="${p.personnel_id}">${p.name}</option>`).join('')}
-                    </select>
-                    <select id="l-type" class="date-input" style="width:100%;">
-                        <option>ลาป่วย</option><option>ลากิจ</option><option>ลาพักร้อน</option>
-                    </select>`,
-                preConfirm: () => ({
-                    id: Date.now(),
-                    personnel_id: document.getElementById('l-pid').value,
-                    leave_date: document.getElementById('l-date').value,
-                    leave_type: document.getElementById('l-type').value,
-                    status: 'approved',
-                    approved_by: user.name || 'Admin'
-                })
+                    <input type="date" id="l-date" class="date-input" style="margin-bottom:10px;" value="${new Date().toISOString().split('T')[0]}">
+                    <select id="l-pid" class="date-input" style="margin-bottom:10px;">${ps.map(p=>`<option value="${p.personnel_id}">${p.name}</option>`).join('')}</select>
+                    <select id="l-type" class="date-input"><option>ลาป่วย</option><option>ลากิจ</option><option>ลาพักร้อน</option></select>`,
+                preConfirm: () => ({ id: Date.now(), personnel_id: document.getElementById('l-pid').value, leave_date: document.getElementById('l-date').value, leave_type: document.getElementById('l-type').value, status: 'approved', approved_by: user.name || 'Admin' })
             });
             if(f) { 
-                const { error } = await sbClient.from('Leave_records').insert([f]);
-                if(error) alert(error.message); else loadLeaves();
+                await sbClient.from('Leave_records').insert([f]);
+                loadLeaves();
             }
         } else if(activeTab.includes('person')) {
             const { value: f } = await Swal.fire({
                 title: 'เพิ่มพนักงาน',
-                html: `<input id="p-id" placeholder="รหัสพนักงาน" class="date-input" style="width:100%; margin-bottom:10px;">
-                       <input id="p-name" placeholder="ชื่อ-นามสกุล" class="date-input" style="width:100%;">`,
+                html: `<input id="p-id" placeholder="รหัสพนักงาน" class="date-input" style="margin-bottom:10px;"><input id="p-name" placeholder="ชื่อ-นามสกุล" class="date-input">`,
                 preConfirm: () => ({ personnel_id: document.getElementById('p-id').value, name: document.getElementById('p-name').value })
             });
             if(f && f.personnel_id) {
