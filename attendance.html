@@ -75,7 +75,7 @@
 
     <div class="content-scroll" id="main-content">
         <div id="section-att" class="content-section">
-            <div class="sub-filter-area" id="filter-att-box">
+            <div class="sub-filter-area">
                 <input type="date" id="attDate" class="date-input" onchange="resetAndRender()">
                 <div class="sub-tabs">
                     <button class="sub-btn active" id="att-sub-comp" onclick="setAttSub('comp')">สมบูรณ์</button>
@@ -86,7 +86,7 @@
         </div>
 
         <div id="section-leave" class="content-section" style="display:none;">
-            <div class="sub-filter-area" id="filter-leave-box">
+            <div class="sub-filter-area">
                 <div class="sub-tabs">
                     <button class="sub-btn active" id="leave-sub-all" onclick="setLeaveSub('all')">ประวัติทั้งหมด</button>
                     <button class="sub-btn" id="leave-sub-date" onclick="setLeaveSub('date')">ตามวันที่เลือก</button>
@@ -119,7 +119,7 @@
     let personnelMap = {};
     let totalItems = 0;
 
-    // คำนวณจำนวนแถวอัตโนมัติ
+    // คำนวณจำนวนแถวให้พอดีกับความสูงหน้าจอ
     function getPageSize() {
         const contentH = document.getElementById('main-content').clientHeight;
         const activeFilterH = document.querySelector(`#section-${currentTab} .sub-filter-area`)?.clientHeight || 0;
@@ -193,15 +193,19 @@
         const container = document.getElementById('list-att');
         let query = sbClient.from('TimeStamp').select('*', {count:'exact'}).eq('work_date', date);
         
-        if(filters.att === 'comp') query = query.not('time_in', 'is', null).not('time_out', 'is', null);
-        else query = query.or('time_in.is.null,time_out.is.null');
+        // กรองรายการ สมบูรณ์ (มีทั้งเข้าและออก) / ไม่สมบูรณ์ (ขาดอย่างใดอย่างหนึ่ง)
+        if(filters.att === 'comp') {
+            query = query.not('time_in', 'is', null).not('time_out', 'is', null);
+        } else {
+            query = query.or('time_in.is.null,time_out.is.null');
+        }
         
         const { data, count } = await query.order('time_in', {ascending:true}).range(f, t);
         totalItems = count || 0;
         container.innerHTML = data?.map(r => `
             <div class="data-item item-att">
                 <div>
-                    <strong>${personnelMap[r.personnel_id] || 'ภายนอก: '+r.personnel_id}</strong>
+                    <strong>${personnelMap[r.personnel_id] || 'รหัส: '+r.personnel_id}</strong>
                     <div style="margin-top:4px;">
                         <span class="badge ${r.time_in?'bg-green':'bg-red'}">เข้า: ${r.time_in?.slice(0,5)||'--:--'}</span>
                         <span class="badge ${r.time_out?'bg-green':'bg-red'}">ออก: ${r.time_out?.slice(0,5)||'--:--'}</span>
@@ -211,7 +215,7 @@
                     <button class="btn-icon" onclick="editAtt('${r.id}','${r.time_in}','${r.time_out}')"><i class="fas fa-edit"></i></button>
                     <button class="btn-icon" onclick="delRec('TimeStamp','${r.id}')"><i class="fas fa-trash text-danger"></i></button>
                 </div>
-            </div>`).join('') || '<center style="padding:20px; color:#999;">ไม่มีข้อมูล</center>';
+            </div>`).join('') || '<center style="padding:20px; color:#999;">ไม่พบข้อมูล</center>';
     }
 
     async function renderLeave(f, t) {
@@ -232,7 +236,7 @@
                     <button class="btn-icon" onclick="editLeave('${r.id}','${r.leave_date}','${r.leave_type}')"><i class="fas fa-edit"></i></button>
                     <button class="btn-icon" onclick="delRec('Leave_records','${r.id}')"><i class="fas fa-trash text-danger"></i></button>
                 </div>
-            </div>`).join('') || '<center style="padding:20px; color:#999;">ไม่มีข้อมูล</center>';
+            </div>`).join('') || '<center style="padding:20px; color:#999;">ไม่พบข้อมูล</center>';
     }
 
     async function renderPerson(f, t) {
@@ -246,10 +250,10 @@
                     <button class="btn-icon" onclick="editPerson('${p.personnel_id}','${p.name}')"><i class="fas fa-edit"></i></button>
                     <button class="btn-icon" onclick="delRec('Personnel','${p.personnel_id}','personnel_id')"><i class="fas fa-trash text-danger"></i></button>
                 </div>
-            </div>`).join('') || '<center style="padding:20px; color:#999;">ไม่มีรายชื่อ</center>';
+            </div>`).join('') || '<center style="padding:20px; color:#999;">ไม่พบข้อมูล</center>';
     }
 
-    // --- Actions ---
+    // --- ฟังก์ชันจัดการข้อมูล (CRUD) ---
     async function delRec(tbl, id, col='id') {
         const res = await Swal.fire({title:'ยืนยันการลบ?', text:'ข้อมูลจะถูกลบถาวร', icon:'warning', showCancelButton:true, confirmButtonColor: '#ef4444', confirmButtonText: 'ลบ'});
         if(res.isConfirmed) {
@@ -261,9 +265,9 @@
 
     async function editAtt(id, tin, tout) {
         const { value: f } = await Swal.fire({
-            title: 'แก้ไขเวลา',
-            html: `เข้า: <input id="sw-in" type="time" class="swal2-input" value="${tin?.slice(0,5)||''}">
-                   ออก: <input id="sw-out" type="time" class="swal2-input" value="${tout?.slice(0,5)||''}">`,
+            title: 'แก้ไขเวลาทำงาน',
+            html: `เวลาเข้า: <input id="sw-in" type="time" class="swal2-input" value="${tin?.slice(0,5)||''}">
+                   เวลาออก: <input id="sw-out" type="time" class="swal2-input" value="${tout?.slice(0,5)||''}">`,
             preConfirm: () => ({ time_in: document.getElementById('sw-in').value || null, time_out: document.getElementById('sw-out').value || null })
         });
         if(f) { await sbClient.from('TimeStamp').update(f).eq('id', id); render(); }
@@ -271,9 +275,13 @@
 
     async function editLeave(id, date, type) {
         const { value: f } = await Swal.fire({
-            title: 'แก้ไขการลา',
-            html: `วันที่: <input id="sw-date" type="date" class="swal2-input" value="${date}">
-                   ประเภท: <select id="sw-type" class="swal2-input"><option value="ลาป่วย" ${type==='ลาป่วย'?'selected':''}>ลาป่วย</option><option value="ลากิจ" ${type==='ลากิจ'?'selected':''}>ลากิจ</option><option value="ลาพักร้อน" ${type==='ลาพักร้อน'?'selected':''}>ลาพักร้อน</option></select>`,
+            title: 'แก้ไขข้อมูลการลา',
+            html: `วันที่ลา: <input id="sw-date" type="date" class="swal2-input" value="${date}">
+                   ประเภท: <select id="sw-type" class="swal2-input">
+                       <option value="ลาป่วย" ${type==='ลาป่วย'?'selected':''}>ลาป่วย</option>
+                       <option value="ลากิจ" ${type==='ลากิจ'?'selected':''}>ลากิจ</option>
+                       <option value="ลาพักร้อน" ${type==='ลาพักร้อน'?'selected':''}>ลาพักร้อน</option>
+                   </select>`,
             preConfirm: () => ({ leave_date: document.getElementById('sw-date').value, leave_type: document.getElementById('sw-type').value })
         });
         if(f) { await sbClient.from('Leave_records').update(f).eq('id', id); render(); }
@@ -286,12 +294,20 @@
 
     async function handleAdd() {
         if(currentTab === 'person') {
-            const { value: f } = await Swal.fire({ title:'เพิ่มพนักงาน', html:`<input id="sw-pid" placeholder="รหัสพนักงาน" class="swal2-input"><input id="sw-name" placeholder="ชื่อ-นามสกุล" class="swal2-input">`, preConfirm:()=>({personnel_id:document.getElementById('sw-pid').value, name:document.getElementById('sw-name').value}) });
-            if(f?.personnel_id) { await sbClient.from('Personnel').insert([f]); await loadPersonnel(); render(); }
+            const { value: f } = await Swal.fire({ 
+                title:'เพิ่มพนักงานใหม่', 
+                html:`<input id="sw-pid" placeholder="รหัสพนักงาน" class="swal2-input"><input id="sw-name" placeholder="ชื่อ-นามสกุล" class="swal2-input">`, 
+                preConfirm:()=>({personnel_id:document.getElementById('sw-pid').value, name:document.getElementById('sw-name').value}) 
+            });
+            if(f?.personnel_id) { 
+                await sbClient.from('Personnel').insert([f]); 
+                await loadPersonnel(); 
+                render(); 
+            }
         } else if(currentTab === 'leave') {
             const psList = Object.entries(personnelMap).map(([id, name]) => `<option value="${id}">${name}</option>`).join('');
             const { value: f } = await Swal.fire({
-                title:'บันทึกการลา',
+                title:'บันทึกการลาใหม่',
                 html:`<select id="sw-pid" class="swal2-input">${psList}</select>
                       <input id="sw-date" type="date" class="swal2-input" value="${new Date().toISOString().split('T')[0]}">
                       <select id="sw-type" class="swal2-input"><option>ลาป่วย</option><option>ลากิจ</option><option>ลาพักร้อน</option></select>`,
