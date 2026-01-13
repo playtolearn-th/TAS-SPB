@@ -36,7 +36,6 @@
         .tab-btn { flex: 1; padding: 12px; border: none; background: transparent; border-radius: 12px; cursor: pointer; font-weight: 700; color: var(--muted); transition: 0.3s; font-family: 'Sarabun'; }
         .tab-btn.active { background: var(--primary-color); color: white; box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3); }
 
-        /* ตัวกรองภายในการลา */
         .leave-filter-tabs { display: flex; gap: 8px; margin-bottom: 15px; }
         .l-filter-btn { flex: 1; padding: 10px; border-radius: 12px; border: 1.5px solid var(--border); background: white; cursor: pointer; font-family: 'Sarabun'; font-weight: bold; color: var(--muted); display: flex; align-items: center; justify-content: center; gap: 6px; }
         .l-filter-btn.active { background: #fff1f2; color: var(--primary-color); border-color: var(--primary-color); }
@@ -65,14 +64,14 @@
     <div class="header-section">
         <div style="display:flex; align-items:center; gap:12px;">
             <div style="font-size: 1.5rem; color: var(--primary-color);"><i class="fas fa-user-shield"></i></div>
-            <div><h2 style="font-size:1.2rem; color:var(--text);">จัดการระบบ</h2><p style="font-size:0.8rem; color:var(--muted);">ระบบบริหารจัดการ TAS-SPB</p></div>
+            <div><h2 style="font-size:1.2rem; color:var(--text);">จัดการระบบ</h2><p style="font-size:0.8rem; color:var(--muted);">แอดมิน TAS-SPB</p></div>
         </div>
         <a href="menu.html" style="text-decoration:none; color:var(--primary-color); font-weight:bold;"><i class="fas fa-home"></i></a>
     </div>
 
     <div class="controls-card">
         <div id="main-date-area">
-            <label style="font-weight:bold; color:var(--muted); font-size:0.85rem;">📅 วันที่ทำงาน (ลงเวลา):</label>
+            <label style="font-weight:bold; color:var(--muted); font-size:0.85rem;">📅 วันที่ลงเวลา (วว/ดด/ปปปป):</label>
             <input type="date" id="filterDate" class="date-input" style="margin-top:5px;" onchange="loadAttendance()">
         </div>
         
@@ -89,12 +88,8 @@
 
     <div id="tab-leave" class="content-section" style="display:none;">
         <div class="leave-filter-tabs">
-            <button id="l-filter-all" class="l-filter-btn active" onclick="setLeaveFilter('all')">
-                <i class="fas fa-list"></i> ทั้งหมด
-            </button>
-            <button id="l-filter-date" class="l-filter-btn" onclick="setLeaveFilter('date')">
-                <i class="fas fa-calendar-day"></i> เลือกวันที่
-            </button>
+            <button id="l-filter-all" class="l-filter-btn active" onclick="setLeaveFilter('all')">ทั้งหมด</button>
+            <button id="l-filter-date" class="l-filter-btn" onclick="setLeaveFilter('date')">ระบุวันที่</button>
         </div>
 
         <div id="leave-date-picker" style="display:none; margin-bottom:15px;">
@@ -122,9 +117,21 @@
     let personnelMap = {}, leaveMode = 'all', lPage = 1;
     const PAGE_SIZE = 10;
 
+    // Helper: แปลงรูปแบบวันที่เป็น วว/ดด/ปปปป
+    function formatDateThai(dateStr) {
+        if (!dateStr) return "-";
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('th-TH', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', async () => {
-        document.getElementById('filterDate').value = new Date().toISOString().split('T')[0];
-        document.getElementById('searchLeaveDate').value = new Date().toISOString().split('T')[0];
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('filterDate').value = today;
+        document.getElementById('searchLeaveDate').value = today;
         await loadMasterData();
         loadAttendance();
     });
@@ -139,8 +146,6 @@
         document.getElementById(`btn-tab-${t}`).classList.add('active');
         document.querySelectorAll('.content-section').forEach(s => s.style.display = 'none');
         document.getElementById(`tab-${t}`).style.display = 'block';
-        
-        // ซ่อน/แสดง วันที่หลักด้านบน
         document.getElementById('main-date-area').style.display = (t === 'att') ? 'block' : 'none';
         
         if(t==='att') loadAttendance(); 
@@ -148,17 +153,22 @@
         else loadPersonnel();
     }
 
-    // --- ส่วน: ลงเวลา ---
     async function loadAttendance() {
         const date = document.getElementById('filterDate').value;
         const container = document.getElementById('list-att');
         container.innerHTML = '⏳ กำลังโหลด...';
         const { data } = await sbClient.from('TimeStamp').select('*').eq('work_date', date).order('time_in');
-        if (!data || data.length === 0) { container.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">ไม่พบข้อมูลการลงเวลา</div>'; return; }
+        
+        if (!data || data.length === 0) { 
+            container.innerHTML = `<div style="text-align:center; padding:20px; color:#999;">ไม่พบข้อมูลวันที่ ${formatDateThai(date)}</div>`; 
+            return; 
+        }
+
         container.innerHTML = data.map(r => `
             <div class="data-item item-att">
                 <div>
                     <h4 style="font-weight:bold;">${personnelMap[r.personnel_id] || r.full_name || r.personnel_id}</h4>
+                    <p style="margin-top:5px; font-size:0.8rem; color:var(--muted);">วันที่: ${formatDateThai(r.work_date)}</p>
                     <p style="margin-top:5px;">
                         <span class="badge ${r.time_in ? 'bg-green' : 'bg-red'}">เข้า: ${r.time_in ? r.time_in.slice(0,5) : '--:--'}</span>
                         <span class="badge ${r.time_out ? 'bg-green' : 'bg-red'}">ออก: ${r.time_out ? r.time_out.slice(0,5) : '--:--'}</span>
@@ -168,7 +178,6 @@
             </div>`).join('');
     }
 
-    // --- ส่วน: การลา (Logic ภายในแท็บ) ---
     function setLeaveFilter(mode) {
         leaveMode = mode;
         lPage = 1;
@@ -199,7 +208,7 @@
 
         const { data, count, error } = await query;
         if (error || !data || data.length === 0) { 
-            container.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">ไม่พบข้อมูลการลา</div>'; 
+            container.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">ไม่พบประวัติการลา</div>'; 
             pager.style.display = 'none';
             return; 
         }
@@ -214,11 +223,11 @@
         container.innerHTML = data.map(r => `
             <div class="data-item item-leave">
                 <div style="flex:1;">
-                    <div style="font-size:0.75rem; color:var(--primary-color); font-weight:bold;">📅 ${new Date(r.leave_date).toLocaleDateString('th-TH')}</div>
+                    <div style="font-size:0.75rem; color:var(--primary-color); font-weight:bold;">📅 ${formatDateThai(r.leave_date)}</div>
                     <h4 style="margin:2px 0;">${personnelMap[r.personnel_id] || 'ID: '+r.personnel_id}</h4>
                     <p><span class="badge bg-orange">${r.leave_type || 'ลา'}</span></p>
                 </div>
-                <div class="actions" style="display:flex; gap:5px;">
+                <div class="actions">
                     <button class="btn-icon" onclick="editLeave('${r.id}', '${r.leave_date}', '${r.leave_type}')"><i class="fas fa-edit" style="color:var(--primary-color)"></i></button>
                     <button class="btn-icon" onclick="delRec('Leave_records','${r.id}', loadLeaves)"><i class="fas fa-trash" style="color:var(--danger)"></i></button>
                 </div>
@@ -240,6 +249,8 @@
                     </select>
                 </div>`,
             showCancelButton: true,
+            confirmButtonText: 'บันทึก',
+            cancelButtonText: 'ยกเลิก',
             preConfirm: () => ({ leave_date: document.getElementById('e-l-date').value, leave_type: document.getElementById('e-l-type').value })
         });
         if(f) {
@@ -248,7 +259,6 @@
         }
     }
 
-    // --- ส่วน: พนักงาน ---
     async function loadPersonnel() {
         const container = document.getElementById('list-person');
         container.innerHTML = '⏳ กำลังโหลด...';
@@ -260,12 +270,22 @@
             </div>`).join('');
     }
 
-    // --- ฟังก์ชันช่วยเหลือ ---
     async function delRec(tbl, id, cb) {
-        if(!confirm('ยืนยันการลบข้อมูลนี้หรือไม่?')) return;
-        const col = (tbl === 'Personnel') ? 'personnel_id' : 'id';
-        await sbClient.from(tbl).delete().eq(col, id);
-        cb();
+        const { isConfirmed } = await Swal.fire({
+            title: 'ยืนยันการลบ?',
+            text: "ข้อมูลนี้จะถูกลบถาวร",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            confirmButtonText: 'ใช่, ลบเลย!',
+            cancelButtonText: 'ยกเลิก'
+        });
+        
+        if(isConfirmed) {
+            const col = (tbl === 'Personnel') ? 'personnel_id' : 'id';
+            await sbClient.from(tbl).delete().eq(col, id);
+            cb();
+        }
     }
 
     async function handleAdd() {
@@ -275,11 +295,20 @@
             const { value: f } = await Swal.fire({
                 title: 'บันทึกการลาใหม่',
                 html: `
-                    <input type="date" id="l-date" class="date-input" style="margin-bottom:10px;" value="${new Date().toISOString().split('T')[0]}">
-                    <select id="l-pid" class="date-input" style="margin-bottom:10px;">
-                        ${ps.map(p=>`<option value="${p.personnel_id}">${p.name}</option>`).join('')}
-                    </select>
-                    <select id="l-type" class="date-input"><option>ลาป่วย</option><option>ลากิจ</option><option>ลาพักร้อน</option></select>`,
+                    <div style="text-align:left;">
+                        <label style="font-size:0.8rem;">วันที่ลา:</label>
+                        <input type="date" id="l-date" class="date-input" style="margin-bottom:10px;" value="${new Date().toISOString().split('T')[0]}">
+                        <label style="font-size:0.8rem;">ชื่อพนักงาน:</label>
+                        <select id="l-pid" class="date-input" style="margin-bottom:10px;">
+                            ${ps.map(p=>`<option value="${p.personnel_id}">${p.name}</option>`).join('')}
+                        </select>
+                        <label style="font-size:0.8rem;">ประเภท:</label>
+                        <select id="l-type" class="date-input">
+                            <option>ลาป่วย</option><option>ลากิจ</option><option>ลาพักร้อน</option>
+                        </select>
+                    </div>`,
+                showCancelButton: true,
+                confirmButtonText: 'บันทึก',
                 preConfirm: () => ({ id: Date.now(), personnel_id: document.getElementById('l-pid').value, leave_date: document.getElementById('l-date').value, leave_type: document.getElementById('l-type').value, status: 'approved', approved_by: user.name || 'Admin' })
             });
             if(f) { 
@@ -289,7 +318,10 @@
         } else if(activeTab.includes('person')) {
             const { value: f } = await Swal.fire({
                 title: 'เพิ่มพนักงาน',
-                html: `<input id="p-id" placeholder="รหัสพนักงาน" class="date-input" style="margin-bottom:10px;"><input id="p-name" placeholder="ชื่อ-นามสกุล" class="date-input">`,
+                html: `
+                    <input id="p-id" placeholder="รหัสพนักงาน" class="date-input" style="margin-bottom:10px;">
+                    <input id="p-name" placeholder="ชื่อ-นามสกุล" class="date-input">`,
+                showCancelButton: true,
                 preConfirm: () => ({ personnel_id: document.getElementById('p-id').value, name: document.getElementById('p-name').value })
             });
             if(f && f.personnel_id) {
