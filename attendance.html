@@ -19,25 +19,22 @@
         body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--text); padding: 15px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .container { max-width: 800px; margin: 0 auto; width: 100%; height: 100%; display: flex; flex-direction: column; }
 
-        /* Header & Tabs */
         .card-header { background: white; padding: 15px; border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 12px; border-bottom: 4px solid var(--primary); }
         .tabs { display: flex; background: #fdf2f8; padding: 5px; border-radius: 15px; margin-bottom: 15px; }
         .tab-btn { flex: 1; padding: 12px; border: none; background: transparent; border-radius: 10px; cursor: pointer; font-weight: 700; color: var(--muted); font-family: 'Sarabun'; transition: 0.3s; }
         .tab-btn.active { background: var(--primary); color: white; }
 
-        /* Sub Tabs Styling - ให้เหมือนกันทุกแท็บ */
         .sub-filter-area { margin-bottom: 12px; }
         .sub-tabs { display: flex; gap: 8px; background: #fff; padding: 5px; border-radius: 12px; border: 1px solid var(--border); }
         .sub-btn { flex: 1; padding: 8px; border: none; background: transparent; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: bold; color: var(--muted); font-family: 'Sarabun'; transition: 0.2s; }
         .sub-btn.active { background: var(--primary); color: white; }
 
-        /* List & Items */
         .content-scroll { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
         .data-list { display: grid; gap: 8px; align-content: start; }
         .data-item { 
             background: white; padding: 12px 15px; border-radius: 15px; border-left: 5px solid #ccc; 
             display: flex; justify-content: space-between; align-items: center; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02); height: 70px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02); height: 75px; 
         }
         .item-att { border-left-color: var(--primary); }
         .item-leave { border-left-color: #f59e0b; }
@@ -49,7 +46,6 @@
         
         .date-input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 10px; font-family: 'Sarabun'; margin-bottom: 10px; }
         
-        /* Pagination */
         .pager { display: flex; justify-content: center; align-items: center; gap: 20px; padding: 15px 0; }
         .btn-page { width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--border); background: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .btn-page:disabled { opacity: 0.3; }
@@ -69,9 +65,9 @@
     </div>
 
     <div class="tabs">
-        <button id="tab-att-btn" class="tab-btn active" onclick="changeTab('att')">🕒 เวลาทำงาน</button>
+        <button id="tab-att-btn" class="tab-btn active" onclick="changeTab('att')">🕒 ลงเวลา</button>
         <button id="tab-leave-btn" class="tab-btn" onclick="changeTab('leave')">✈️ การลา</button>
-        <button id="tab-person-btn" class="tab-btn" onclick="switchTabPerson()">👥 บุคลากร</button>
+        <button id="tab-person-btn" class="tab-btn" onclick="changeTab('person')">👥 บุคลากร</button>
     </div>
 
     <div class="content-scroll" id="main-content">
@@ -79,7 +75,7 @@
             <div class="sub-filter-area">
                 <input type="date" id="attDate" class="date-input" onchange="resetPage('att')">
                 <div class="sub-tabs">
-                    <button class="sub-btn active" id="att-sub-all" onclick="setAttSub('all')">ทั้งหมด</button>
+                    <button class="sub-btn active" id="att-sub-comp" onclick="setAttSub('comp')">สมบูรณ์</button>
                     <button class="sub-btn" id="att-sub-inc" onclick="setAttSub('inc')">ไม่สมบูรณ์</button>
                 </div>
             </div>
@@ -115,16 +111,15 @@
 
 <script>
     let currentTab = 'att';
-    let filters = { att: 'all', leave: 'all' };
+    let filters = { att: 'comp', leave: 'all' }; // ค่าเริ่มต้นเป็นสมบูรณ์
     let pages = { att: 1, leave: 1, person: 1 };
     let personnelMap = {};
     let totalItems = 0;
 
-    // คำนวณ Page Size อัตโนมัติจากความสูงจอ
     function getPageSize() {
         const contentH = document.getElementById('main-content').clientHeight;
         const subFilterH = document.querySelector(`#section-${currentTab} .sub-filter-area`)?.clientHeight || 0;
-        return Math.floor((contentH - subFilterH - 20) / 78) || 5;
+        return Math.floor((contentH - subFilterH - 20) / 83) || 5;
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -156,11 +151,9 @@
         render();
     }
 
-    function switchTabPerson() { changeTab('person'); }
-
     function setAttSub(s) {
         filters.att = s;
-        document.getElementById('att-sub-all').classList.toggle('active', s === 'all');
+        document.getElementById('att-sub-comp').classList.toggle('active', s === 'comp');
         document.getElementById('att-sub-inc').classList.toggle('active', s === 'inc');
         resetPage('att');
     }
@@ -194,7 +187,14 @@
     async function renderAtt(f, t) {
         const date = document.getElementById('attDate').value;
         let query = sbClient.from('TimeStamp').select('*', {count:'exact'}).eq('work_date', date);
-        if(filters.att === 'inc') query = query.or('time_in.is.null,time_out.is.null');
+        
+        if(filters.att === 'comp') {
+            // รายการที่สมบูรณ์: ต้องมีทั้งเข้าและออก
+            query = query.not('time_in', 'is', null).not('time_out', 'is', null);
+        } else {
+            // รายการที่ไม่สมบูรณ์: ขาดเข้า หรือ ขาดออก
+            query = query.or('time_in.is.null,time_out.is.null');
+        }
         
         const { data, count } = await query.order('time_in', {ascending:true}).range(f, t);
         totalItems = count || 0;
@@ -211,7 +211,7 @@
                     <button class="btn-icon" onclick="editAtt('${r.id}','${r.time_in}','${r.time_out}')"><i class="fas fa-edit"></i></button>
                     <button class="btn-icon" onclick="delRec('TimeStamp','${r.id}')"><i class="fas fa-trash text-danger"></i></button>
                 </div>
-            </div>`).join('') || '<center>ไม่มีข้อมูล</center>';
+            </div>`).join('') || '<center style="padding:20px; color:var(--muted)">ไม่พบรายการ'+(filters.att==='comp'?'สมบูรณ์':'ไม่สมบูรณ์')+'</center>';
     }
 
     async function renderLeave(f, t) {
@@ -231,7 +231,7 @@
                     <button class="btn-icon" onclick="editLeave('${r.id}','${r.leave_date}','${r.leave_type}')"><i class="fas fa-edit"></i></button>
                     <button class="btn-icon" onclick="delRec('Leave_records','${r.id}')"><i class="fas fa-trash text-danger"></i></button>
                 </div>
-            </div>`).join('') || '<center>ไม่มีข้อมูล</center>';
+            </div>`).join('') || '<center style="padding:20px; color:var(--muted)">ไม่มีข้อมูลการลา</center>';
     }
 
     async function renderPerson(f, t) {
@@ -244,12 +244,12 @@
                     <button class="btn-icon" onclick="editPerson('${p.personnel_id}','${p.name}')"><i class="fas fa-edit"></i></button>
                     <button class="btn-icon" onclick="delRec('Personnel','${p.personnel_id}','personnel_id')"><i class="fas fa-trash text-danger"></i></button>
                 </div>
-            </div>`).join('') || '<center>ไม่มีข้อมูล</center>';
+            </div>`).join('') || '<center style="padding:20px; color:var(--muted)">ไม่มีรายชื่อพนักงาน</center>';
     }
 
     // --- Actions ---
     async function delRec(tbl, id, col='id') {
-        if((await Swal.fire({title:'ยืนยันการลบ?', icon:'warning', showCancelButton:true})).isConfirmed) {
+        if((await Swal.fire({title:'ยืนยันการลบ?', text:'ข้อมูลจะถูกลบถาวร', icon:'warning', showCancelButton:true, confirmButtonColor: '#ef4444', confirmButtonText: 'ลบข้อมูล'})).isConfirmed) {
             await sbClient.from(tbl).delete().eq(col, id);
             render();
         }
@@ -257,7 +257,7 @@
 
     async function editAtt(id, tin, tout) {
         const { value: f } = await Swal.fire({
-            title: 'แก้ไขเวลา',
+            title: 'แก้ไขเวลาลงงาน',
             html: `เข้า: <input id="sw-in" type="time" class="swal2-input" value="${tin?.slice(0,5)||''}">
                    ออก: <input id="sw-out" type="time" class="swal2-input" value="${tout?.slice(0,5)||''}">`,
             preConfirm: () => ({ time_in: document.getElementById('sw-in').value || null, time_out: document.getElementById('sw-out').value || null })
@@ -276,13 +276,13 @@
     }
 
     async function editPerson(id, name) {
-        const { value: n } = await Swal.fire({ title: 'แก้ไขชื่อ', input: 'text', inputValue: name });
+        const { value: n } = await Swal.fire({ title: 'แก้ไขชื่อพนักงาน', input: 'text', inputValue: name });
         if(n) { await sbClient.from('Personnel').update({name: n}).eq('personnel_id', id); await loadPersonnel(); render(); }
     }
 
     async function handleAdd() {
         if(currentTab === 'person') {
-            const { value: f } = await Swal.fire({ title:'เพิ่มพนักงาน', html:`<input id="sw-pid" placeholder="รหัส" class="swal2-input"><input id="sw-name" placeholder="ชื่อ" class="swal2-input">`, preConfirm:()=>({personnel_id:document.getElementById('sw-pid').value, name:document.getElementById('sw-name').value}) });
+            const { value: f } = await Swal.fire({ title:'เพิ่มพนักงานใหม่', html:`<input id="sw-pid" placeholder="รหัสพนักงาน" class="swal2-input"><input id="sw-name" placeholder="ชื่อ-นามสกุล" class="swal2-input">`, preConfirm:()=>({personnel_id:document.getElementById('sw-pid').value, name:document.getElementById('sw-name').value}) });
             if(f?.personnel_id) { await sbClient.from('Personnel').insert([f]); await loadPersonnel(); render(); }
         } else if(currentTab === 'leave') {
             const { data: ps } = await sbClient.from('Personnel').select('*');
