@@ -1,91 +1,254 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>จัดการระบบ - TAS-SPB</title>
+
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="ios-fix.js"></script>
     <script src="supabase.js"></script>
     <script src="sweetalert2.js"></script>
     <script src="config.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <style>
-        /* CSS เดิมของคุณคงไว้ทั้งหมด */
-        :root { --primary-color: #ec4899; --bg: #f3f4f6; --white: #ffffff; --text: #1f2937; --muted: #6b7280; --border: #e5e7eb; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; --info: #3b82f6; }
+        :root {
+            --primary-color: #ec4899;
+            --bg: #f3f4f6;
+            --white: #ffffff;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Sarabun', sans-serif; background-color: var(--bg); color: var(--text); padding: 20px; padding-bottom: 80px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 20px;
+            padding-bottom: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
         .container { max-width: 1000px; margin: 0 auto; width: 100%; }
-        .header-section { background: white; width: 100%; padding: 20px 30px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        .controls-card { background: var(--white); padding: 20px; border-radius: 16px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); margin-bottom: 20px; display: flex; flex-direction: column; gap: 15px; }
-        .date-input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 10px; font-family: 'Sarabun'; background: #f9fafb; }
-        .tabs { display: flex; background: #e5e7eb; padding: 5px; border-radius: 12px; }
-        .tab-btn { flex: 1; padding: 12px; border: none; background: transparent; border-radius: 8px; cursor: pointer; font-weight: bold; color: var(--muted); }
-        .tab-btn.active { background: var(--white); color: var(--primary-color); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-        .content-section { display: none; }
+
+        .header-section {
+            background: white;
+            width: 100%;
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .header-title { display: flex; align-items: center; gap: 15px; }
+        .icon-box {
+            width: 50px; height: 50px; background: var(--primary-color);
+            color: white; border-radius: 12px; display: flex;
+            align-items: center; justify-content: center; font-size: 1.5rem;
+        }
+        .header-text h2 { margin: 0; color: #1f2937; font-size: 1.5rem; }
+        .header-text span { color: #6b7280; font-size: 0.9rem; }
+
+        .btn-home {
+            text-decoration: none; color: #4b5563; font-weight: bold;
+            background: #f3f4f6; padding: 8px 16px; border-radius: 20px;
+            transition: 0.2s; display: flex; align-items: center; gap: 5px;
+        }
+
+        .controls-card {
+            background: var(--white); padding: 20px; border-radius: 16px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); margin-bottom: 20px;
+            display: flex; flex-direction: column; gap: 15px;
+        }
+
+        .date-input {
+            width: 100%; padding: 12px; border: 1px solid var(--border);
+            border-radius: 10px; font-family: 'Sarabun'; font-size: 1rem;
+            background: #f9fafb;
+        }
+
+        .tabs {
+            display: flex; background: #e5e7eb; padding: 5px;
+            border-radius: 12px; flex-wrap: wrap;
+        }
+        .tab-btn {
+            flex: 1; padding: 12px; border: none; background: transparent;
+            border-radius: 8px; cursor: pointer; font-weight: bold;
+            color: var(--muted); font-family: 'Sarabun'; transition: all 0.2s;
+            min-width: 100px;
+        }
+        .tab-btn.active {
+            background: var(--white); color: var(--primary-color);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .content-section { display: none; animation: fadeIn 0.3s; }
         .content-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
         .data-list { display: grid; gap: 15px; }
-        .data-item { background: var(--white); padding: 15px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); border-left: 5px solid transparent; display: flex; justify-content: space-between; align-items: center; }
+        .data-item {
+            background: var(--white); padding: 15px; border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); border-left: 5px solid transparent;
+            display: flex; justify-content: space-between; align-items: center;
+            transition: transform 0.2s;
+        }
+        .data-item.pressing { transform: scale(0.97); background-color: #fefce8; }
+        .data-item.captured { animation: flash 0.5s; }
+        @keyframes flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; background-color: #fff; } }
+
         .item-att { border-left-color: var(--primary-color); }
         .item-leave { border-left-color: var(--warning); }
+        .item-personnel { border-left-color: var(--info); }
+
         .badge { padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
-        .bg-green { background: #dcfce7; color: #166534; }
-        .bg-red { background: #fee2e2; color: #991b1b; }
-        .bg-orange { background: #ffedd5; color: #9a3412; }
+        .bg-green { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .bg-red { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        .bg-orange { background: #ffedd5; color: #9a3412; border: 1px solid #fed7aa; }
+        .bg-blue { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+        .bg-gray { background: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db; }
+
         .actions { display: flex; gap: 8px; }
         .btn-icon { width: 36px; height: 36px; border-radius: 8px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .fab { position: fixed; bottom: 20px; right: 20px; background: var(--success); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); border: none; z-index: 100; }
+        .btn-edit { background: #fffbeb; color: #d97706; }
+        .btn-del { background: #fef2f2; color: #dc2626; }
+
+        .fab { position: fixed; bottom: 20px; right: 20px; background: var(--success); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); border: none; z-index: 100; cursor: pointer; }
+
+        .search-box-container { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; background: white; padding: 10px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); }
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px; padding: 10px; }
+        .btn-page { padding: 8px 16px; border-radius: 12px; border: none; background: white; color: var(--text); font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); display: flex; align-items: center; gap: 5px; }
+        .btn-page:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Search Dropdown สำหรับ TimeStamp */
+        .search-results { position: absolute; background: white; width: 100%; z-index: 10; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: none; margin-top: 2px; border: 1px solid #ddd; }
+        .search-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+        .search-item:hover { background: #f9fafb; }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header-section">
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <div style="width: 50px; height: 50px; background: var(--primary-color); color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center;"><i class="fas fa-calendar-check"></i></div>
-                <div><h2 id="pageTitle">จัดการระบบ</h2><span id="pageSubTitle">จัดการเวลาและวันลา</span></div>
+            <div class="header-title">
+                <div class="icon-box"><i class="fas fa-calendar-check"></i></div>
+                <div class="header-text">
+                    <h2 id="pageTitle">จัดการระบบ</h2>
+                    <span id="pageSubTitle">จัดการเวลา, วันลา และข้อมูลบุคลากร</span>
+                </div>
             </div>
-            <a href="menu.html" style="text-decoration: none; color: #4b5563; background: #f3f4f6; padding: 8px 16px; border-radius: 20px;"><i class="fas fa-home"></i> เมนู</a>
+            <a href="menu.html" class="btn-home"><i class="fas fa-home"></i> เมนู</a>
         </div>
 
         <div class="controls-card">
-            <label style="font-weight:bold; color:#6b7280;">📅 วันที่ทำงาน:</label>
-            <input type="date" id="filterDate" class="date-input" onchange="loadAttendance()">
+            <div id="date-control-group">
+                <label style="font-weight:bold; color:#6b7280;">📅 วันที่ทำงาน:</label>
+                <input type="date" id="filterDate" class="date-input" onchange="loadAttendance()">
+            </div>
             <div class="tabs">
                 <button id="btn-tab-att" class="tab-btn active" onclick="switchTab('att')">🕒 เวลาทำงาน</button>
                 <button id="btn-tab-leave" class="tab-btn" onclick="switchTab('leave')">✈️ การลา</button>
+                <button id="btn-tab-personnel" class="tab-btn" onclick="switchTab('personnel')" style="display:none;">👥 บุคลากร</button>
             </div>
         </div>
 
         <div id="tab-att" class="content-section active">
+            <div id="filter-container" class="filter-status" style="display:flex; gap:10px; margin-bottom:15px;">
+                <button id="filter-all" class="btn-filter bg-green active" onclick="setStatusFilter('all')">ทั้งหมด</button>
+                <button id="filter-incomplete" class="btn-filter bg-gray" onclick="setStatusFilter('incomplete')">ไม่สมบูรณ์</button>
+            </div>
             <div id="list-att" class="data-list"></div>
         </div>
 
         <div id="tab-leave" class="content-section">
+            <div class="search-box-container">
+                <input type="text" id="leave-search-name" class="date-input" style="flex:2" placeholder="🔍 ค้นหาชื่อ..." onkeyup="if(event.key==='Enter') searchLeave()">
+                <input type="date" id="leave-search-date" class="date-input" style="flex:1">
+                <button class="btn-filter bg-green" onclick="searchLeave()"><i class="fas fa-search"></i></button>
+                <button class="btn-filter bg-gray" onclick="clearLeaveFilter()"><i class="fas fa-undo"></i></button>
+            </div>
             <div id="list-leave" class="data-list"></div>
+            <div class="pagination">
+                <button id="leave-prev-btn" class="btn-page" onclick="changeLeavePage(-1)" disabled><i class="fas fa-chevron-left"></i></button>
+                <span id="leave-page-num">หน้า 1</span>
+                <button id="leave-next-btn" class="btn-page" onclick="changeLeavePage(1)" disabled><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+
+        <div id="tab-personnel" class="content-section">
+            <div class="search-box-container">
+                <input type="text" id="personnel-search" class="date-input" style="flex:1" placeholder="🔍 ค้นหาชื่อ หรือ รหัส..." onkeyup="if(event.key==='Enter') searchPersonnel()">
+                <button class="btn-filter bg-blue" onclick="searchPersonnel()"><i class="fas fa-search"></i></button>
+                <button class="btn-filter bg-gray" onclick="clearPersonnelFilter()"><i class="fas fa-undo"></i></button>
+            </div>
+            <div id="list-personnel" class="data-list"></div>
+            <div class="pagination">
+                <button id="personnel-prev-btn" class="btn-page" onclick="changePersonnelPage(-1)" disabled><i class="fas fa-chevron-left"></i></button>
+                <span id="personnel-page-num">หน้า 1</span>
+                <button id="personnel-next-btn" class="btn-page" onclick="changePersonnelPage(1)" disabled><i class="fas fa-chevron-right"></i></button>
+            </div>
         </div>
     </div>
 
     <button class="fab" onclick="handleAddClick()"><i class="fas fa-plus"></i></button>
 
     <script>
-        // --- Setup & Security ---
+        // --- Security & Global State ---
         const user = JSON.parse(localStorage.getItem('tas_user') || '{}');
         const userLevel = String(user.level || '').trim();
+        if (!user.personnel_id) window.location.href = 'login.html';
+
         let currentTab = 'att';
+        let statusFilter = 'all';
         let personnelMap = {};
         let leaveTypes = [];
+        let leavePage = 0, personnelPage = 0;
+        const PAGE_SIZE = 10;
 
         document.addEventListener('DOMContentLoaded', async () => {
-            document.getElementById('filterDate').value = new Date().toISOString().split('T')[0];
+            const dInput = document.getElementById('filterDate');
+            if (!dInput.value) dInput.value = new Date().toISOString().split('T')[0];
+            
             await loadMasterData();
-            loadAttendance();
+            
+            if (userLevel === '2') {
+                document.getElementById('btn-tab-att').style.display = 'none';
+                document.getElementById('btn-tab-personnel').style.display = 'block';
+                switchTab('leave');
+            } else {
+                document.getElementById('btn-tab-personnel').style.display = 'block';
+                loadAttendance();
+            }
         });
 
         async function loadMasterData() {
-            const { data: users } = await sbClient.from('Personnel').select('personnel_id, name');
-            if (users) users.forEach(u => personnelMap[u.personnel_id] = u.name);
-            const { data: settings } = await sbClient.from('Settings').select('value').eq('key', 'leave_types').single();
-            leaveTypes = (settings && settings.value) ? settings.value.split(',') : ['ลาป่วย', 'ลากิจ', 'ลาพักร้อน'];
+            const { data } = await sbClient.from('Personnel').select('personnel_id, name');
+            if (data) data.forEach(p => personnelMap[p.personnel_id] = p.name);
+            const { data: st } = await sbClient.from('Settings').select('value').eq('key', 'leave_types').single();
+            leaveTypes = st ? st.value.split(',') : ['ลาป่วย', 'ลากิจ', 'ลาพักร้อน'];
         }
 
         window.switchTab = (tab) => {
@@ -94,61 +257,63 @@
             document.getElementById(`btn-tab-${tab}`).classList.add('active');
             document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
             document.getElementById(`tab-${tab}`).classList.add('active');
-            tab === 'att' ? loadAttendance() : loadLeaves();
+            
+            const dateCtrl = document.getElementById('date-control-group');
+            dateCtrl.style.display = (tab === 'att') ? 'block' : 'none';
+
+            if (tab === 'att') loadAttendance();
+            else if (tab === 'leave') loadLeaves();
+            else loadPersonnel();
         };
 
         // ==========================================
-        // 🕒 ATTENDANCE (TimeStamp Table)
+        // 🕒 TimeStamp Functions
         // ==========================================
+        window.setStatusFilter = (s) => {
+            statusFilter = s;
+            document.getElementById('filter-all').className = s === 'all' ? 'btn-filter bg-green active' : 'btn-filter bg-gray';
+            document.getElementById('filter-incomplete').className = s === 'incomplete' ? 'btn-filter bg-red active' : 'btn-filter bg-gray';
+            loadAttendance();
+        };
+
         async function loadAttendance() {
+            if (userLevel !== '1') return;
             const date = document.getElementById('filterDate').value;
             const container = document.getElementById('list-att');
-            container.innerHTML = 'กำลังโหลด...';
+            container.innerHTML = '<div style="text-align:center; padding:20px;">กำลังโหลด...</div>';
+
+            let query = sbClient.from('TimeStamp').select('*').eq('work_date', date);
+            if (statusFilter === 'incomplete') query = query.or('time_in.is.null,time_out.is.null');
             
-            const { data, error } = await sbClient.from('TimeStamp').select('*').eq('work_date', date).order('time_in');
-            if (error) return container.innerHTML = 'เกิดข้อผิดพลาด';
-            
+            const { data } = await query.order('time_in');
+            if (!data || data.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">ไม่พบข้อมูล</div>';
+                return;
+            }
+
             container.innerHTML = data.map(r => `
                 <div class="data-item item-att">
-                    <div>
+                    <div class="info">
                         <h4>${r.full_name || personnelMap[r.personnel_id] || r.personnel_id}</h4>
                         <p>
-                            <span class="badge ${r.time_in ? 'bg-green' : 'bg-red'}">เข้า: ${r.time_in ? r.time_in.slice(0,5) : 'ขาด'}</span>
-                            <span class="badge ${r.time_out ? 'bg-green' : 'bg-red'}">ออก: ${r.time_out ? r.time_out.slice(0,5) : 'ขาด'}</span>
+                            <span class="badge ${r.time_in ? 'bg-green' : 'bg-red'}">เข้า: ${r.time_in ? r.time_in.slice(0, 5) : 'ขาด'}</span>
+                            <span class="badge ${r.time_out ? 'bg-green' : 'bg-red'}">ออก: ${r.time_out ? r.time_out.slice(0, 5) : 'ขาด'}</span>
                         </p>
                     </div>
                     <div class="actions">
-                        <button class="btn-icon" onclick="delAtt('${r.id}')"><i class="fas fa-trash" style="color:red"></i></button>
+                        <button class="btn-icon btn-edit" onclick="editAtt('${r.id}', '${r.full_name}', '${r.time_in||''}', '${r.time_out||''}')"><i class="fas fa-pen"></i></button>
+                        <button class="btn-icon btn-del" onclick="delAtt('${r.id}')"><i class="fas fa-trash"></i></button>
                     </div>
                 </div>
-            `).join('') || '<div style="text-align:center; padding:20px; color:#999;">ไม่มีข้อมูลการลงเวลา</div>';
+            `).join('');
+            attachLongPress('list-att');
         }
 
         // ==========================================
-        // ✈️ LEAVES (Dropdown Absent Logic)
+        // ✈️ Leave Functions (With Dropdown logic)
         // ==========================================
-        async function loadLeaves() {
-            const date = document.getElementById('filterDate').value;
-            const container = document.getElementById('list-leave');
-            container.innerHTML = 'กำลังโหลด...';
-
-            const { data } = await sbClient.from('Leave_records').select('*').eq('leave_date', date);
-            container.innerHTML = (data || []).map(r => `
-                <div class="data-item item-leave">
-                    <div>
-                        <h4>${personnelMap[r.personnel_id] || r.personnel_id}</h4>
-                        <p><span class="badge bg-orange">${r.leave_type}</span></p>
-                    </div>
-                    <div class="actions">
-                        <button class="btn-icon" onclick="delLeave('${r.id}')"><i class="fas fa-trash" style="color:red"></i></button>
-                    </div>
-                </div>
-            `).join('') || '<div style="text-align:center; padding:20px; color:#999;">ไม่มีข้อมูลการลา</div>';
-        }
-
-        // --- ฟังชันค้นหาคนหาย (Absent) ---
         async function getAbsentPersonnel(date) {
-            const { data: allP } = await sbClient.from('Personnel').select('personnel_id, name');
+            const { data: allP } = await sbClient.from('Personnel').select('personnel_id, name').order('name');
             const { data: att } = await sbClient.from('TimeStamp').select('personnel_id').eq('work_date', date);
             const { data: leave } = await sbClient.from('Leave_records').select('personnel_id').eq('leave_date', date);
 
@@ -156,59 +321,232 @@
                 ...(att || []).map(a => String(a.personnel_id)),
                 ...(leave || []).map(l => String(l.personnel_id))
             ]);
-
             return allP.filter(p => !activeIds.has(String(p.personnel_id)));
         }
 
-        async function openLeaveModal() {
-            const date = document.getElementById('filterDate').value;
-            Swal.fire({ title: 'กำลังโหลดรายชื่อ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-            
-            const absentList = await getAbsentPersonnel(date);
-            Swal.close();
+        async function openLeaveModal(id = null, pid = '', type = '') {
+            const isEdit = !!id;
+            const date = document.getElementById('filterDate').value || new Date().toISOString().split('T')[0];
+            const typeOpts = leaveTypes.map(t => `<option value="${t}" ${t===type?'selected':''}>${t}</option>`).join('');
 
-            if (absentList.length === 0) return Swal.fire('ครบแล้ว', 'พนักงานทุกคนลงเวลาหรือลาครบแล้ว', 'info');
-
-            const options = absentList.map(p => `<option value="${p.personnel_id}">${p.name}</option>`).join('');
-            const typeOpts = leaveTypes.map(t => `<option value="${t}">${t}</option>`).join('');
+            let nameHtml = '';
+            if (!isEdit) {
+                Swal.fire({ title: 'กำลังโหลดรายชื่อ...', didOpen: () => Swal.showLoading() });
+                const absentList = await getAbsentPersonnel(date);
+                Swal.close();
+                if (absentList.length === 0) return Swal.fire('ข้อมูลครบ', 'ทุกคนลงเวลาหรือลาครบแล้ว', 'info');
+                
+                const options = absentList.map(p => `<option value="${p.personnel_id}">${p.name} (${p.personnel_id})</option>`).join('');
+                nameHtml = `<label>เลือกชื่อพนักงาน:</label><select id="l-pid" class="date-input" style="margin-bottom:10px;">${options}</select>`;
+            } else {
+                nameHtml = `<label>ชื่อพนักงาน:</label><input class="date-input" value="${personnelMap[pid] || pid}" readonly style="background:#f3f4f6; margin-bottom:10px;"><input type="hidden" id="l-pid" value="${pid}">`;
+            }
 
             const { value: f } = await Swal.fire({
-                title: 'บันทึกการลา',
-                html: `
-                    <div style="text-align:left">
-                        <label>เลือกชื่อพนักงาน:</label>
-                        <select id="l-pid" class="date-input" style="margin-bottom:10px;">${options}</select>
-                        <label>ประเภทการลา:</label>
-                        <select id="l-type" class="date-input">${typeOpts}</select>
-                    </div>`,
+                title: isEdit ? 'แก้ไขการลา' : 'บันทึกการลา',
+                html: `<div style="text-align:left;">${nameHtml}<label>ประเภทการลา:</label><select id="l-type" class="date-input">${typeOpts}</select></div>`,
                 showCancelButton: true,
-                preConfirm: () => ({
-                    pid: document.getElementById('l-pid').value,
-                    type: document.getElementById('l-type').value
-                })
+                preConfirm: () => ({ pid: document.getElementById('l-pid').value, type: document.getElementById('l-type').value })
             });
 
             if (f) {
-                await sbClient.from('Leave_records').insert([{
-                    id: Date.now(),
-                    personnel_id: f.pid,
-                    leave_date: date,
-                    leave_type: f.type,
-                    status: 'approved',
-                    approved_by: user.name
-                }]);
+                const pl = { personnel_id: f.pid, leave_type: f.type, status: 'approved', approved_by: user.name };
+                if (isEdit) await sbClient.from('Leave_records').update(pl).eq('id', id);
+                else { pl.id = Date.now(); pl.leave_date = date; await sbClient.from('Leave_records').insert([pl]); }
                 loadLeaves();
             }
         }
 
-        // --- Common Actions ---
+        async function loadLeaves() {
+            const nameSearch = document.getElementById('leave-search-name').value.trim();
+            const dateSearch = document.getElementById('leave-search-date').value;
+            const container = document.getElementById('list-leave');
+            container.innerHTML = '<div style="text-align:center; padding:20px;">กำลังโหลด...</div>';
+
+            let query = sbClient.from('Leave_records').select('*');
+            if (dateSearch) query = query.eq('leave_date', dateSearch);
+            if (nameSearch) {
+                const ids = Object.keys(personnelMap).filter(id => personnelMap[id].includes(nameSearch));
+                query = query.in('personnel_id', ids.length ? ids : ['none']);
+            }
+
+            const start = leavePage * PAGE_SIZE;
+            const { data } = await query.order('leave_date', { ascending: false }).range(start, start + PAGE_SIZE - 1);
+
+            container.innerHTML = (data || []).map(r => `
+                <div class="data-item item-leave">
+                    <div class="info">
+                        <h4>${personnelMap[r.personnel_id] || r.personnel_id}</h4>
+                        <p><span class="badge bg-orange">${r.leave_type}</span> <b>${formatThaiDate(r.leave_date)}</b></p>
+                    </div>
+                    <div class="actions">
+                        <button class="btn-icon btn-edit" onclick="openLeaveModal('${r.id}', '${r.personnel_id}', '${r.leave_type}')"><i class="fas fa-pen"></i></button>
+                        <button class="btn-icon btn-del" onclick="delLeave('${r.id}')"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            `).join('') || '<div style="text-align:center; padding:20px; color:#999;">ไม่พบข้อมูล</div>';
+            
+            document.getElementById('leave-page-num').innerText = `หน้า ${leavePage + 1}`;
+            document.getElementById('leave-prev-btn').disabled = leavePage === 0;
+            document.getElementById('leave-next-btn').disabled = (data?.length < PAGE_SIZE);
+            attachLongPress('list-leave');
+        }
+
+        // ==========================================
+        // 👥 Personnel Functions
+        // ==========================================
+        async function loadPersonnel() {
+            const sVal = document.getElementById('personnel-search').value.trim();
+            const container = document.getElementById('list-personnel');
+            container.innerHTML = '<div style="text-align:center; padding:20px;">กำลังโหลด...</div>';
+
+            let query = sbClient.from('Personnel').select('*');
+            if (sVal) query = query.or(`name.ilike.%${sVal}%,personnel_id.ilike.%${sVal}%`);
+
+            const start = personnelPage * PAGE_SIZE;
+            const { data } = await query.order('personnel_id').range(start, start + PAGE_SIZE - 1);
+
+            container.innerHTML = (data || []).map(p => `
+                <div class="data-item item-personnel">
+                    <div class="info">
+                        <h4>${p.name}</h4>
+                        <p><span class="badge bg-blue">ID: ${p.personnel_id}</span> <span class="badge bg-gray">${p.personnel_type||'-'}</span></p>
+                    </div>
+                    ${userLevel === '1' ? `
+                    <div class="actions">
+                        <button class="btn-icon btn-edit" onclick='openPersonnelModal(${JSON.stringify(p)})'><i class="fas fa-pen"></i></button>
+                        <button class="btn-icon btn-del" onclick="deletePersonnel('${p.personnel_id}', '${p.name}')"><i class="fas fa-trash"></i></button>
+                    </div>` : ''}
+                </div>
+            `).join('') || '<div style="text-align:center; padding:20px; color:#999;">ไม่พบข้อมูล</div>';
+
+            document.getElementById('personnel-page-num').innerText = `หน้า ${personnelPage + 1}`;
+            document.getElementById('personnel-prev-btn').disabled = personnelPage === 0;
+            document.getElementById('personnel-next-btn').disabled = (data?.length < PAGE_SIZE);
+        }
+
+        async function openPersonnelModal(data = null) {
+            const isEdit = !!data;
+            const { value: f } = await Swal.fire({
+                title: isEdit ? 'แก้ไขบุคลากร' : 'เพิ่มบุคลากร',
+                html: `
+                    <div style="text-align:left;">
+                        <label>รหัสพนักงาน:</label><input id="p-id" class="date-input" value="${data?data.personnel_id:''}" ${isEdit?'readonly':''}>
+                        <label>ชื่อ-นามสกุล:</label><input id="p-name" class="date-input" value="${data?data.name:''}">
+                        <label>ตำแหน่ง:</label><input id="p-type" class="date-input" value="${data?data.personnel_type||'':''}">
+                    </div>`,
+                showCancelButton: true,
+                preConfirm: () => ({ id: document.getElementById('p-id').value, name: document.getElementById('p-name').value, type: document.getElementById('p-type').value })
+            });
+
+            if (f) {
+                if (isEdit) await sbClient.from('Personnel').update({ name: f.name, personnel_type: f.type }).eq('personnel_id', f.id);
+                else await sbClient.from('Personnel').insert([{ personnel_id: f.id, name: f.name, personnel_type: f.type }]);
+                loadPersonnel();
+                loadMasterData();
+            }
+        }
+
+        // ==========================================
+        // Utilities & Shared Functions
+        // ==========================================
         window.handleAddClick = () => {
-            if (currentTab === 'att') { /* ฟังก์ชันเพิ่มเวลาปกติของคุณ */ }
-            else { openLeaveModal(); }
+            if (currentTab === 'att') openAttModal();
+            else if (currentTab === 'leave') openLeaveModal();
+            else openPersonnelModal();
         };
 
-        async function delAtt(id) { if(confirm('ลบรายการนี้?')) { await sbClient.from('TimeStamp').delete().eq('id', id); loadAttendance(); } }
-        async function delLeave(id) { if(confirm('ลบรายการนี้?')) { await sbClient.from('Leave_records').delete().eq('id', id); loadLeaves(); } }
+        async function openAttModal() {
+            const date = document.getElementById('filterDate').value;
+            const { value: f } = await Swal.fire({
+                title: 'ลงเวลาทำงาน',
+                html: `
+                    <div style="text-align:left; position:relative;">
+                        <label>ค้นหาชื่อ:</label><input id="s-name" class="date-input" autocomplete="off">
+                        <div id="s-res" class="search-results"></div>
+                        <input type="hidden" id="a-pid">
+                        <div style="display:flex; gap:10px; margin-top:10px;">
+                            <div style="flex:1"><label>เวลา:</label><input type="time" id="a-time" class="date-input" value="${new Date().toTimeString().slice(0,5)}"></div>
+                            <div style="flex:1"><label>ประเภท:</label><select id="a-type" class="date-input"><option value="in">เข้า</option><option value="out">ออก</option></select></div>
+                        </div>
+                    </div>`,
+                didOpen: () => setupSearch('s-name', 's-res', 'a-pid'),
+                showCancelButton: true,
+                preConfirm: () => {
+                    const pid = document.getElementById('a-pid').value;
+                    if (!pid) return Swal.showValidationMessage('กรุณาเลือกพนักงาน');
+                    return { pid, time: document.getElementById('a-time').value, type: document.getElementById('a-type').value };
+                }
+            });
+
+            if (f) {
+                const { data: ex } = await sbClient.from('TimeStamp').select('*').eq('personnel_id', f.pid).eq('work_date', date).maybeSingle();
+                if (ex) await sbClient.from('TimeStamp').update({ [f.type==='in'?'time_in':'time_out']: f.time }).eq('id', ex.id);
+                else await sbClient.from('TimeStamp').insert([{ id: Date.now().toString(), personnel_id: f.pid, full_name: personnelMap[f.pid], work_date: date, [f.type==='in'?'time_in':'time_out']: f.time }]);
+                loadAttendance();
+            }
+        }
+
+        function setupSearch(inpId, resId, pidId) {
+            const inp = document.getElementById(inpId), res = document.getElementById(resId);
+            inp.addEventListener('input', async () => {
+                const kw = inp.value.trim();
+                if (kw.length < 1) { res.style.display = 'none'; return; }
+                const { data } = await sbClient.from('Personnel').select('personnel_id, name').ilike('name', `%${kw}%`).limit(5);
+                res.innerHTML = (data || []).map(p => `<div class="search-item" onclick="selectPerson('${p.personnel_id}','${p.name}','${inpId}','${pidId}','${resId}')">${p.name} (${p.personnel_id})</div>`).join('');
+                res.style.display = 'block';
+            });
+        }
+
+        window.selectPerson = (pid, name, inpId, pidId, resId) => {
+            document.getElementById(inpId).value = name;
+            document.getElementById(pidId).value = pid;
+            document.getElementById(resId).style.display = 'none';
+        };
+
+        function formatThaiDate(d) { return new Date(d).toLocaleDateString('th-TH', { day:'numeric', month:'short', year:'2-digit' }); }
+        async function delAtt(id) { if ((await Swal.fire({ title: 'ลบรายการ?', icon:'warning', showCancelButton:true })).isConfirmed) { await sbClient.from('TimeStamp').delete().eq('id', id); loadAttendance(); } }
+        async function delLeave(id) { if ((await Swal.fire({ title: 'ลบรายการ?', icon:'warning', showCancelButton:true })).isConfirmed) { await sbClient.from('Leave_records').delete().eq('id', id); loadLeaves(); } }
+        async function deletePersonnel(id, name) { if ((await Swal.fire({ title: `ลบ ${name}?`, icon:'warning', showCancelButton:true })).isConfirmed) { await sbClient.from('Personnel').delete().eq('personnel_id', id); loadPersonnel(); } }
+        async function editAtt(id, name, tin, tout) {
+            const { value: f } = await Swal.fire({ title: name, html: `<div style="display:flex; gap:10px;"><input type="time" id="e-in" class="date-input" value="${tin}"><input type="time" id="e-out" class="date-input" value="${tout}"></div>`, showCancelButton:true, preConfirm: () => ({ in: document.getElementById('e-in').value, out: document.getElementById('e-out').value }) });
+            if (f) { await sbClient.from('TimeStamp').update({ time_in: f.in||null, time_out: f.out||null }).eq('id', id); loadAttendance(); }
+        }
+
+        // --- Screenshot / Long Press ---
+        function attachLongPress(cid) {
+            const cont = document.getElementById(cid);
+            cont.querySelectorAll('.data-item').forEach(item => {
+                let timer;
+                const start = () => { item.classList.add('pressing'); timer = setTimeout(() => { item.classList.remove('pressing'); item.classList.add('captured'); capture(item); }, 1500); };
+                const end = () => { clearTimeout(timer); item.classList.remove('pressing'); };
+                item.onmousedown = start; item.onmouseup = end; item.onmouseleave = end;
+                item.ontouchstart = start; item.ontouchend = end;
+            });
+        }
+
+        async function capture(el) {
+            const actions = el.querySelector('.actions');
+            actions.style.visibility = 'hidden';
+            const canvas = await html2canvas(el, { scale: 2 });
+            actions.style.visibility = 'visible';
+            const img = canvas.toDataURL();
+            Swal.fire({ imageUrl: img, showDenyButton: true, confirmButtonText: 'แชร์', denyButtonText: 'ดาวน์โหลด' }).then(res => {
+                if (res.isConfirmed && navigator.share) {
+                    fetch(img).then(r => r.blob()).then(blob => navigator.share({ files: [new File([blob], 'tas.png', {type:blob.type})] }));
+                } else if (res.isDenied) {
+                    const a = document.createElement('a'); a.href = img; a.download = 'tas.png'; a.click();
+                }
+            });
+            setTimeout(() => el.classList.remove('captured'), 500);
+        }
+
+        window.searchLeave = () => { leavePage = 0; loadLeaves(); };
+        window.clearLeaveFilter = () => { document.getElementById('leave-search-name').value = ''; document.getElementById('leave-search-date').value = ''; searchLeave(); };
+        window.changeLeavePage = (d) => { leavePage += d; loadLeaves(); };
+        window.searchPersonnel = () => { personnelPage = 0; loadPersonnel(); };
+        window.clearPersonnelFilter = () => { document.getElementById('personnel-search').value = ''; searchPersonnel(); };
+        window.changePersonnelPage = (d) => { personnelPage += d; loadPersonnel(); };
     </script>
 </body>
 </html>
