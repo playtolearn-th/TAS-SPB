@@ -16,17 +16,18 @@
             --muted: #6b7280; --border: #e5e7eb; --success: #10b981; --danger: #ef4444;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--text); padding: 15px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .container { max-width: 800px; margin: 0 auto; width: 100%; height: 100%; display: flex; flex-direction: column; }
+        body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--text); padding: 15px; height: 100vh; display: flex; flex-direction: column; }
+        .container { max-width: 800px; margin: 0 auto; width: 100%; flex: 1; display: flex; flex-direction: column; }
 
-        .card-header { background: white; padding: 15px; border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 12px; border-bottom: 4px solid var(--primary); }
-        .tabs { display: flex; background: #fdf2f8; padding: 5px; border-radius: 15px; margin-bottom: 15px; }
-        .tab-btn { flex: 1; padding: 12px; border: none; background: transparent; border-radius: 10px; cursor: pointer; font-weight: 700; color: var(--muted); font-family: 'Sarabun'; transition: 0.3s; }
+        .card-header { background: white; padding: 15px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 12px; border-bottom: 4px solid var(--primary); }
+        .tabs { display: flex; background: #fdf2f8; padding: 5px; border-radius: 15px; margin-bottom: 15px; flex-shrink: 0; }
+        .tab-btn { flex: 1; padding: 12px; border: none; background: transparent; border-radius: 10px; cursor: pointer; font-weight: 700; color: var(--muted); font-family: 'Sarabun'; }
         .tab-btn.active { background: var(--primary); color: white; }
 
-        .sub-filter-area { margin-bottom: 12px; }
+        /* Sub Tabs Styling */
+        .sub-filter-area { margin-bottom: 12px; flex-shrink: 0; }
         .sub-tabs { display: flex; gap: 8px; background: #fff; padding: 5px; border-radius: 12px; border: 1px solid var(--border); }
-        .sub-btn { flex: 1; padding: 8px; border: none; background: transparent; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: bold; color: var(--muted); font-family: 'Sarabun'; transition: 0.2s; }
+        .sub-btn { flex: 1; padding: 10px; border: none; background: transparent; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: bold; color: var(--muted); font-family: 'Sarabun'; transition: 0.2s; }
         .sub-btn.active { background: var(--primary); color: white; }
 
         .content-scroll { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
@@ -46,11 +47,13 @@
         
         .date-input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 10px; font-family: 'Sarabun'; margin-bottom: 10px; }
         
-        .pager { display: flex; justify-content: center; align-items: center; gap: 20px; padding: 15px 0; }
-        .btn-page { width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--border); background: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        /* Pager UI */
+        .pager { display: flex; justify-content: center; align-items: center; gap: 20px; padding: 15px 0; flex-shrink: 0; }
+        .btn-page { width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--border); background: white; cursor: pointer; }
         .btn-page:disabled { opacity: 0.3; }
         
-        .btn-icon { width: 36px; height: 36px; border-radius: 10px; border: none; background: #f3f4f6; color: var(--muted); cursor: pointer; margin-left: 4px; }
+        .actions { display: flex; gap: 5px; }
+        .btn-icon { width: 36px; height: 36px; border-radius: 10px; border: none; background: #f3f4f6; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .fab { position: fixed; bottom: 85px; right: 20px; width: 60px; height: 60px; background: var(--success); color: white; border-radius: 50%; border: none; font-size: 1.5rem; box-shadow: 0 4px 12px rgba(16,185,129,0.4); z-index: 100; cursor: pointer; }
     </style>
 </head>
@@ -59,21 +62,21 @@
 <div class="container">
     <div class="card-header">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h2 style="font-size:1.1rem;"><i class="fas fa-user-shield"></i> จัดการระบบ TAS-SPB</h2>
-            <a href="menu.html" style="color:var(--primary); text-decoration:none;"><i class="fas fa-home fa-lg"></i></a>
+            <h2 style="font-size:1.1rem;"><i class="fas fa-user-cog"></i> ระบบจัดการ TAS-SPB</h2>
+            <a href="menu.html" style="color:var(--primary);"><i class="fas fa-home fa-lg"></i></a>
         </div>
     </div>
 
     <div class="tabs">
-        <button id="tab-att-btn" class="tab-btn active" onclick="changeTab('att')">🕒 ลงเวลา</button>
-        <button id="tab-leave-btn" class="tab-btn" onclick="changeTab('leave')">✈️ การลา</button>
-        <button id="tab-person-btn" class="tab-btn" onclick="changeTab('person')">👥 บุคลากร</button>
+        <button id="tab-att-btn" class="tab-btn active" onclick="changeMainTab('att')">🕒 ลงเวลา</button>
+        <button id="tab-leave-btn" class="tab-btn" onclick="changeMainTab('leave')">✈️ การลา</button>
+        <button id="tab-person-btn" class="tab-btn" onclick="changeMainTab('person')">👥 พนักงาน</button>
     </div>
 
     <div class="content-scroll" id="main-content">
         <div id="section-att" class="content-section">
-            <div class="sub-filter-area">
-                <input type="date" id="attDate" class="date-input" onchange="resetPage('att')">
+            <div class="sub-filter-area" id="filter-att-box">
+                <input type="date" id="attDate" class="date-input" onchange="resetAndRender()">
                 <div class="sub-tabs">
                     <button class="sub-btn active" id="att-sub-comp" onclick="setAttSub('comp')">สมบูรณ์</button>
                     <button class="sub-btn" id="att-sub-inc" onclick="setAttSub('inc')">ไม่สมบูรณ์</button>
@@ -83,13 +86,13 @@
         </div>
 
         <div id="section-leave" class="content-section" style="display:none;">
-            <div class="sub-filter-area">
+            <div class="sub-filter-area" id="filter-leave-box">
                 <div class="sub-tabs">
-                    <button class="sub-btn active" id="leave-sub-all" onclick="setLeaveSub('all')">ทั้งหมด</button>
-                    <button class="sub-btn" id="leave-sub-date" onclick="setLeaveSub('date')">ระบุวันที่</button>
+                    <button class="sub-btn active" id="leave-sub-all" onclick="setLeaveSub('all')">ประวัติทั้งหมด</button>
+                    <button class="sub-btn" id="leave-sub-date" onclick="setLeaveSub('date')">ตามวันที่เลือก</button>
                 </div>
                 <div id="leave-date-input-area" style="display:none; margin-top:10px;">
-                    <input type="date" id="leaveDate" class="date-input" onchange="resetPage('leave')">
+                    <input type="date" id="leaveDate" class="date-input" onchange="resetAndRender()">
                 </div>
             </div>
             <div id="list-leave" class="data-list"></div>
@@ -116,13 +119,11 @@
     let personnelMap = {};
     let totalItems = 0;
 
-    // คำนวณจำนวนแถวที่เหมาะสมกับความสูงหน้าจอ
+    // คำนวณจำนวนแถวอัตโนมัติ
     function getPageSize() {
         const contentH = document.getElementById('main-content').clientHeight;
-        const subFilterH = document.querySelector(`#section-${currentTab} .sub-filter-area`)?.clientHeight || 0;
-        const availableH = contentH - subFilterH - 20;
-        const size = Math.floor(availableH / 83); 
-        return size > 0 ? size : 5;
+        const activeFilterH = document.querySelector(`#section-${currentTab} .sub-filter-area`)?.clientHeight || 0;
+        return Math.floor((contentH - activeFilterH - 10) / 83) || 5;
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -136,6 +137,7 @@
 
     async function loadPersonnel() {
         const { data } = await sbClient.from('Personnel').select('personnel_id, name');
+        personnelMap = {};
         data?.forEach(p => personnelMap[p.personnel_id] = p.name);
     }
 
@@ -145,19 +147,19 @@
         return d.toLocaleDateString('th-TH', {day:'2-digit', month:'2-digit', year:'numeric'});
     }
 
-    function changeTab(t) {
+    function changeMainTab(t) {
         currentTab = t;
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.id === `tab-${t}-btn`));
         document.querySelectorAll('.content-section').forEach(s => s.style.display = 'none');
         document.getElementById(`section-${t}`).style.display = 'block';
-        render();
+        resetAndRender();
     }
 
     function setAttSub(s) {
         filters.att = s;
         document.getElementById('att-sub-comp').classList.toggle('active', s === 'comp');
         document.getElementById('att-sub-inc').classList.toggle('active', s === 'inc');
-        resetPage('att');
+        resetAndRender();
     }
 
     function setLeaveSub(s) {
@@ -165,20 +167,11 @@
         document.getElementById('leave-sub-all').classList.toggle('active', s === 'all');
         document.getElementById('leave-sub-date').classList.toggle('active', s === 'date');
         document.getElementById('leave-date-input-area').style.display = s === 'date' ? 'block' : 'none';
-        resetPage('leave');
+        resetAndRender();
     }
 
-    function resetPage(t) { pages[t] = 1; render(); }
-    
-    function movePage(step) {
-        const size = getPageSize();
-        const max = Math.ceil(totalItems / size) || 1;
-        const next = pages[currentTab] + step;
-        if(next >= 1 && next <= max) {
-            pages[currentTab] = next;
-            render();
-        }
-    }
+    function resetAndRender() { pages[currentTab] = 1; render(); }
+    function movePage(step) { pages[currentTab] += step; render(); }
 
     async function render() {
         const size = getPageSize();
@@ -198,28 +191,27 @@
     async function renderAtt(f, t) {
         const date = document.getElementById('attDate').value;
         const container = document.getElementById('list-att');
-        
         let query = sbClient.from('TimeStamp').select('*', {count:'exact'}).eq('work_date', date);
+        
         if(filters.att === 'comp') query = query.not('time_in', 'is', null).not('time_out', 'is', null);
         else query = query.or('time_in.is.null,time_out.is.null');
         
-        const { data, count, error } = await query.order('time_in', {ascending:true}).range(f, t);
+        const { data, count } = await query.order('time_in', {ascending:true}).range(f, t);
         totalItems = count || 0;
-        
         container.innerHTML = data?.map(r => `
             <div class="data-item item-att">
                 <div>
-                    <strong>${personnelMap[r.personnel_id] || r.full_name || 'รหัส: '+r.personnel_id}</strong>
+                    <strong>${personnelMap[r.personnel_id] || 'ภายนอก: '+r.personnel_id}</strong>
                     <div style="margin-top:4px;">
                         <span class="badge ${r.time_in?'bg-green':'bg-red'}">เข้า: ${r.time_in?.slice(0,5)||'--:--'}</span>
                         <span class="badge ${r.time_out?'bg-green':'bg-red'}">ออก: ${r.time_out?.slice(0,5)||'--:--'}</span>
                     </div>
                 </div>
-                <div>
+                <div class="actions">
                     <button class="btn-icon" onclick="editAtt('${r.id}','${r.time_in}','${r.time_out}')"><i class="fas fa-edit"></i></button>
                     <button class="btn-icon" onclick="delRec('TimeStamp','${r.id}')"><i class="fas fa-trash text-danger"></i></button>
                 </div>
-            </div>`).join('') || `<center style="padding:20px; color:var(--muted)">ไม่พบรายการ ${filters.att==='comp'?'สมบูรณ์':'ไม่สมบูรณ์'}</center>`;
+            </div>`).join('') || '<center style="padding:20px; color:#999;">ไม่มีข้อมูล</center>';
     }
 
     async function renderLeave(f, t) {
@@ -229,7 +221,6 @@
         
         const { data, count } = await query.order('leave_date', {ascending:false}).range(f, t);
         totalItems = count || 0;
-        
         container.innerHTML = data?.map(r => `
             <div class="data-item item-leave">
                 <div>
@@ -241,29 +232,29 @@
                     <button class="btn-icon" onclick="editLeave('${r.id}','${r.leave_date}','${r.leave_type}')"><i class="fas fa-edit"></i></button>
                     <button class="btn-icon" onclick="delRec('Leave_records','${r.id}')"><i class="fas fa-trash text-danger"></i></button>
                 </div>
-            </div>`).join('') || '<center style="padding:20px; color:var(--muted)">ไม่มีข้อมูล</center>';
+            </div>`).join('') || '<center style="padding:20px; color:#999;">ไม่มีข้อมูล</center>';
     }
 
     async function renderPerson(f, t) {
         const container = document.getElementById('list-person');
         const { data, count } = await sbClient.from('Personnel').select('*', {count:'exact'}).order('personnel_id').range(f, t);
         totalItems = count || 0;
-        
         container.innerHTML = data?.map(p => `
             <div class="data-item item-person">
-                <div><strong>${p.name}</strong><br><small>รหัส: ${p.personnel_id}</small></div>
-                <div>
+                <div><strong>${p.name}</strong><br><small>ID: ${p.personnel_id}</small></div>
+                <div class="actions">
                     <button class="btn-icon" onclick="editPerson('${p.personnel_id}','${p.name}')"><i class="fas fa-edit"></i></button>
                     <button class="btn-icon" onclick="delRec('Personnel','${p.personnel_id}','personnel_id')"><i class="fas fa-trash text-danger"></i></button>
                 </div>
-            </div>`).join('') || '<center style="padding:20px; color:var(--muted)">ไม่มีรายชื่อ</center>';
+            </div>`).join('') || '<center style="padding:20px; color:#999;">ไม่มีรายชื่อ</center>';
     }
 
     // --- Actions ---
     async function delRec(tbl, id, col='id') {
-        const res = await Swal.fire({title:'ลบข้อมูล?', text:'ไม่สามารถย้อนกลับได้', icon:'warning', showCancelButton:true, confirmButtonColor:'#ef4444', confirmButtonText:'ลบ'});
+        const res = await Swal.fire({title:'ยืนยันการลบ?', text:'ข้อมูลจะถูกลบถาวร', icon:'warning', showCancelButton:true, confirmButtonColor: '#ef4444', confirmButtonText: 'ลบ'});
         if(res.isConfirmed) {
             await sbClient.from(tbl).delete().eq(col, id);
+            if(tbl === 'Personnel') await loadPersonnel();
             render();
         }
     }
@@ -289,13 +280,13 @@
     }
 
     async function editPerson(id, name) {
-        const { value: n } = await Swal.fire({ title: 'แก้ไขชื่อ', input: 'text', inputValue: name });
+        const { value: n } = await Swal.fire({ title: 'แก้ไขชื่อพนักงาน', input: 'text', inputValue: name });
         if(n) { await sbClient.from('Personnel').update({name: n}).eq('personnel_id', id); await loadPersonnel(); render(); }
     }
 
     async function handleAdd() {
         if(currentTab === 'person') {
-            const { value: f } = await Swal.fire({ title:'เพิ่มพนักงาน', html:`<input id="sw-pid" placeholder="รหัส" class="swal2-input"><input id="sw-name" placeholder="ชื่อ" class="swal2-input">`, preConfirm:()=>({personnel_id:document.getElementById('sw-pid').value, name:document.getElementById('sw-name').value}) });
+            const { value: f } = await Swal.fire({ title:'เพิ่มพนักงาน', html:`<input id="sw-pid" placeholder="รหัสพนักงาน" class="swal2-input"><input id="sw-name" placeholder="ชื่อ-นามสกุล" class="swal2-input">`, preConfirm:()=>({personnel_id:document.getElementById('sw-pid').value, name:document.getElementById('sw-name').value}) });
             if(f?.personnel_id) { await sbClient.from('Personnel').insert([f]); await loadPersonnel(); render(); }
         } else if(currentTab === 'leave') {
             const psList = Object.entries(personnelMap).map(([id, name]) => `<option value="${id}">${name}</option>`).join('');
