@@ -17,7 +17,7 @@
             --muted: #6b7280; --border: #e5e7eb; --success: #10b981; --danger: #ef4444;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--text); padding: 15px; height: 100vh; display: flex; flex-direction: column; }
+        body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--text); padding: 15px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .container { max-width: 800px; margin: 0 auto; width: 100%; flex: 1; display: flex; flex-direction: column; }
 
         .card-header { background: white; padding: 15px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 12px; border-bottom: 4px solid var(--primary); }
@@ -218,24 +218,24 @@
             };
             const absentList = await getAbsentList(selectedDate);
             const { value: f } = await Swal.fire({
-                title: 'บันทึกการลา',
-                html: `<div style="text-align:left; font-size:0.9rem;"><label>1. เลือกวันที่:</label><input type="date" id="sw-date" class="swal2-input" value="${selectedDate}"><label style="margin-top:10px; display:block;">2. รายชื่อพนักงาน (ไม่ลงเวลา/ไม่ลา):</label><select id="sw-pid" class="swal2-input">${absentList.length > 0 ? absentList.map(p => `<option value="${p.personnel_id}">${p.name}</option>`).join('') : '<option value="">-- ครบถ้วนแล้ว --</option>'}</select><label style="margin-top:10px; display:block;">3. ประเภทการลา:</label><select id="sw-type" class="swal2-input"><option value="ลาป่วย">ลาป่วย</option><option value="ลากิจ">ลากิจ</option><option value="ลาพักร้อน">ลาพักร้อน</option></select></div>`,
+                title: '<span style="color:#ec4899;">✈️ บันทึกการลาใหม่</span>',
+                html: `<div style="text-align:left; padding: 10px;"><div style="margin-bottom: 15px;"><label style="font-weight:bold; color:#6b7280; font-size:0.85rem; display:block; margin-bottom:5px;">1. ระบุวันที่ลา</label><input type="date" id="sw-date" class="swal2-input" style="width:100%; margin:0; border-radius:12px; border:1px solid #e5e7eb;" value="${selectedDate}"></div><div style="margin-bottom: 15px;"><label style="font-weight:bold; color:#6b7280; font-size:0.85rem; display:block; margin-bottom:5px;">2. พนักงานที่ยังไม่มีข้อมูล</label><select id="sw-pid" class="swal2-input" style="width:100%; margin:0; border-radius:12px; border:1px solid #e5e7eb; height: 50px;">${absentList.length > 0 ? absentList.map(p => `<option value="${p.personnel_id}">${p.name}</option>`).join('') : '<option value="">-- ครบถ้วนแล้ว --</option>'}</select></div><div><label style="font-weight:bold; color:#6b7280; font-size:0.85rem; display:block; margin-bottom:5px;">3. ประเภทการลา</label><select id="sw-type" class="swal2-input" style="width:100%; margin:0; border-radius:12px; border:1px solid #e5e7eb; height: 50px;"><option value="ลาป่วย">🤒 ลาป่วย</option><option value="ลากิจ">📝 ลากิจ</option><option value="ลาพักร้อน">🌴 ลาพักร้อน</option></select></div></div>`,
+                background: '#fef2f8', confirmButtonColor: '#ec4899', confirmButtonText: '<i class="fas fa-save"></i> บันทึกข้อมูล', showCancelButton: true, cancelButtonText: 'ยกเลิก', reverseButtons: true,
                 didOpen: () => {
                     const dIn = document.getElementById('sw-date'), pSel = document.getElementById('sw-pid');
                     dIn.addEventListener('change', async () => {
-                        pSel.innerHTML = '<option>กำลังโหลด...</option>';
+                        pSel.innerHTML = '<option>⏳ กำลังโหลด...</option>';
                         const newList = await getAbsentList(dIn.value);
                         pSel.innerHTML = newList.length > 0 ? newList.map(p => `<option value="${p.personnel_id}">${p.name}</option>`).join('') : '<option value="">-- ครบถ้วนแล้ว --</option>';
                     });
                 },
-                showCancelButton: true, confirmButtonText: 'บันทึกการลา',
                 preConfirm: () => {
                     const pid = document.getElementById('sw-pid').value;
-                    if (!pid) { Swal.showValidationMessage('ไม่พบรายชื่อพนักงานที่สามารถลาได้'); return false; }
+                    if (!pid) { Swal.showValidationMessage('กรุณาเลือกพนักงาน'); return false; }
                     return { id: Date.now().toString(), personnel_id: pid, leave_date: document.getElementById('sw-date').value, leave_type: document.getElementById('sw-type').value, status: 'approved' };
                 }
             });
-            if (f) { const { error } = await sbClient.from('Leave_records').insert([f]); if (error) Swal.fire('Error', error.message, 'error'); else { Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', timer: 1500, showConfirmButton: false }); render(); } }
+            if (f) { await sbClient.from('Leave_records').insert([f]); render(); }
         }
     }
 </script>
