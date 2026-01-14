@@ -112,12 +112,13 @@
 <button class="fab" id="fab-add" style="display: none;" onclick="handleAdd()"><i class="fas fa-plus"></i></button>
 
 <script>
+    // ตรวจสอบสิทธิ์ระดับ 1 เท่านั้น
     const checkAccess = () => {
         const userData = JSON.parse(localStorage.getItem('tas_user') || '{}');
         const userLevel = String(userData.level || '');
         if (userLevel !== '1') {
             Swal.fire({
-                icon: 'error', title: 'ปฏิเสธการเข้าถึง', text: 'เฉพาะผู้ดูแลระบบระดับสูง (Level 1) เท่านั้น', confirmButtonText: 'กลับหน้าเมนู', allowOutsideClick: false
+                icon: 'error', title: 'ปฏิเสธการเข้าถึง', text: 'เฉพาะผู้ดูแลระบบระดับสูงเท่านั้น', confirmButtonText: 'กลับหน้าเมนู', allowOutsideClick: false
             }).then(() => { window.location.replace('menu.html'); });
             return false;
         }
@@ -126,8 +127,9 @@
         return true;
     };
 
-    let currentTab = 'att', filters = { att: 'comp', leave: 'all' }, pages = { att: 1, leave: 1, person: 1 }, personnelMap = {}, totalItems = 0;
+    let currentTab = 'att', filters = { att: 'comp', leave: 'all' }, pages = { att: 1, leave: 1, person: 1 }, personnelMap = {}, totalItems = 0, leaveTypes = [];
 
+    // คำนวณจำนวนแถวแบ่งหน้าอัตโนมัติตามขนาดจอ
     function getPageSize() {
         const contentH = document.getElementById('main-content').clientHeight;
         const activeFilterH = document.querySelector(`#section-${currentTab} .sub-filter-area`)?.clientHeight || 0;
@@ -139,14 +141,23 @@
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('attDate').value = today;
         document.getElementById('leaveDate').value = today;
-        await loadPersonnel();
+        await loadMasterData();
         render();
         window.addEventListener('resize', render);
     });
 
-    async function loadPersonnel() {
-        const { data } = await sbClient.from('Personnel').select('personnel_id, name');
-        data?.forEach(p => personnelMap[p.personnel_id] = p.name);
+    async function loadMasterData() {
+        // ดึงรายชื่อพนักงาน
+        const { data: pData } = await sbClient.from('Personnel').select('personnel_id, name');
+        pData?.forEach(p => personnelMap[p.personnel_id] = p.name);
+
+        // ดึงประเภทการลาจากตาราง Settings เท่านั้น
+        const { data: sData } = await sbClient.from('Settings').select('value').eq('key', 'leave_types').single();
+        if (sData && sData.value) {
+            leaveTypes = sData.value.split(',').map(t => t.trim());
+        } else {
+            leaveTypes = ['ลาป่วย', 'ลากิจ', 'ลาพักร้อน']; // Fallback
+        }
     }
 
     function changeMainTab(t) {
@@ -200,33 +211,33 @@
 
     async function delRec(tbl, id, col='id') { if((await Swal.fire({title:'ลบข้อมูล?', icon:'warning', showCancelButton:true, confirmButtonColor: '#ef4444', confirmButtonText: 'ลบ'})).isConfirmed) { await sbClient.from(tbl).delete().eq(col, id); render(); } }
     async function editAtt(id, tin, tout) { const { value: f } = await Swal.fire({ title: 'แก้ไขเวลา', html: `เข้า: <input id="sw-in" type="time" class="swal2-input" value="${tin?.slice(0,5)||''}"> ออก: <input id="sw-out" type="time" class="swal2-input" value="${tout?.slice(0,5)||''}">`, preConfirm: () => ({ time_in: document.getElementById('sw-in').value || null, time_out: document.getElementById('sw-out').value || null }) }); if(f) { await sbClient.from('TimeStamp').update(f).eq('id', id); render(); } }
-    async function editLeave(id, date, type) { const { value: f } = await Swal.fire({ title: 'แก้ไขการลา', html: `วันที่: <input id="sw-date" type="date" class="swal2-input" value="${date}"> ประเภท: <select id="sw-type" class="swal2-input"><option value="ลาป่วย" ${type==='ลาป่วย'?'selected':''}>ลาป่วย</option><option value="ลากิจ" ${type==='ลากิจ'?'selected':''}>ลากิจ</option><option value="ลาพักร้อน" ${type==='ลาพักร้อน'?'selected':''}>ลาพักร้อน</option></select>`, preConfirm: () => ({ leave_date: document.getElementById('sw-date').value, leave_type: document.getElementById('sw-type').value }) }); if(f) { await sbClient.from('Leave_records').update(f).eq('id', id); render(); } }
-    async function editPerson(id, name) { const { value: n } = await Swal.fire({ title: 'แก้ไขชื่อ', input: 'text', inputValue: name }); if(n) { await sbClient.from('Personnel').update({name: n}).eq('personnel_id', id); await loadPersonnel(); render(); } }
+    async function editLeave(id, date, type) { const { value: f } = await Swal.fire({ title: 'แก้ไขการลา', html: `วันที่: <input id="sw-date" type="date" class="swal2-input" value="${date}"> ประเภท: <select id="sw-type" class="swal2-input">${leaveTypes.map(t => `<option value="${t}" ${t===type?'selected':''}>${t}</option>`).join('')}</select>`, preConfirm: () => ({ leave_date: document.getElementById('sw-date').value, leave_type: document.getElementById('sw-type').value }) }); if(f) { await sbClient.from('Leave_records').update(f).eq('id', id); render(); } }
+    async function editPerson(id, name) { const { value: n } = await Swal.fire({ title: 'แก้ไขชื่อ', input: 'text', inputValue: name }); if(n) { await sbClient.from('Personnel').update({name: n}).eq('personnel_id', id); await loadMasterData(); render(); } }
 
     async function handleAdd() {
         if (currentTab === 'person') {
             const { value: f } = await Swal.fire({ title: 'เพิ่มพนักงานใหม่', html: `<input id="sw-pid" placeholder="รหัสพนักงาน" class="swal2-input"><input id="sw-name" placeholder="ชื่อ-นามสกุล" class="swal2-input">`, preConfirm: () => ({ personnel_id: document.getElementById('sw-pid').value, name: document.getElementById('sw-name').value }) });
-            if (f?.personnel_id) { await sbClient.from('Personnel').insert([f]); await loadPersonnel(); render(); }
+            if (f?.personnel_id) { await sbClient.from('Personnel').insert([f]); await loadMasterData(); render(); }
         } else if (currentTab === 'leave') {
             let selectedDate = new Date().toISOString().split('T')[0];
             const getAbsentList = async (targetDate) => {
-                const { data: allPersonnel } = await sbClient.from('Personnel').select('personnel_id, name');
-                const { data: attended } = await sbClient.from('TimeStamp').select('personnel_id').eq('work_date', targetDate);
-                const { data: leaved } = await sbClient.from('Leave_records').select('personnel_id').eq('leave_date', targetDate);
-                const busyIds = new Set([...(attended || []).map(x => x.personnel_id), ...(leaved || []).map(x => x.personnel_id)]);
-                return (allPersonnel || []).filter(p => !busyIds.has(p.personnel_id));
+                const { data: allP } = await sbClient.from('Personnel').select('personnel_id, name');
+                const { data: att } = await sbClient.from('TimeStamp').select('personnel_id').eq('work_date', targetDate);
+                const { data: lve } = await sbClient.from('Leave_records').select('personnel_id').eq('leave_date', targetDate);
+                const busy = new Set([...(att || []).map(x => x.personnel_id), ...(lve || []).map(x => x.personnel_id)]);
+                return (allP || []).filter(p => !busy.has(p.personnel_id));
             };
             const absentList = await getAbsentList(selectedDate);
             const { value: f } = await Swal.fire({
                 title: '<span style="color:#ec4899;">✈️ บันทึกการลาใหม่</span>',
-                html: `<div style="text-align:left; padding: 10px;"><div style="margin-bottom: 15px;"><label style="font-weight:bold; color:#6b7280; font-size:0.85rem; display:block; margin-bottom:5px;">1. ระบุวันที่ลา</label><input type="date" id="sw-date" class="swal2-input" style="width:100%; margin:0; border-radius:12px; border:1px solid #e5e7eb;" value="${selectedDate}"></div><div style="margin-bottom: 15px;"><label style="font-weight:bold; color:#6b7280; font-size:0.85rem; display:block; margin-bottom:5px;">2. พนักงานที่ยังไม่มีข้อมูล</label><select id="sw-pid" class="swal2-input" style="width:100%; margin:0; border-radius:12px; border:1px solid #e5e7eb; height: 50px;">${absentList.length > 0 ? absentList.map(p => `<option value="${p.personnel_id}">${p.name}</option>`).join('') : '<option value="">-- ครบถ้วนแล้ว --</option>'}</select></div><div><label style="font-weight:bold; color:#6b7280; font-size:0.85rem; display:block; margin-bottom:5px;">3. ประเภทการลา</label><select id="sw-type" class="swal2-input" style="width:100%; margin:0; border-radius:12px; border:1px solid #e5e7eb; height: 50px;"><option value="ลาป่วย">🤒 ลาป่วย</option><option value="ลากิจ">📝 ลากิจ</option><option value="ลาพักร้อน">🌴 ลาพักร้อน</option></select></div></div>`,
-                background: '#fef2f8', confirmButtonColor: '#ec4899', confirmButtonText: '<i class="fas fa-save"></i> บันทึกข้อมูล', showCancelButton: true, cancelButtonText: 'ยกเลิก', reverseButtons: true,
+                html: `<div style="text-align:left; padding: 10px;"><div style="margin-bottom: 15px;"><label style="font-weight:bold; color:#6b7280; font-size:0.85rem; display:block; margin-bottom:5px;">1. ระบุวันที่ลา</label><input type="date" id="sw-date" class="swal2-input" style="width:100%; margin:0; border-radius:12px;" value="${selectedDate}"></div><div style="margin-bottom: 15px;"><label style="font-weight:bold; color:#6b7280; font-size:0.85rem; display:block; margin-bottom:5px;">2. พนักงาน (ไม่ลงเวลา/ไม่ลา)</label><select id="sw-pid" class="swal2-input" style="width:100%; margin:0; border-radius:12px; height: 50px;">${absentList.map(p => `<option value="${p.personnel_id}">${p.name}</option>`).join('') || '<option value="">-- ครบถ้วนแล้ว --</option>'}</select></div><div><label style="font-weight:bold; color:#6b7280; font-size:0.85rem; display:block; margin-bottom:5px;">3. ประเภทการลา</label><select id="sw-type" class="swal2-input" style="width:100%; margin:0; border-radius:12px; height: 50px;">${leaveTypes.map(t => `<option value="${t}">${t}</option>`).join('')}</select></div></div>`,
+                background: '#fef2f8', confirmButtonColor: '#ec4899', showCancelButton: true, reverseButtons: true,
                 didOpen: () => {
                     const dIn = document.getElementById('sw-date'), pSel = document.getElementById('sw-pid');
                     dIn.addEventListener('change', async () => {
                         pSel.innerHTML = '<option>⏳ กำลังโหลด...</option>';
                         const newList = await getAbsentList(dIn.value);
-                        pSel.innerHTML = newList.length > 0 ? newList.map(p => `<option value="${p.personnel_id}">${p.name}</option>`).join('') : '<option value="">-- ครบถ้วนแล้ว --</option>';
+                        pSel.innerHTML = newList.map(p => `<option value="${p.personnel_id}">${p.name}</option>`).join('') || '<option value="">-- ครบถ้วนแล้ว --</option>';
                     });
                 },
                 preConfirm: () => {
