@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ระบบประมวลผลข้อมูล - TAS-SPB (V3.6.3)</title>
+    <title>ระบบประมวลผลข้อมูล - TAS-SPB (V3.6.6)</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <link
         href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Fira+Code:wght@400&display=swap"
@@ -299,7 +299,7 @@
             <div class="icon-box"><i class="fas fa-sync-alt"></i></div>
             <div>
                 <h2 style="margin:0; color:#1f2937;">ประมวลผลข้อมูล</h2>
-                <span style="color:#6b7280; font-size:0.9rem;">เชื่อมโยงข้อมูลหลายช่องทาง (V3.6.3 Netlify-Ready)</span>
+                <span style="color:#6b7280; font-size:0.9rem;">เชื่อมโยงข้อมูลหลายช่องทาง (V3.6.6 Stable)</span>
             </div>
         </div>
         <a href="menu.html"
@@ -341,7 +341,7 @@
                 <div class="dot red"></div>
                 <div class="dot yellow"></div>
                 <div class="dot green"></div>
-                <span class="terminal-title">processing_engine_v3.6.3.sh</span>
+                <span class="terminal-title">processing_engine_v3.6.6.sh</span>
             </div>
             <div class="terminal-body" id="console">
                 <div class="log-line"><span class="ts">--:--:--</span> <span class="msg">> Standby...</span></div>
@@ -410,44 +410,44 @@
             return records;
         }
 
-        // V3.6.3: Robust Fetch with Netlify Function Priority
+        // V3.6.6: เพิ่ม CodeTabs และปรับปรุงลำดับการลองให้เสถียรที่สุด
         async function fetchWithFailover(url) {
             const strategies = [
                 {
-                    name: "Netlify Function",
+                    name: "Netlify Function", // ใช้เมื่อ Deploy พร้อม Backend (Folder: /netlify/functions)
                     urlFn: (u) => `/.netlify/functions/fetch-web?url=${encodeURIComponent(u)}`,
                     isJson: false
                 },
                 {
-                    name: "AllOrigins (Backup)",
+                    name: "CodeTabs (Proxy)", // พระเอกตัวจริงถ้า Netlify Function ยังไม่มา
+                    urlFn: (u) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+                    isJson: false
+                },
+                {
+                    name: "AllOrigins (Backup)", // ดีสำหรับ Local
                     urlFn: (u) => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}&t=${Date.now()}`,
                     isJson: true
                 },
                 {
-                    name: "CorsProxy.io",
+                    name: "CorsProxy.io", // ทางเลือกสุดท้าย
                     urlFn: (u) => `https://corsproxy.io/?${encodeURIComponent(u)}`,
-                    isJson: false
-                },
-                {
-                    name: "Direct (Local)",
-                    urlFn: (u) => u,
                     isJson: false
                 }
             ];
 
             for (const strategy of strategies) {
                 try {
-                    log(`   > พยายามดึงผ่าน ${strategy.name}...`, 'normal');
+                    log(`   > ลองเชื่อมต่อผ่าน ${strategy.name}...`, 'normal');
                     const controller = new AbortController();
-                    const timer = setTimeout(() => controller.abort(), 20000); // 20s Timeout
+                    const timer = setTimeout(() => controller.abort(), 25000); // 25s Timeout
 
                     const finalUrl = strategy.urlFn(url);
                     const res = await fetch(finalUrl, { signal: controller.signal });
                     clearTimeout(timer);
 
                     if (!res.ok) {
-                        // ถ้า 404 ที่ Netlify Function แสดงว่ารันบน Local ธรรมดา ข้ามไปตัวถัดไปเงียบๆ
-                        if (res.status === 404 && strategy.name.includes("Netlify")) throw new Error("Function not found (Local)");
+                        // ถ้า 404 ที่ Netlify ให้ข้ามเงียบๆ (แปลว่ายังไม่ Deploy Function หรืออยู่ Local)
+                        if (res.status === 404 && strategy.name.includes("Netlify")) throw new Error("Skipped (Not Found)");
                         throw new Error(`HTTP ${res.status}`);
                     }
 
@@ -460,20 +460,23 @@
                     }
 
                     if (content && content.length > 50) return content;
-                    throw new Error("Empty response");
+                    throw new Error("เนื้อหาว่างเปล่า");
 
                 } catch (e) {
-                    log(`   ! ${strategy.name} ล้มเหลว: ${e.message}`, 'warn');
+                    // ไม่ต้องแสดง Error แดงถ้าเป็นการข้าม Netlify Function ปกติ
+                    const logType = e.message.includes("Skipped") ? 'normal' : 'warn';
+                    const logMsg = e.message.includes("Skipped") ? "   - ข้าม (ยังไม่ติดตั้ง Function)" : `   ! ${strategy.name} ล้มเหลว: ${e.message}`;
+                    log(logMsg, logType);
                 }
             }
-            throw new Error("ไม่สามารถดึงข้อมูลได้จากทุกช่องทาง");
+            throw new Error("ไม่สามารถดึงข้อมูลได้จากทุกช่องทาง (กรุณาเช็คอินเทอร์เน็ตหรือ URL)");
         }
 
         async function runProcess() {
             const btn = document.getElementById('btnStart');
             btn.disabled = true;
             document.getElementById('console').innerHTML = '';
-            log("> Engine v3.6.3 Started (Smart Proxy)...", 'highlight');
+            log("> Engine v3.6.6 Started (Ultra-Proxy CodeTabs)...", 'highlight');
 
             try {
                 const { data: config } = await sbClient.from(TAS_CONFIG.TABLE_SETTINGS).select('value').eq('key', 'data_url').single();
