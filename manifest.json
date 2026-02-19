@@ -1,0 +1,25 @@
+{
+  "name": "TAS-SPB System Online",
+  "short_name": "TAS-SPB",
+  "description": "ระบบลงเวลาปฏิบัติงานออนไลน์ TAS-SPB",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f8fafc",
+  "theme_color": "#4f46e5",
+  "scope": "./",
+  "icons": [
+    {
+      "src": "favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

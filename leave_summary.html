@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สรุปวันลา - TAS-SPB</title>
+    
+    <link rel="manifest" href="manifest.json">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="TAS-SPB">
+    
+    <script src="ios-fix.js"></script>
+
+    <style>
+        :root { --primary: #db2777; --bg: #f3f4f6; }
+        body { font-family: 'Sarabun', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #1f2937; }
+        .container { max-width: 1100px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; }
+        .title { font-size: 1.5rem; font-weight: bold; color: #1f2937; display: flex; align-items: center; gap: 10px; }
+        .back-btn { text-decoration: none; color: #6b7280; font-weight: 600; transition: 0.2s; cursor: pointer; }
+        .back-btn:hover { color: var(--primary); }
+        .filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; background: #fff1f2; padding: 20px; border-radius: 10px; border: 1px solid #fecdd3; }
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+        label { font-size: 0.9rem; font-weight: 600; color: #881337; }
+        input, select { padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; outline: none; font-family: 'Sarabun'; }
+        .actions { display: flex; gap: 10px; margin-top: auto; }
+        .btn-search { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; height: 42px; flex: 1; }
+        .btn-search:hover { background: #be185d; }
+        .btn-print { background: #4b5563; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; height: 42px; flex: 1; }
+        .btn-print:hover { background: #374151; }
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        th { background: #fdf2f8; text-align: left; padding: 12px; font-weight: 600; color: #831843; border-bottom: 2px solid #fbcfe8; white-space: nowrap; }
+        td { padding: 12px; border-bottom: 1px solid #f3f4f6; color: #374151; vertical-align: top; }
+        tr:hover { background: #fff1f2; }
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; display: inline-block; }
+        .badge-type { background: #e0e7ff; color: #4338ca; } .badge-leave { background: #fee2e2; color: #991b1b; } .badge-count { background: #f3f4f6; color: #374151; font-weight: bold; border: 1px solid #d1d5db; }
+        @media print { body { background: white; padding: 0; } .container { box-shadow: none; max-width: 100%; padding: 0; margin: 0; } .filters, .back-btn { display: none !important; } th, td { border: 1px solid #ccc; font-size: 11pt; padding: 8px; } .header { border-bottom: none; margin-bottom: 10px; } .title { font-size: 18pt; justify-content: center; } table { width: 100%; } }
+    </style>
+    <script src="supabase.js"></script>
+    <script src="config.js"></script>
+    <script src="sweetalert2.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title"><i class="fas fa-calendar-check" style="color:var(--primary)"></i> สรุปวันลา (Leave Summary)</div>
+            <div onclick="window.location.href='menu.html'" class="back-btn"><i class="fas fa-arrow-left"></i> กลับเมนูหลัก</div>
+        </div>
+
+        <div class="filters">
+            <div class="form-group"><label>จากวันที่</label><input type="date" id="startDate"></div>
+            <div class="form-group"><label>ถึงวันที่</label><input type="date" id="endDate"></div>
+            <div class="form-group"><label>ประเภทบุคลากร</label><select id="pTypeSelect"><option value="all">ทั้งหมด</option></select></div>
+            <div class="actions"><button class="btn-search" onclick="loadData()"><i class="fas fa-search"></i> ค้นหา</button><button class="btn-print" onclick="window.print()"><i class="fas fa-print"></i> พิมพ์</button></div>
+        </div>
+
+        <div class="table-responsive">
+            <table id="resultTable">
+                <thead><tr><th style="width:50px">ลำดับ</th><th style="width:100px">รหัส</th><th style="width:25%">ชื่อ-สกุล</th><th>ประเภทบุคลากร</th><th>ประเภทการลา</th><th>ช่วงวันที่ลา</th><th style="width:80px; text-align:center;">รวม (วัน)</th></tr></thead>
+                <tbody id="tableBody"><tr><td colspan="7" style="text-align:center; padding:20px; color:#aaa;">กรุณากดค้นหาเพื่อแสดงข้อมูล</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => { const date = new Date(); const firstDay = new Date(date.getFullYear(), date.getMonth(), 1); const offset = date.getTimezoneOffset() * 60000; document.getElementById('startDate').value = new Date(firstDay - offset).toISOString().split('T')[0]; document.getElementById('endDate').value = new Date(date - offset).toISOString().split('T')[0]; await loadPersonnelTypes(); });
+        async function loadPersonnelTypes() { try { const { data } = await sbClient.from('Personnel').select('personnel_type'); if (data) { const types = [...new Set(data.map(item => item.personnel_type).filter(t => t))]; const select = document.getElementById('pTypeSelect'); types.forEach(t => { const opt = document.createElement('option'); opt.value = t; opt.innerText = t; select.appendChild(opt); }); } } catch (err) { console.error(err); } }
+        function formatDate(dateStr) { const d = new Date(dateStr); const months = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."]; return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear() + 543}`; }
+        function groupConsecutiveDates(leaveRecords) {
+            if (leaveRecords.length === 0) return [];
+            leaveRecords.sort((a, b) => new Date(a.leave_date) - new Date(b.leave_date));
+            const groups = []; let currentGroup = { type: leaveRecords[0].leave_type, start: leaveRecords[0].leave_date, end: leaveRecords[0].leave_date, count: 1 };
+            for (let i = 1; i < leaveRecords.length; i++) {
+                const current = leaveRecords[i], prevDate = new Date(currentGroup.end), currDate = new Date(current.leave_date), diffDays = Math.ceil(Math.abs(currDate - prevDate) / (1000 * 60 * 60 * 24));
+                if (diffDays === 1 && current.leave_type === currentGroup.type) { currentGroup.end = current.leave_date; currentGroup.count++; }
+                else { groups.push(currentGroup); currentGroup = { type: current.leave_type, start: current.leave_date, end: current.leave_date, count: 1 }; }
+            } groups.push(currentGroup); return groups;
+        }
+        async function loadData() {
+            const start = document.getElementById('startDate').value, end = document.getElementById('endDate').value, pType = document.getElementById('pTypeSelect').value, tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">กำลังประมวลผล...</td></tr>';
+            try {
+                let userQuery = sbClient.from('Personnel').select('personnel_id, name, personnel_type');
+                if (pType !== 'all') userQuery = userQuery.eq('personnel_type', pType);
+                const { data: users, error: uErr } = await userQuery.order('personnel_id', { ascending: true });
+                if (uErr) throw uErr;
+                if (!users || users.length === 0) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">ไม่พบรายชื่อบุคลากร</td></tr>'; return; }
+                const { data: leaves, error: lErr } = await sbClient.from('Leave_records').select('*').gte('leave_date', start).lte('leave_date', end).neq('status', 'rejected').neq('leave_type', 'ยกเว้น');
+                if (lErr) throw lErr;
+                let displayRows = [];
+                users.forEach(u => {
+                    const myLeaves = leaves.filter(l => l.personnel_id === u.personnel_id);
+                    if (myLeaves.length > 0) {
+                        const groupedLeaves = groupConsecutiveDates(myLeaves);
+                        groupedLeaves.forEach(g => { displayRows.push({ id: u.personnel_id, name: u.name, pType: u.personnel_type || '-', leaveType: g.type, dateRange: g.start === g.end ? formatDate(g.start) : `${formatDate(g.start)} - ${formatDate(g.end)}`, count: g.count, rawDate: g.start }); });
+                    }
+                });
+                if (displayRows.length === 0) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">ไม่พบข้อมูลการลาในช่วงเวลานี้</td></tr>'; }
+                else {
+                    displayRows.sort((a, b) => { if (a.id < b.id) return -1; if (a.id > b.id) return 1; return new Date(a.rawDate) - new Date(b.rawDate); });
+                    let html = ''; displayRows.forEach((row, idx) => { html += `<tr><td style="text-align:center">${idx + 1}</td><td style="font-family:monospace; color:#666;">${row.id}</td><td>${row.name}</td><td><span class="badge badge-type">${row.pType}</span></td><td><span class="badge badge-leave">${row.leaveType}</span></td><td>${row.dateRange}</td><td style="text-align:center"><span class="badge badge-count">${row.count} วัน</span></td></tr>`; });
+                    tbody.innerHTML = html;
+                }
+            } catch (err) { console.error(err); tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:red">Error: ${err.message}</td></tr>`; }
+        }
+    </script>
+</body>
+</html>

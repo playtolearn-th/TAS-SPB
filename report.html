@@ -1,74 +1,697 @@
 <!DOCTYPE html>
 <html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <title>รายงาน - TAS-SPB</title>
-    <link rel="icon" type="image/png" href="favicon.png">
-    <style>
-        body { font-family: 'Sarabun', sans-serif; background: #ecfdf5; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 15px; }
-        .back-btn { text-decoration: none; color: #047857; font-weight: bold; display: block; margin-bottom: 15px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { text-align: left; padding: 10px; border-bottom: 1px solid #e5e7eb; }
-        th { background: #f9fafb; color: #374151; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <a href="menu.html" class="back-btn">⬅ กลับเมนูหลัก</a>
-        <h2 style="color: #047857;">📊 ประวัติการลงเวลา</h2>
-        <p>แสดงข้อมูล 5 รายการล่าสุด</p>
-        
-        <table>
-            <thead>
-                <tr>
-                    <th>วันที่</th>
-                    <th>เข้า</th>
-                    <th>ออก</th>
-                </tr>
-            </thead>
-            <tbody id="reportTable">
-                <tr><td colspan="3" style="text-align:center;">กำลังโหลด...</td></tr>
-            </tbody>
-        </table>
-    </div>
 
-    <script src="supabase.js"></script>
-    <script>
-        // Config Supabase (ใส่ Key ใหม่ด้วย)
-        const SUPABASE_URL = "https://tdcmbskmlrwhbjrjyjkk.supabase.co";
-        const SUPABASE_KEY = "ใส่_KEY_ใหม่ของคุณที่นี่"; 
-        
-        const user = JSON.parse(localStorage.getItem('tas_user') || '{}');
-        if (String(user.level) !== '1') window.location.href = 'login.html';
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <title>รายงานการลงเวลา - TAS-SPB</title>
 
-        async function loadReport() {
-            const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            // ดึงข้อมูล 5 วันล่าสุด
-            const { data, error } = await client.from('TimeStampPlus')
-                .select('work_date, time_in, time_out')
-                .eq('personnel_id', user.personnel_id)
-                .order('work_date', { ascending: false })
-                .limit(5);
+        <link rel="manifest" href="manifest.json">
+        <link rel="icon" type="image/png" href="favicon.png">
+        <link rel="apple-touch-icon" href="favicon.png">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="mobile-web-app-capable" content="yes">
 
-            const tbody = document.getElementById('reportTable');
-            tbody.innerHTML = '';
+        <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap"
+            rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-            if (data && data.length > 0) {
-                data.forEach(row => {
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${row.work_date}</td>
-                            <td>${row.time_in || '-'}</td>
-                            <td>${row.time_out || '-'}</td>
-                        </tr>
-                    `;
-                });
-            } else {
-                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">ไม่พบข้อมูล</td></tr>';
+        <style>
+            /* Font Setup */
+            @font-face {
+                font-family: 'THSarabunNew';
+                src: url('font/THSarabunNew.ttf') format('truetype');
+                font-weight: normal;
+                font-style: normal;
             }
-        }
-        loadReport();
-    </script>
-</body>
+
+            @font-face {
+                font-family: 'THSarabunNew';
+                src: url('font/THSarabunNew Bold.ttf') format('truetype');
+                font-weight: bold;
+                font-style: normal;
+            }
+
+            /* Variables */
+            :root {
+                --primary: #10b981;
+                --bg: #f3f4f6;
+                --paper-w: 210mm;
+                --paper-h: 297mm;
+                --pad-top: 15mm;
+                --pad-left: 30mm;
+                --pad-right: 15mm;
+                --line-h: 26px;
+            }
+
+            * {
+                box-sizing: border-box;
+                -webkit-print-color-adjust: exact;
+            }
+
+            body {
+                font-family: 'Sarabun', sans-serif;
+                background: var(--bg);
+                margin: 0;
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                min-height: 100vh;
+            }
+
+            /* --- Header Style --- */
+            .header-section {
+                background: white;
+                width: 100%;
+                max-width: 1000px;
+                padding: 20px 30px;
+                border-radius: 15px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 20px;
+            }
+
+            .header-title {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+
+            .icon-box {
+                width: 50px;
+                height: 50px;
+                background: var(--primary);
+                color: white;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5rem;
+            }
+
+            .header-text h2 {
+                margin: 0;
+                color: #1f2937;
+                font-size: 1.5rem;
+            }
+
+            .header-text span {
+                color: #6b7280;
+                font-size: 0.9rem;
+            }
+
+            .btn-home {
+                text-decoration: none;
+                color: #4b5563;
+                font-weight: bold;
+                background: #f3f4f6;
+                padding: 8px 16px;
+                border-radius: 20px;
+                transition: 0.2s;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+
+            .btn-home:hover {
+                background: #e5e7eb;
+            }
+
+            /* --- Control Bar --- */
+            .control-bar {
+                background: white;
+                padding: 15px 30px;
+                border-radius: 15px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+                width: 100%;
+                max-width: 1000px;
+                display: flex;
+                gap: 15px;
+                align-items: center;
+                justify-content: center;
+                flex-wrap: wrap;
+                margin-bottom: 30px;
+            }
+
+            .control-group {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .date-picker {
+                padding: 10px 15px;
+                border: 1px solid #d1d5db;
+                border-radius: 8px;
+                font-family: 'Sarabun';
+                font-size: 1rem;
+                color: #374151;
+                outline: none;
+            }
+
+            .btn-action {
+                padding: 10px 20px;
+                border: none;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                transition: 0.2s;
+                font-size: 1rem;
+                font-family: 'Sarabun';
+            }
+
+            .btn-show {
+                background: var(--primary);
+                color: white;
+            }
+
+            .btn-show:hover {
+                background: #059669;
+                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            }
+
+            .btn-print {
+                background: #1e293b;
+                color: white;
+            }
+
+            .btn-print:hover {
+                background: #0f172a;
+                box-shadow: 0 4px 12px rgba(30, 41, 59, 0.3);
+            }
+
+            /* --- Report Paper Style --- */
+            #reportWrapper {
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .paper {
+                width: var(--paper-w);
+                height: var(--paper-h);
+                background: white;
+                padding: var(--pad-top) var(--pad-right) 0 var(--pad-left);
+                margin-bottom: 10mm;
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+                font-family: 'THSarabunNew', sans-serif;
+            }
+
+            .page-num {
+                position: absolute;
+                top: 10mm;
+                right: 15mm;
+                font-size: 14pt;
+                z-index: 100;
+            }
+
+            /* Report Header */
+            .rpt-header {
+                text-align: center;
+                margin-bottom: 5mm;
+                min-height: 32mm;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                line-height: 1.2;
+            }
+
+            .rpt-title {
+                font-size: 18pt;
+                font-weight: bold;
+                display: block;
+            }
+
+            .rpt-sub {
+                font-size: 18pt;
+                font-weight: normal;
+                display: block;
+            }
+
+            /* Report Table */
+            .rpt-table {
+                width: 100%;
+                border-collapse: collapse;
+                border: 1.2px solid black;
+                table-layout: fixed;
+            }
+
+            .rpt-table th {
+                border: 1px solid black;
+                background: #fff !important;
+                height: 35px;
+                font-size: 16pt;
+                font-weight: bold;
+            }
+
+            .rpt-table td {
+                border: 1px solid black;
+                padding: 0 5px;
+                font-size: 16pt;
+                height: var(--line-h);
+                vertical-align: middle;
+                line-height: 1;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+            }
+
+            /* Footer */
+            .footer-area {
+                margin-top: var(--line-h);
+                display: flex;
+                flex-direction: column;
+                flex-grow: 1;
+            }
+
+            /* New Summary Style with Fixed Grid */
+            .summary-block {
+                font-size: 16pt;
+                line-height: 1.3;
+                margin-top: 10px;
+                padding-left: 10px;
+            }
+
+            .summary-row {
+                display: grid;
+                grid-template-columns: 70% 30%;
+                margin-bottom: 2px;
+            }
+
+            .summary-col {
+                white-space: nowrap;
+            }
+
+            .signature-area {
+                margin-top: auto;
+                padding-bottom: calc(var(--line-h) * 3);
+                text-align: center;
+                font-size: 16pt;
+                line-height: 1.5;
+            }
+
+            /* Print Settings */
+            @media print {
+                @page {
+                    size: A4 portrait;
+                    margin: 0;
+                }
+
+                body {
+                    background: none;
+                    padding: 0;
+                }
+
+                .header-section,
+                .control-bar {
+                    display: none !important;
+                }
+
+                #reportWrapper {
+                    padding: 0 !important;
+                    width: 100%;
+                }
+
+                .paper {
+                    margin: 0 !important;
+                    box-shadow: none !important;
+                    height: 296.2mm !important;
+                    display: flex !important;
+                    flex-direction: column !important;
+                    page-break-after: always !important;
+                    break-after: page !important;
+                    overflow: hidden;
+                }
+            }
+
+            @media screen and (max-width: 768px) {
+                .header-section {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 15px;
+                }
+
+                .control-bar {
+                    flex-direction: column;
+                    align-items: stretch;
+                }
+
+                .date-picker {
+                    width: 100%;
+                }
+
+                .btn-action {
+                    justify-content: center;
+                }
+
+                #reportWrapper {
+                    transform: scale(0.42);
+                    transform-origin: top center;
+                    margin-bottom: -55%;
+                }
+            }
+        </style>
+    </head>
+
+    <body>
+
+        <div class="header-section">
+            <div class="header-title">
+                <div class="icon-box"><i class="fas fa-file-export"></i></div>
+                <div class="header-text">
+                    <h2>สรุปรายงาน</h2>
+                    <span>เรียกดูและพิมพ์รายงานการลงเวลา (PDF)</span>
+                </div>
+            </div>
+            <a href="menu.html" class="btn-home">
+                <i class="fas fa-home"></i> เมนู
+            </a>
+        </div>
+
+        <div class="control-bar">
+            <div class="control-group">
+                <label style="color: #4b5563; font-weight: 600;">เลือกวันที่:</label>
+                <input type="date" id="reportDate" class="date-picker">
+            </div>
+            <button class="btn-action btn-show" onclick="loadData()">
+                <i class="fas fa-search"></i> แสดงรายงาน
+            </button>
+            <button class="btn-action btn-print" onclick="window.print()">
+                <i class="fas fa-print"></i> พิมพ์ / PDF
+            </button>
+        </div>
+
+        <div id="reportWrapper">
+            <div style="color: #9ca3af; margin-top: 50px; text-align: center;">
+                <i class="fas fa-file-alt" style="font-size: 4rem; margin-bottom: 20px; opacity: 0.5;"></i>
+                <p>กรุณาเลือกวันที่และกด "แสดงรายงาน"</p>
+            </div>
+        </div>
+
+        <script src="ios-fix.js"></script>
+        <script src="supabase.js"></script>
+        <script src="sweetalert2.js"></script>
+        <script src="config.js"></script>
+
+        <script>
+            // ==========================================
+            // 1. Security Check
+            // ==========================================
+            const storedUser = localStorage.getItem('tas_user');
+            if (!storedUser) { window.location.href = 'login.html'; }
+
+            const user = JSON.parse(storedUser);
+            const userLevel = String(user.level || '').trim();
+
+            if (userLevel !== '1' && userLevel !== '2') {
+                document.body.style.display = 'none';
+                setTimeout(() => {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'ไม่สามารถเข้าถึงได้',
+                            text: `สิทธิ์ของคุณคือระดับ ${userLevel} (ต้องการระดับ 1 หรือ 2)`,
+                            confirmButtonText: 'กลับหน้าเมนู',
+                            allowOutsideClick: false,
+                            backdrop: `rgba(0,0,0,0.9)`
+                        }).then(() => { window.location.replace('menu.html'); });
+                    } else {
+                        alert('ไม่สามารถเข้าถึงได้'); window.location.replace('menu.html');
+                    }
+                }, 100);
+                throw new Error("Unauthorized Access");
+            }
+
+            // ==========================================
+            // 2. Report Logic
+            // ==========================================
+            const ROWS_PER_PAGE = 28;
+
+            document.getElementById('reportDate').value = new Date().toISOString().split('T')[0];
+
+            async function loadData() {
+                const dateStr = document.getElementById('reportDate').value;
+                const wrapper = document.getElementById('reportWrapper');
+                if (!dateStr) return;
+
+                wrapper.innerHTML = `
+                <div style="margin-top: 50px; text-align: center; color: var(--primary);">
+                    <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem;"></i>
+                    <p style="margin-top: 15px;">กำลังโหลดข้อมูล...</p>
+                </div>`;
+
+                try {
+                    // Fetch Users
+                    const { data: users } = await sbClient.from(TAS_CONFIG.TABLE_USER).select('*');
+                    // Fetch Attendance
+                    const { data: att } = await sbClient.from(TAS_CONFIG.TABLE_TARGET).select('*').eq('work_date', dateStr);
+                    // Fetch Leaves (Exclude 'ยกเว้น')
+                    const { data: leaves } = await sbClient.from('Leave_records')
+                        .select('*')
+                        .eq('leave_date', dateStr)
+                        .neq('leave_type', 'ยกเว้น');
+                    // Fetch Settings
+                    const { data: settings } = await sbClient.from(TAS_CONFIG.TABLE_SETTINGS).select('*');
+
+                    const config = {}; settings?.forEach(s => config[s.key] = s.value);
+                    const attMap = {}; att?.forEach(a => attMap[a.personnel_id] = a);
+                    const leaveMap = {}; leaves?.forEach(l => leaveMap[l.personnel_id] = l);
+
+                    const groups = {};
+                    users?.forEach(u => {
+                        const type = u.personnel_type || 'ทั่วไป';
+                        if (!groups[type]) groups[type] = [];
+
+                        // Attach Attendance Data
+                        const ts = attMap[u.personnel_id];
+                        u.tIn = ts?.time_in || null;
+                        u.tOut = ts?.time_out || null;
+
+                        // Attach Leave Data
+                        const lv = leaveMap[u.personnel_id];
+                        u.leaveType = lv ? lv.leave_type : null;
+
+                        groups[type].push(u);
+                    });
+
+                    wrapper.innerHTML = "";
+                    const sortedKeys = Object.keys(groups).sort();
+
+                    if (sortedKeys.length === 0) {
+                        wrapper.innerHTML = `<div style="text-align:center; margin-top:50px; color:#6b7280;">ไม่พบข้อมูลพนักงาน</div>`;
+                        return;
+                    }
+
+                    sortedKeys.forEach(type => {
+                        // --- Sorting Logic ---
+                        const list = groups[type].sort((a, b) => {
+                            // Priority Categories:
+                            // 1. Present (Has Time In)
+                            // 2. Present (No Time In, Has Time Out)
+                            // 3. Leave (Type: 'ไปราชการ')
+                            // 4. Leave (Other types)
+                            // 5. Absent (No attendance, no leave)
+
+                            const getPriority = (p) => {
+                                if (p.tIn) return 1;
+                                if (p.tOut) return 2;
+                                if (p.leaveType) {
+                                    if (p.leaveType === 'ไปราชการ') return 3;
+                                    return 4;
+                                }
+                                return 5;
+                            };
+
+                            const pA = getPriority(a);
+                            const pB = getPriority(b);
+
+                            if (pA !== pB) return pA - pB;
+
+                            if (pA === 1) return a.tIn.localeCompare(b.tIn);
+                            if (pA === 2) return a.tOut.localeCompare(b.tOut);
+                            if (pA === 4) return a.leaveType.localeCompare(b.leaveType);
+
+                            return a.name.localeCompare(b.name);
+                        });
+
+                        // ----------------------------------------------------
+                        // [NEW LOGIC] Calculation for Summary (ข้อ 4,5,6,7)
+                        // ----------------------------------------------------
+                        let count_present = 0;
+                        let count_late = 0;
+                        let count_govt = 0;   // ไปราชการ
+                        let count_leave = 0;  // ลาอื่นๆ
+                        let count_absent = 0; // ขาดงาน
+
+                        // ดึงเวลาสายจาก Config (ถ้าไม่มีใช้ค่า Default 08:30:00)
+                        const lateTimeLimit = config['late_time_limit'] || "08:30:00";
+
+                        list.forEach(u => {
+                            if (u.tIn) {
+                                count_present++;
+                                // ข้อ 6: ตรวจสอบการมาสาย
+                                if (u.tIn > lateTimeLimit) {
+                                    count_late++;
+                                }
+                            } else {
+                                // ไม่มีการสแกนเข้า
+                                if (u.leaveType === 'ไปราชการ') {
+                                    count_govt++;
+                                } else if (u.leaveType) {
+                                    count_leave++;
+                                } else {
+                                    count_absent++;
+                                }
+                            }
+                        });
+
+                        // ข้อ 4: ไม่มาปฏิบัติราชการ = ขาด + (ลาทั้งหมด - ไปราชการ)
+                        // ซึ่งใน loop เราแยก leave (ลาอื่นๆ) กับ govt (ไปราชการ) ไว้แล้ว
+                        // ดังนั้น ไม่มาปฏิบัติราชการ = count_absent + count_leave
+                        const stat_not_present = count_absent + count_leave;
+
+                        // ข้อ 6, 7: ถ้าเป็น 0 ให้แสดง "-"
+                        const display_late = count_late === 0 ? "-" : count_late;
+                        const display_govt = count_govt === 0 ? "-" : count_govt;
+                        const display_not_present = stat_not_present === 0 ? "-" : stat_not_present;
+
+                        // ข้อ 5, 7: ดึงค่าตำแหน่งว่าง และ ยืมตัว (ใช้ Function getVal Helper)
+                        // ต้องแปลง 0 เป็น "-" ด้วย
+                        let raw_vacant = getVal(config['vacant_positions'], type);
+                        let display_vacant = (raw_vacant === '0' || raw_vacant === '-') ? '-' : raw_vacant;
+
+                        let raw_borrowed = getVal(config['borrowed_staff'], type);
+                        let display_borrowed = (raw_borrowed === '0' || raw_borrowed === '-') ? '-' : raw_borrowed;
+
+                        // [แก้ไข] จำนวนมาปฏิบัติราชการ = ทั้งหมด - ไม่มาปฏิบัติราชการ
+                        const display_total_present = list.length - stat_not_present;
+
+
+                        // --- Rendering Pages ---
+                        const totalP = Math.ceil(list.length / ROWS_PER_PAGE);
+
+                        for (let p = 0; p < totalP; p++) {
+                            const page = document.createElement('div');
+                            page.className = 'paper';
+                            const items = list.slice(p * ROWS_PER_PAGE, (p + 1) * ROWS_PER_PAGE);
+
+                            page.innerHTML = `
+                            <div class="page-num">${p + 1}/${totalP}</div>
+                            <div class="rpt-header">
+                                <span class="rpt-title">บันทึกการลงเวลาปฏิบัติงานของ${type}</span>
+                                <span class="rpt-sub">${formatThaiDateFull(dateStr)}</span>
+                                <span class="rpt-sub">โรงเรียนเทศบาล๑ (ถนนนครนอก)</span>
+                            </div>
+                            <table class="rpt-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:45px">ที่</th>
+                                        <th>ชื่อ-สกุล</th>
+                                        <th style="width:80px">ลงเวลามา</th>
+                                        <th style="width:80px">ลงเวลากลับ</th>
+                                        <th style="width:110px">หมายเหตุ</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${items.map((u, i) => {
+                                let remark = '';
+                                if (u.leaveType && !u.tIn) {
+                                    remark = u.leaveType;
+                                }
+                                return `
+                                            <tr>
+                                                <td style="text-align:center">${(p * ROWS_PER_PAGE) + i + 1}</td>
+                                                <td>${u.name.trim()}</td>
+                                                <td style="text-align:center">${u.tIn ? u.tIn.slice(0, 5) : ''}</td>
+                                                <td style="text-align:center">${u.tOut ? u.tOut.slice(0, 5) : ''}</td>
+                                                <td style="text-align:center; font-size:14pt;">${remark}</td>
+                                            </tr>`;
+                            }).join('')}
+                                </tbody>
+                            </table>
+                        `;
+
+                            if (p === totalP - 1) {
+                                const footer = document.createElement('div');
+                                footer.className = 'footer-area';
+                                footer.innerHTML = `
+                                <div class="summary-block">
+                                    <div class="summary-row">
+                                        <div class="summary-col">${shortenType(type)} ทั้งหมด ${list.length} คน</div>
+                                        <div class="summary-col">มาสาย ${display_late} คน</div>
+                                    </div>
+                                    <div class="summary-row">
+                                        <div class="summary-col">ตำแหน่งว่าง ${display_vacant} คน</div>
+                                        <div class="summary-col">ยืมตัวมาช่วยราชการ ${display_borrowed} คน</div>
+                                    </div>
+                                    <div class="summary-row">
+                                        <div class="summary-col">ไปราชการ ${display_govt} คน</div>
+                                        <div class="summary-col">มาปฏิบัติราชการ ${display_total_present} คน</div>
+                                    </div>
+                                    <div class="summary-row">
+                                        <div class="summary-col">ไม่มาปฏิบัติราชการ ${display_not_present} คน</div>
+                                    </div>
+                                </div>
+                                <div class="signature-area">
+                                    (ลงชื่อ)............................................................<br>
+                                    (${config['signer_name'] || ''})<br>
+                                    ${config['signer_position'] || ''}
+                                </div>
+                            `;
+                                page.appendChild(footer);
+                            }
+                            wrapper.appendChild(page);
+                        }
+                    });
+                } catch (e) {
+                    console.error(e);
+                    Swal.fire('Error', 'เกิดข้อผิดพลาดในการโหลดข้อมูล', 'error');
+                }
+            }
+
+            function shortenType(name) {
+                if (!name) return "";
+                const spaceIndex = name.indexOf(' ');
+                if (spaceIndex > -1) {
+                    return name.substring(0, spaceIndex) + "ฯ";
+                }
+                return name;
+            }
+
+            function getVal(str, type) {
+                if (!str) return "-";
+                // หารายการที่ตรงกับประเภท (Ex: "ครู:0, ภารโรง:2")
+                const pair = str.split(',').find(p => p.trim().startsWith(type + ":"));
+                // ถ้าเจอ ให้เอาค่าหลัง : ถ้าไม่เจอคืนค่า 0
+                return pair ? pair.split(':')[1].trim() : "0";
+            }
+
+            function formatThaiDateFull(dateStr) {
+                if (!dateStr) return "";
+                const [y, m, d] = dateStr.split('-').map(Number);
+                const date = new Date(y, m - 1, d);
+
+                const days = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
+                const months = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+
+                const dayName = days[date.getDay()];
+                const day = date.getDate();
+                const monthName = months[date.getMonth()];
+                const year = date.getFullYear() + 543;
+
+                return `วัน${dayName}ที่ ${day} ${monthName} พ.ศ. ${year}`;
+            }
+        </script>
+    </body>
+
 </html>

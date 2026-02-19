@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>จัดการสิทธิ์เข้าถึง - TAS-SPB</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="supabase.js"></script>
+    <script src="sweetalert2.js"></script>
+    <script src="config.js"></script>
+    <style>
+        :root { --primary: #ec4899; --bg: #f3f4f6; --text: #1f2937; --border: #e5e7eb; }
+        body { font-family: 'Sarabun', sans-serif; background: var(--bg); padding: 15px; }
+        .container { max-width: 500px; margin: 0 auto; }
+        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 3px solid var(--primary); padding-bottom: 10px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; color: #666; }
+        .sw-input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; font-family: 'Sarabun'; }
+        .btn-save { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
+        .perm-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #fff5f7; border-radius: 12px; margin-bottom: 8px; border: 1px solid #fbcfe8; }
+        .btn-del { color: #ef4444; border: none; background: transparent; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <h3><i class="fas fa-user-lock"></i> กำหนดสิทธิ์เข้าถึง</h3>
+                <a href="menu.html" style="color:var(--primary)"><i class="fas fa-times"></i></a>
+            </div>
+            <div class="form-group">
+                <label>1. เลือกพนักงาน</label>
+                <select id="userSelect" class="sw-input"></select>
+            </div>
+            <div class="form-group">
+                <label>2. หน้าที่อนุญาต</label>
+                <select id="pageSelect" class="sw-input">
+                    <option value="absent_report.html">ผู้ไม่มีข้อมูลการลงเวลา</option>
+                </select>
+            </div>
+            <button class="btn-save" onclick="grantPermission()">บันทึกสิทธิ์</button>
+        </div>
+
+        <div id="permissionList"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = JSON.parse(localStorage.getItem('tas_user') || '{}');
+            if (user.level != '1') { window.location.replace('menu.html'); return; }
+            await loadUsers();
+            await loadPermissions();
+        });
+
+        async function loadUsers() {
+            const { data } = await sbClient.from('Personnel').select('personnel_id, name').order('name');
+            document.getElementById('userSelect').innerHTML = data.map(p => `<option value="${p.personnel_id}">${p.name} (${p.personnel_id})</option>`).join('');
+        }
+
+        async function loadPermissions() {
+            const { data } = await sbClient.from('PagePermissions').select('*');
+            const { data: users } = await sbClient.from('Personnel').select('personnel_id, name');
+            const uMap = {}; users.forEach(u => uMap[u.personnel_id] = u.name);
+
+            document.getElementById('permissionList').innerHTML = data.map(p => `
+                <div class="perm-item">
+                    <div><strong>${uMap[p.user_id] || p.user_id}</strong><br><small>${p.page_name}</small></div>
+                    <button class="btn-del" onclick="revoke('${p.id}')"><i class="fas fa-trash"></i></button>
+                </div>
+            `).join('');
+        }
+
+        async function grantPermission() {
+            const admin = JSON.parse(localStorage.getItem('tas_user'));
+            const payload = {
+                user_id: document.getElementById('userSelect').value,
+                page_name: document.getElementById('pageSelect').value,
+                granted_by: admin.personnel_id
+            };
+            await sbClient.from('PagePermissions').insert([payload]);
+            Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', timer: 1000, showConfirmButton: false });
+            loadPermissions();
+        }
+
+        async function revoke(id) {
+            if (confirm('ลบสิทธิ์การเข้าถึงนี้?')) {
+                await sbClient.from('PagePermissions').delete().eq('id', id);
+                loadPermissions();
+            }
+        }
+    </script>
+</body>
+</html>

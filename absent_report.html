@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ตรวจสอบการลงเวลา - TAS-SPB</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Fira+Code:wght@400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="supabase.js"></script>
+    <script src="sweetalert2.js"></script>
+    <script src="config.js"></script>
+    <style>
+        :root {
+            --primary: #ec4899;
+            --bg: #f3f4f6;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warn: #f59e0b;
+            --info: #3b82f6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: var(--bg);
+            padding: 10px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-header {
+            background: white;
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 10px;
+            border-bottom: 4px solid var(--primary);
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        /* ปุ่ม Debug */
+        .debug-btn {
+            position: absolute;
+            top: 15px;
+            left: 15px; 
+            background: #f3f4f6;
+            border: none;
+            color: #d1d5db;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 5;
+            opacity: 0.5;
+        }
+        .debug-btn:hover { opacity: 1; color: #ef4444; }
+
+        .date-picker-area {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .date-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            font-family: 'Sarabun';
+            font-size: 1rem;
+            text-align: center;
+            color: var(--primary);
+            font-weight: bold;
+            outline: none;
+        }
+
+        .btn-refresh {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            border: none;
+            background: #fdf2f8;
+            color: var(--primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+
+        .btn-refresh:active {
+            transform: scale(0.9);
+        }
+
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 20px;
+        }
+
+        .data-item {
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 5px solid var(--danger);
+            min-height: 85px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+        }
+
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .badge-absent {
+            background: #fee2e2;
+            color: var(--danger);
+        }
+
+        .web-status-bar {
+            font-size: 0.75rem;
+            color: var(--info);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 8px;
+            padding: 5px 10px;
+            background: #eff6ff;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        
+        .web-status-bar:hover {
+            filter: brightness(0.95);
+        }
+
+        .web-status-bar.done {
+            color: var(--success);
+            background: #f0fdf4;
+            cursor: default;
+        }
+
+        .web-status-bar.error {
+            color: var(--danger);
+            background: #fef2f2;
+        }
+
+        .loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            border-radius: 20px;
+            flex-direction: column;
+            gap: 15px;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading-text {
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 1rem;
+            animation: pulse 1.5s infinite;
+        }
+
+        .debug-console {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 200px;
+            background: #111;
+            color: #0f0;
+            font-family: monospace;
+            font-size: 10px;
+            padding: 10px;
+            overflow-y: auto;
+            z-index: 9999;
+            display: none;
+            opacity: 0.9;
+        }
+
+        @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.3s ease forwards; }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="card-header">
+            <button class="debug-btn" onclick="toggleDebug()" title="Show Debug Log"><i class="fas fa-bug"></i></button>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding-left: 30px;">
+                <h2 style="font-size:1.1rem; color:#1f2937;"><i class="fas fa-user-clock" style="color:var(--danger);"></i> ตรวจสอบการลงเวลา</h2>
+                <a href="menu.html" style="color:var(--primary); text-decoration:none;"><i class="fas fa-home fa-lg"></i></a>
+            </div>
+
+            <div class="date-picker-area">
+                <input type="date" id="targetDate" class="date-input" onchange="loadAllData()">
+                <button class="btn-refresh" onclick="loadAllData()"><i class="fas fa-sync-alt"></i></button>
+            </div>
+
+            <div id="web-check-status" class="web-status-bar" onclick="loadAllData()" title="แตะเพื่อตรวจสอบใหม่">
+                <i class="fas fa-search"></i> รอการตรวจสอบ...
+            </div>
+        </div>
+
+        <div class="content-area" id="main-area" style="position:relative;">
+            <div id="inner-loading" class="loading-screen">
+                <i class="fas fa-circle-notch fa-spin fa-3x" style="color:var(--primary);"></i>
+                <span id="loading-text" class="loading-text">กำลังโหลดข้อมูล...</span>
+                <div id="loading-detail" style="font-size:0.8rem; color:#6b7280; margin-top:5px;"></div>
+            </div>
+            <div id="absent-list"></div>
+        </div>
+    </div>
+
+    <div id="debug-console" class="debug-console"></div>
+
+    <script>
+        // Utility: Debug Logger
+        function debugLog(msg) {
+            const consoleEl = document.getElementById('debug-console');
+            const time = new Date().toLocaleTimeString();
+            consoleEl.innerHTML += `<div>[${time}] ${msg}</div>`;
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+            console.log(msg);
+        }
+
+        function toggleDebug() {
+            const el = document.getElementById('debug-console');
+            el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        }
+
+        const getBKKDate = () => {
+            const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Bangkok" }));
+            return now.toISOString().split('T')[0];
+        };
+
+        // Format Date for URL (DDMMYYYY) - Pattern from process.html
+        function formatDateURL(date) { 
+            return `${String(date.getDate()).padStart(2, '0')}${String(date.getMonth() + 1).padStart(2, '0')}${date.getFullYear()}`; 
+        }
+
+        // Fetch Logic Pattern EXACTLY from process.html v3.6.2
+        async function fetchWithFailover(url) {
+            const statusEl = document.getElementById('web-check-status');
+            
+            const proxies = [
+                (u) => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}&t=${Date.now()}`,
+                (u) => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+                (u) => u // Direct Fetch
+            ];
+            const proxyNames = ["AllOrigins", "CorsProxy.io", "Direct"];
+
+            for (let i = 0; i < proxies.length; i++) {
+                try {
+                    const msg = `> พยายามดึงผ่าน ${proxyNames[i]}...`;
+                    debugLog(msg);
+                    if(statusEl) statusEl.innerHTML = `<i class="fas fa-sync fa-spin"></i> ${msg}`;
+
+                    const controller = new AbortController();
+                    const timer = setTimeout(() => controller.abort(), 30000); // 30s Timeout (same as process.html)
+
+                    const finalUrl = proxies[i](url);
+                    const res = await fetch(finalUrl, { signal: controller.signal });
+                    clearTimeout(timer);
+
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+                    // AllOrigins จะคืนค่าเป็น JSON { contents: "..." }
+                    if (i === 0) {
+                        const json = await res.json();
+                        if (json.contents) return json.contents;
+                    } else {
+                        // เจ้าอื่นมักคืนค่าเป็น Text/HTML ตรงๆ
+                        return await res.text();
+                    }
+                } catch (e) {
+                    debugLog(`! ${proxyNames[i]} ล้มเหลว: ${e.message}`);
+                    if (i === proxies.length - 1) throw new Error("ไม่สามารถดึงข้อมูลได้จากทุกช่องทาง");
+                }
+            }
+        }
+
+        let allPersonnel = [];
+        let currentAbsentList = [];
+
+        if (typeof sbClient === 'undefined') {
+            Swal.fire('Config Error', 'ไม่พบไฟล์ supabase.js หรือ config.js', 'error');
+        }
+
+        document.getElementById('targetDate').value = getBKKDate();
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const userStr = localStorage.getItem('tas_user');
+                if (!userStr) throw new Error('No user session');
+                const user = JSON.parse(userStr);
+                if (!user.personnel_id) throw new Error('Invalid user data');
+            } catch (e) {
+                window.location.replace('login.html'); 
+                return;
+            }
+
+            debugLog("Loading Personnel list...");
+            const { data, error } = await sbClient.from('Personnel').select('personnel_id, name, start_date, end_date').order('name');
+            if (error) {
+                Swal.fire('Database Error', error.message, 'error');
+                return;
+            }
+            allPersonnel = data || [];
+            debugLog(`Loaded ${allPersonnel.length} personnel.`);
+            loadAllData();
+        });
+
+        async function loadAllData() {
+            const dateStr = document.getElementById('targetDate').value;
+            const loader = document.getElementById('inner-loading');
+            const loadText = document.getElementById('loading-text');
+            const loadDetail = document.getElementById('loading-detail');
+            const statusEl = document.getElementById('web-check-status');
+            const listContainer = document.getElementById('absent-list');
+
+            loader.style.display = 'flex';
+            listContainer.innerHTML = ''; 
+            statusEl.className = 'web-status-bar';
+            statusEl.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> กำลังตรวจสอบข้อมูล...';
+            statusEl.onclick = null;
+            
+            debugLog(`Starting check for ${dateStr}`);
+
+            try {
+                // --- Phase 1: DB Check ---
+                loadText.innerText = 'กำลังตรวจสอบข้อมูลในระบบ...';
+                loadDetail.innerText = '';
+                
+                const p1 = sbClient.from('Leave_records').select('personnel_id').eq('leave_date', dateStr);
+                const p2 = sbClient.from('TimeStamp').select('personnel_id').eq('work_date', dateStr);
+                
+                const [leaveRes, attRes] = await Promise.all([p1, p2]);
+
+                if (leaveRes.error) throw leaveRes.error;
+                if (attRes.error) throw attRes.error;
+
+                const leaveSet = new Set((leaveRes.data || []).map(l => l.personnel_id));
+                const dbSet = new Set((attRes.data || []).map(a => a.personnel_id));
+
+                const activeStaff = allPersonnel.filter(p => {
+                    const checkDate = new Date(dateStr);
+                    if (p.start_date && new Date(p.start_date) > checkDate) return false;
+                    if (p.end_date && new Date(p.end_date) < checkDate) return false;
+                    return true;
+                });
+
+                let absentList = activeStaff.filter(p => !dbSet.has(p.personnel_id) && !leaveSet.has(p.personnel_id));
+                debugLog(`Initial absent count from DB: ${absentList.length}`);
+
+                // --- Phase 2: Web Check (Using exact Logic from process.html) ---
+                loadText.innerText = 'กำลังตรวจสอบข้อมูล...';
+                loadDetail.innerText = 'เชื่อมต่อเครื่องสแกน...';
+                
+                const tableName = (typeof TAS_CONFIG !== 'undefined') ? TAS_CONFIG.TABLE_SETTINGS : 'Settings';
+                const { data: configData } = await sbClient.from(tableName).select('value').eq('key', 'data_url').single();
+                
+                if (configData?.value) {
+                    let proxyBase = "";
+                    let target = configData.value.trim();
+                    if (target.includes("url=")) target = decodeURIComponent(target.split("url=")[1]);
+                    if (!target.endsWith('/')) target += '/';
+                    proxyBase = target;
+
+                    // Manual date parsing to ensure correct URL regardless of timezone
+                    const [y, m, d] = dateStr.split('-');
+                    const urlDate = `${d}${m}${y}`;
+                    const targetUrl = `${proxyBase}${urlDate}/`;
+                    
+                    debugLog(`Fetching from Web: ${targetUrl}`);
+
+                    try {
+                        const htmlContent = await fetchWithFailover(targetUrl);
+                        if (htmlContent) {
+                            const doc = new DOMParser().parseFromString(htmlContent, "text/html");
+                            const webIds = new Set();
+                            
+                            // Flexible table parsing (same as process.html)
+                            let table = doc.getElementById('mainTable') || doc.querySelector('table');
+                            if (table) {
+                                table.querySelectorAll('tr').forEach(row => {
+                                    const cols = row.querySelectorAll('td');
+                                    if (cols.length > 0) {
+                                        const pid = cols[0].innerText.trim();
+                                        if (pid && !isNaN(pid) && pid.length > 0) {
+                                            webIds.add(pid);
+                                        }
+                                    }
+                                });
+                            }
+
+                            const beforeCount = absentList.length;
+                            absentList = absentList.filter(p => !webIds.has(p.personnel_id));
+                            debugLog(`Filtered ${beforeCount - absentList.length} users found on web.`);
+
+                            statusEl.className = 'web-status-bar done';
+                            statusEl.innerHTML = `<i class="fas fa-check-circle"></i> อัปเดตจาก Web สำเร็จ`;
+                        }
+                    } catch (e) {
+                        debugLog(`Web Fetch Failed: ${e.message}`);
+                        statusEl.className = 'web-status-bar error';
+                        statusEl.innerHTML = `<i class="fas fa-exclamation-triangle"></i> เชื่อมต่อ Web ไม่ได้ (แสดงตาม DB)`;
+                        statusEl.title = e.message;
+                        statusEl.onclick = () => loadAllData();
+                    }
+                } else {
+                    statusEl.className = 'web-status-bar done';
+                    statusEl.innerHTML = '<i class="fas fa-check-circle"></i> ไม่มีการตั้งค่า URL (DB Only)';
+                }
+
+                // --- Phase 3: Render ---
+                currentAbsentList = absentList;
+                renderList(currentAbsentList);
+
+            } catch (err) {
+                console.error(err);
+                debugLog("Critical Error: " + err.message);
+                statusEl.className = 'web-status-bar error';
+                statusEl.innerHTML = '<i class="fas fa-times-circle"></i> เกิดข้อผิดพลาดในระบบ';
+                statusEl.onclick = () => loadAllData();
+            } finally {
+                loader.style.display = 'none';
+            }
+        }
+
+        function renderList(list) {
+            const container = document.getElementById('absent-list');
+
+            if (list.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center; padding:60px 20px; color:var(--success);" class="fade-in">
+                        <i class="fas fa-users-check fa-4x" style="margin-bottom:20px; opacity:0.3;"></i>
+                        <h3>ไม่พบพนักงานตกค้าง</h3>
+                        <p style="font-size:0.9rem; color:#9ca3af; margin-top:5px;">ทุกคนมีการลงเวลาหรือบันทึกการลาครบถ้วนแล้ว</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = `
+                <div style="padding:10px 5px; color:#6b7280; font-size:0.85rem; display:flex; justify-content:space-between; align-items:center;">
+                    <span>พนักงานที่ยังไม่มีข้อมูลในระบบ:</span>
+                    <span><strong style="color:var(--danger); font-size:1.1rem;">${list.length}</strong> ท่าน</span>
+                </div>
+                ${list.map(p => `
+                    <div class="data-item fade-in">
+                        <div>
+                            <strong style="font-size:1rem; color:#1f2937;">${p.name}</strong><br>
+                            <small style="color:#6b7280; font-family:'Fira Code';">ID: ${p.personnel_id}</small>
+                        </div>
+                        <span class="status-badge badge-absent">ไม่พบการลงเวลา</span>
+                    </div>
+                `).join('')}
+            `;
+        }
+    </script>
+</body>
+
+</html>

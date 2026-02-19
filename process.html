@@ -1,91 +1,314 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
-    <title>ระบบประมวลผลข้อมูล - TAS-SPB</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ระบบประมวลผลข้อมูล - TAS-SPB (V3.6.3)</title>
     <link rel="icon" type="image/png" href="favicon.png">
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Fira+Code:wght@400&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Fira+Code:wght@400&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <style>
-        :root { --primary: #6366f1; --bg: #f3f4f6; --terminal-bg: #1e1e1e; --terminal-text: #d4d4d4; }
-        body { font-family: 'Sarabun', sans-serif; background: var(--bg); padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; }
-        
-        /* Main Layout */
-        .header-section { background: white; width: 100%; max-width: 1000px; padding: 20px 30px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .header-title { display: flex; align-items: center; gap: 15px; }
-        .icon-box { width: 50px; height: 50px; background: var(--primary); color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
-        
-        .main-grid { display: grid; grid-template-columns: 350px 1fr; gap: 20px; width: 100%; max-width: 1000px; }
-        
-        /* Left Panel: Controls */
-        .control-panel { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); height: fit-content; }
-        .radio-group { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; }
-        .radio-option { display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 600; color: #374151; padding: 10px; border-radius: 8px; transition: 0.2s; border: 2px solid transparent; }
-        .radio-option:hover { background: #f9fafb; }
-        .radio-option.selected { border-color: var(--primary); background: #eef2ff; color: var(--primary); }
-        .radio-option input { display: none; }
-        .radio-circle { width: 18px; height: 18px; border: 2px solid #9ca3af; border-radius: 50%; position: relative; }
-        .radio-option.selected .radio-circle { border-color: var(--primary); }
-        .radio-option.selected .radio-circle::after { content: ''; width: 10px; height: 10px; background: var(--primary); border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        :root {
+            --primary: #6366f1;
+            --bg: #f3f4f6;
+            --terminal-bg: #1e1e1e;
+            --terminal-text: #d4d4d4;
+        }
 
-        .date-input { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-family: 'Sarabun'; margin-top: 10px; display: none; }
-        
-        .btn-start { width: 100%; background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; border: none; padding: 15px; font-size: 1.1rem; font-weight: bold; border-radius: 10px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3); display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .btn-start:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(99, 102, 241, 0.4); }
-        .btn-start:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; box-shadow: none; }
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: var(--bg);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            box-sizing: border-box;
+        }
 
-        /* Right Panel: Terminal Monitor */
-        .terminal-window { background: var(--terminal-bg); border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden; display: flex; flex-direction: column; height: 500px; }
-        .terminal-header { background: #2d2d2d; padding: 10px 15px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #333; }
-        .dot { width: 12px; height: 12px; border-radius: 50%; }
-        .red { background: #ff5f56; } .yellow { background: #ffbd2e; } .green { background: #27c93f; }
-        .terminal-title { margin-left: 15px; color: #9ca3af; font-size: 0.8rem; font-family: 'Sarabun'; }
-        
-        .terminal-body { flex: 1; padding: 15px; overflow-y: auto; font-family: 'Fira Code', monospace; font-size: 0.85rem; color: var(--terminal-text); line-height: 1.6; }
-        
-        /* Log Styling */
-        .log-line { margin-bottom: 2px; display: flex; }
-        .ts { color: #6b7280; margin-right: 10px; min-width: 70px; user-select: none; }
-        .msg { white-space: pre-wrap; }
-        
-        .c-info { color: #60a5fa; }
-        .c-success { color: #4ade80; }
-        .c-warn { color: #fbbf24; }
-        .c-error { color: #f87171; }
-        .c-highlight { color: #e879f9; font-weight: bold; }
-        .c-detail { color: #94a3b8; padding-left: 20px; font-size: 0.8rem; }
-        
-        /* Checkbox */
-        .checkbox-wrapper { margin-top: 15px; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: #6b7280; }
+        .header-section {
+            background: white;
+            width: 100%;
+            max-width: 1000px;
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
 
-        @media (max-width: 768px) {
-            .main-grid { grid-template-columns: 1fr; }
-            .header-section { flex-direction: column; align-items: flex-start; gap: 15px; }
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .icon-box {
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            color: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .control-panel {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            height: fit-content;
+        }
+
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #374151;
+            padding: 10px;
+            border-radius: 8px;
+            transition: 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .radio-option:hover {
+            background: #f9fafb;
+        }
+
+        .radio-option.selected {
+            border-color: var(--primary);
+            background: #eef2ff;
+            color: var(--primary);
+        }
+
+        .radio-option input {
+            display: none;
+        }
+
+        .radio-circle {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #9ca3af;
+            border-radius: 50%;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .radio-option.selected .radio-circle {
+            border-color: var(--primary);
+        }
+
+        .radio-option.selected .radio-circle::after {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background: var(--primary);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .date-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-family: 'Sarabun';
+            margin-top: 10px;
+            display: none;
+            box-sizing: border-box;
+        }
+
+        .btn-start {
+            width: 100%;
+            background: linear-gradient(135deg, #8b5cf6, #6366f1);
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-start:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .terminal-window {
+            background: var(--terminal-bg);
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 550px;
+        }
+
+        .terminal-header {
+            background: #2d2d2d;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid #333;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .red {
+            background: #ff5f56;
+        }
+
+        .yellow {
+            background: #ffbd2e;
+        }
+
+        .green {
+            background: #27c93f;
+        }
+
+        .terminal-title {
+            margin-left: 15px;
+            color: #9ca3af;
+            font-size: 0.8rem;
+            font-family: 'Sarabun';
+        }
+
+        .terminal-body {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            color: var(--terminal-text);
+            line-height: 1.6;
+        }
+
+        .log-line {
+            margin-bottom: 2px;
+            display: flex;
+        }
+
+        .ts {
+            color: #6b7280;
+            margin-right: 10px;
+            min-width: 75px;
+            font-size: 0.8em;
+        }
+
+        .msg {
+            flex: 1;
+            word-break: break-all;
+        }
+
+        .c-info {
+            color: #60a5fa;
+        }
+
+        .c-success {
+            color: #4ade80;
+        }
+
+        .c-warn {
+            color: #fbbf24;
+        }
+
+        .c-error {
+            color: #f87171;
+        }
+
+        .c-highlight {
+            color: #e879f9;
+            font-weight: bold;
+        }
+
+        .c-detail {
+            color: #94a3b8;
+            padding-left: 20px;
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 900px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .terminal-window {
+                height: 400px;
+            }
         }
     </style>
-    
     <script src="supabase.js"></script>
     <script src="sweetalert2.js"></script>
     <script src="config.js"></script>
 </head>
-<body>
 
+<body>
     <div class="header-section">
         <div class="header-title">
             <div class="icon-box"><i class="fas fa-sync-alt"></i></div>
             <div>
                 <h2 style="margin:0; color:#1f2937;">ประมวลผลข้อมูล</h2>
-                <span style="color:#6b7280; font-size:0.9rem;">ดึงและเชื่อมโยงข้อมูลเข้าระบบ (Web + Manual DB)</span>
+                <span style="color:#6b7280; font-size:0.9rem;">เชื่อมโยงข้อมูลหลายช่องทาง (V3.6.3 Netlify-Ready)</span>
             </div>
         </div>
-        <a href="menu.html" style="text-decoration:none; color:#4b5563; font-weight:bold; background:#f3f4f6; padding:8px 16px; border-radius:20px;">
+        <a href="menu.html"
+            style="text-decoration:none; color:#4b5563; font-weight:bold; background:#f3f4f6; padding:8px 16px; border-radius:20px;">
             <i class="fas fa-home"></i> เมนู
         </a>
     </div>
 
     <div class="main-grid">
-        
         <div class="control-panel">
             <div class="radio-group">
                 <div class="radio-option selected" onclick="selectMode('auto')">
@@ -99,118 +322,87 @@
                     <span>ระบุวันที่เฉพาะ:</span>
                 </div>
             </div>
-
-            <div id="dateGroup" style="display:none; animation: fadeIn 0.3s;">
-                <label style="font-size:0.9rem; font-weight:bold; color:#374151;">เลือกช่วงวันที่:</label>
+            <div id="dateGroup" style="display:none;">
                 <input type="date" id="startDate" class="date-input" style="display:block;">
                 <input type="date" id="endDate" class="date-input" style="display:block; margin-top:5px;">
             </div>
-
-            <div class="checkbox-wrapper">
+            <div style="margin-top:15px; display:flex; align-items:center; gap:8px;">
                 <input type="checkbox" id="chkVerbose" checked>
-                <label for="chkVerbose" style="cursor:pointer;">แสดงรายชื่อละเอียด (Verbose)</label>
+                <label for="chkVerbose"
+                    style="font-size:0.9rem; color:#6b7280; cursor:pointer;">แสดงรายละเอียดรายชื่อ</label>
             </div>
-
             <hr style="border:0; border-top:1px solid #e5e7eb; margin:20px 0;">
-
             <button id="btnStart" class="btn-start" onclick="runProcess()">
                 <i class="fas fa-play"></i> เริ่มการประมวลผล
             </button>
         </div>
-
         <div class="terminal-window">
             <div class="terminal-header">
                 <div class="dot red"></div>
                 <div class="dot yellow"></div>
                 <div class="dot green"></div>
-                <span class="terminal-title">process_monitor.sh (Output)</span>
+                <span class="terminal-title">processing_engine_v3.6.3.sh</span>
             </div>
             <div class="terminal-body" id="console">
-                <div class="log-line"><span class="ts">--:--:--</span> <span class="msg">> System Ready... Waiting for command.</span></div>
+                <div class="log-line"><span class="ts">--:--:--</span> <span class="msg">> Standby...</span></div>
             </div>
         </div>
-
     </div>
 
     <script>
-        // Check Auth First
-        const user = checkAuth();
+        // Auth Check
+        const storedUser = localStorage.getItem('tas_user');
+        if (!storedUser) window.location.href = 'login.html';
+        const user = JSON.parse(storedUser);
+        if (String(user.level).trim() !== '1' && String(user.level).trim() !== '2') {
+            Swal.fire('สิทธิ์ไม่เพียงพอ', '', 'error').then(() => window.location.replace('menu.html'));
+        }
 
-        // Setup Date Inputs
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('startDate').value = today;
         document.getElementById('endDate').value = today;
 
         function selectMode(mode) {
             document.querySelectorAll('.radio-option').forEach(el => el.classList.remove('selected'));
-            const target = document.querySelector(`input[value="${mode}"]`).parentElement;
-            target.classList.add('selected');
+            document.querySelector(`input[value="${mode}"]`).parentElement.classList.add('selected');
             document.querySelector(`input[value="${mode}"]`).checked = true;
-
-            const dateGroup = document.getElementById('dateGroup');
-            if(mode === 'manual') dateGroup.style.display = 'block';
-            else dateGroup.style.display = 'none';
+            document.getElementById('dateGroup').style.display = (mode === 'manual') ? 'block' : 'none';
         }
 
-        // --- Logger System ---
         function getTimeStr() {
             const now = new Date();
-            return `[${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}]`;
+            return `[${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}]`;
         }
 
         function log(msg, type = 'normal', detail = null) {
             const box = document.getElementById('console');
             const ts = getTimeStr();
-            let colorClass = '';
-            
-            if(type === 'info') colorClass = 'c-info';
-            else if(type === 'success') colorClass = 'c-success';
-            else if(type === 'warn') colorClass = 'c-warn';
-            else if(type === 'error') colorClass = 'c-error';
-            else if(type === 'highlight') colorClass = 'c-highlight';
-
-            let html = `<div class="log-line"><span class="ts">${ts}</span> <span class="msg ${colorClass}">${msg}</span></div>`;
-            
-            if(detail && document.getElementById('chkVerbose').checked) {
-                html += `<div class="log-line"><span class="ts"></span> <span class="msg c-detail">${detail}</span></div>`;
+            const colors = { info: 'c-info', success: 'c-success', warn: 'c-warn', error: 'c-error', highlight: 'c-highlight' };
+            box.innerHTML += `<div class="log-line"><span class="ts">${ts}</span> <span class="msg ${colors[type] || ''}">${msg}</span></div>`;
+            if (detail && document.getElementById('chkVerbose').checked) {
+                box.innerHTML += `<div class="log-line"><span class="ts"></span> <span class="msg c-detail">${detail}</span></div>`;
             }
-
-            box.innerHTML += html;
             box.scrollTop = box.scrollHeight;
         }
 
-        // --- Logic Helper ---
-        function formatDateDB(date) {
-            const pad = (n) => String(n).padStart(2, '0');
-            return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-        }
-        function formatDateURL(date) {
-            const pad = (n) => String(n).padStart(2, '0');
-            return `${pad(date.getDate())}${pad(date.getMonth() + 1)}${date.getFullYear()}`;
-        }
+        function formatDateDB(date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`; }
+        function formatDateURL(date) { return `${String(date.getDate()).padStart(2, '0')}${String(date.getMonth() + 1).padStart(2, '0')}${date.getFullYear()}`; }
 
-        // --- HTML Parser ---
         function parseHTMLTable(htmlString, dateStr) {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(htmlString, "text/html");
-            // พยายามหา Table ให้เจอไม่ว่า ID อะไร
-            let table = doc.getElementById('mainTable') || doc.querySelector('table'); 
-            if(!table) return [];
-
-            const rows = table.querySelectorAll('tr'); 
+            const doc = new DOMParser().parseFromString(htmlString, "text/html");
+            const table = doc.querySelector('table');
+            if (!table) return [];
             const records = [];
-            rows.forEach(row => {
+            table.querySelectorAll('tr').forEach((row, i) => {
                 const cols = row.querySelectorAll('td');
                 if (cols.length >= 4) {
                     const pid = cols[0].innerText.trim();
                     const name = cols[1].innerText.trim();
                     let t_in = cols[2].innerText.trim();
                     let t_out = cols[3].innerText.trim();
-
-                    // กรองข้อมูลที่ใช้ได้
-                    if(pid && pid !== "รหัสพนักงาน" && pid !== "ไม่พบข้อมูล") {
-                        if(t_in === "-" || t_in === "") t_in = null; else if(t_in.length===5) t_in+=":00";
-                        if(t_out === "-" || t_out === "") t_out = null; else if(t_out.length===5) t_out+=":00";
+                    if (pid && !isNaN(pid) && pid.length > 0) {
+                        if (t_in === "-" || !t_in) t_in = null; else if (t_in.length === 5) t_in += ":00";
+                        if (t_out === "-" || !t_out) t_out = null; else if (t_out.length === 5) t_out += ":00";
                         records.push({ personnel_id: pid, full_name: name, work_date: dateStr, time_in: t_in, time_out: t_out });
                     }
                 }
@@ -218,174 +410,158 @@
             return records;
         }
 
-        // --- Main Engine ---
+        // V3.6.3: Robust Fetch with Netlify Function Priority
+        async function fetchWithFailover(url) {
+            const strategies = [
+                {
+                    name: "Netlify Function",
+                    urlFn: (u) => `/.netlify/functions/fetch-web?url=${encodeURIComponent(u)}`,
+                    isJson: false
+                },
+                {
+                    name: "AllOrigins (Backup)",
+                    urlFn: (u) => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}&t=${Date.now()}`,
+                    isJson: true
+                },
+                {
+                    name: "CorsProxy.io",
+                    urlFn: (u) => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+                    isJson: false
+                },
+                {
+                    name: "Direct (Local)",
+                    urlFn: (u) => u,
+                    isJson: false
+                }
+            ];
+
+            for (const strategy of strategies) {
+                try {
+                    log(`   > พยายามดึงผ่าน ${strategy.name}...`, 'normal');
+                    const controller = new AbortController();
+                    const timer = setTimeout(() => controller.abort(), 20000); // 20s Timeout
+
+                    const finalUrl = strategy.urlFn(url);
+                    const res = await fetch(finalUrl, { signal: controller.signal });
+                    clearTimeout(timer);
+
+                    if (!res.ok) {
+                        // ถ้า 404 ที่ Netlify Function แสดงว่ารันบน Local ธรรมดา ข้ามไปตัวถัดไปเงียบๆ
+                        if (res.status === 404 && strategy.name.includes("Netlify")) throw new Error("Function not found (Local)");
+                        throw new Error(`HTTP ${res.status}`);
+                    }
+
+                    let content;
+                    if (strategy.isJson) {
+                        const json = await res.json();
+                        content = json.contents;
+                    } else {
+                        content = await res.text();
+                    }
+
+                    if (content && content.length > 50) return content;
+                    throw new Error("Empty response");
+
+                } catch (e) {
+                    log(`   ! ${strategy.name} ล้มเหลว: ${e.message}`, 'warn');
+                }
+            }
+            throw new Error("ไม่สามารถดึงข้อมูลได้จากทุกช่องทาง");
+        }
+
         async function runProcess() {
             const btn = document.getElementById('btnStart');
-            const mode = document.querySelector('input[name="mode"]:checked').value;
-            
             btn.disabled = true;
-            document.getElementById('console').innerHTML = ''; 
-            log("> Initializing Process Engine v3.0...", 'highlight');
+            document.getElementById('console').innerHTML = '';
+            log("> Engine v3.6.3 Started (Smart Proxy)...", 'highlight');
 
             try {
-                // 1. Config
-                const { data: configData } = await sbClient.from(TAS_CONFIG.TABLE_SETTINGS).select('value').eq('key', 'data_url').single();
-                let proxyUrl = "";
-                if(configData?.value) {
-                    let target = configData.value;
-                    // Clean URL
-                    if(target.includes("api.allorigins.win")) {
-                        const match = target.match(/url=(.*)/);
-                        if(match) target = decodeURIComponent(match[1]);
-                    }
-                    if(!target.endsWith('/')) target += '/';
-                    proxyUrl = target;
-                    log(`Target Web URL: ...${target.slice(-20)}`, 'info');
-                } else {
-                    log("Warning: No 'data_url' setting. Skipping Web scraping.", 'warn');
-                }
+                const { data: config } = await sbClient.from(TAS_CONFIG.TABLE_SETTINGS).select('value').eq('key', 'data_url').single();
+                let proxyBase = config?.value?.trim() || "";
+                if (proxyBase && !proxyBase.endsWith('/')) proxyBase += '/';
 
-                // 2. Determine Date Range
                 let start, end;
-                const todayDate = new Date();
-                todayDate.setHours(0,0,0,0);
-
-                if(mode === 'manual') {
+                if (document.querySelector('input[name="mode"]:checked').value === 'manual') {
                     start = new Date(document.getElementById('startDate').value);
                     end = new Date(document.getElementById('endDate').value);
                 } else {
-                    log("Checking last sync date...", 'info');
-                    const { data: lastRec } = await sbClient.from(TAS_CONFIG.TABLE_TARGET)
-                        .select('work_date').order('work_date', {ascending: false}).limit(1).single();
-                    
-                    if(lastRec && lastRec.work_date) {
-                        start = new Date(lastRec.work_date);
-                        log(`Last synced: ${lastRec.work_date}`, 'info');
-                        if(start > todayDate) start = new Date(todayDate);
-                    } else {
-                        start = new Date(todayDate);
-                        log("No history found. Starting from Today.", 'info');
-                    }
-                    end = new Date(todayDate);
+                    const { data: lastRec } = await sbClient.from(TAS_CONFIG.TABLE_TARGET).select('work_date').order('work_date', { ascending: false }).limit(1).single();
+                    start = lastRec ? new Date(lastRec.work_date) : new Date();
+                    end = new Date();
                 }
+                start.setHours(0, 0, 0, 0); end.setHours(0, 0, 0, 0);
 
-                start.setHours(0,0,0,0);
-                end.setHours(0,0,0,0);
-                
-                log(`----------------------------------------`);
-                log(`PROCESSING RANGE: ${formatDateDB(start)} to ${formatDateDB(end)}`, 'highlight');
-                log(`----------------------------------------`);
-
-                if(start > end) throw new Error("Start date cannot be after End date");
-
-                // 3. Loop
+                log(`ช่วงวันที่: ${formatDateDB(start)} ถึง ${formatDateDB(end)}`, 'info');
                 let loop = new Date(start);
                 let grandTotal = 0;
 
-                while(loop <= end) {
+                while (loop <= end) {
                     const dateStr = formatDateDB(loop);
-                    const urlDate = formatDateURL(loop);
-                    
-                    log(`Processing Date: ${dateStr}`, 'highlight');
+                    log(`ประมวลผล: ${dateStr}`, 'highlight');
 
-                    // 3.1 Web Fetch
+                    // 1. Web Data
                     let webData = [];
-                    if(proxyUrl) {
+                    if (proxyBase) {
                         try {
-                            const finalUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(proxyUrl + urlDate)}`;
-                            const res = await fetch(finalUrl);
-                            if(res.ok) {
-                                const json = await res.json();
-                                webData = parseHTMLTable(json.contents, dateStr);
-                                log(`   + Fetched Web: ${webData.length} records`, 'info');
-                            } else {
-                                log(`   - Web HTTP Error ${res.status}`, 'error');
-                            }
-                        } catch(e) { log(`   - Web Fetch Failed: ${e.message}`, 'error'); }
+                            const html = await fetchWithFailover(`${proxyBase}${formatDateURL(loop)}/`);
+                            webData = parseHTMLTable(html, dateStr);
+                            log(`   + ข้อมูลจากเว็บ: ${webData.length} รายการ`, 'success');
+                        } catch (e) { log(`   - เว็บล้มเหลว: ${e.message}`, 'error'); }
                     }
 
-                    // 3.2 DB Fetch (Internal Manual)
+                    // 2. DB Data
                     let dbData = [];
-                    const { data: internal, error: errInt } = await sbClient.from(TAS_CONFIG.TABLE_SOURCE)
-                        .select('*').eq('work_date', dateStr);
-                    
-                    if(internal) {
-                        dbData = internal;
-                        log(`   + Fetched Internal DB: ${dbData.length} records`, 'info');
-                    }
+                    try {
+                        const tableName = TAS_CONFIG.TABLE_SOURCE || "TimeStamp";
+                        const { data } = await sbClient.from(tableName).select('*').eq('work_date', dateStr);
+                        dbData = data || [];
+                        log(`   + ข้อมูลจาก DB (${tableName}): ${dbData.length} รายการ`, 'success');
+                    } catch (e) { log(`   - DB Error: ${e.message}`, 'error'); }
 
-                    // 3.3 Merge
+                    // Merge
                     const map = {};
-                    const addToMap = (rec, srcType) => {
-                        if(!map[rec.personnel_id]) {
-                            map[rec.personnel_id] = { ...rec, sources: [srcType] };
-                        } else {
-                            const cur = map[rec.personnel_id];
-                            if(!cur.sources.includes(srcType)) cur.sources.push(srcType);
-                            // Best Time Logic
-                            if(rec.time_in && (!cur.time_in || rec.time_in < cur.time_in)) cur.time_in = rec.time_in;
-                            if(rec.time_out && (!cur.time_out || rec.time_out > cur.time_out)) cur.time_out = rec.time_out;
+                    const add = (r, s) => {
+                        if (!map[r.personnel_id]) map[r.personnel_id] = { ...r, src: [s] };
+                        else {
+                            if (!map[r.personnel_id].src.includes(s)) map[r.personnel_id].src.push(s);
+                            if (r.time_in && (!map[r.personnel_id].time_in || r.time_in < map[r.personnel_id].time_in)) map[r.personnel_id].time_in = r.time_in;
+                            if (r.time_out && (!map[r.personnel_id].time_out || r.time_out > map[r.personnel_id].time_out)) map[r.personnel_id].time_out = r.time_out;
                         }
                     };
+                    webData.forEach(r => add(r, 'Web'));
+                    dbData.forEach(r => add(r, 'DB'));
 
-                    webData.forEach(r => addToMap(r, 'Web'));
-                    dbData.forEach(r => addToMap(r, 'Manual'));
+                    const payload = Object.values(map).map(item => ({
+                        id: `${formatDateURL(new Date(item.work_date))}${item.personnel_id}`,
+                        personnel_id: item.personnel_id, full_name: item.full_name,
+                        work_date: item.work_date, time_in: item.time_in, time_out: item.time_out, verified: 0
+                    }));
 
-                    const mergedList = Object.values(map);
-                    
-                    if(mergedList.length === 0) {
-                        log("   (No data found for this date)", 'warn');
-                    } else {
-                        // 3.4 Save
-                        const payload = mergedList.map(item => ({
-                            id: `${formatDateURL(new Date(item.work_date))}${item.personnel_id}`,
-                            personnel_id: item.personnel_id,
-                            full_name: item.full_name,
-                            work_date: item.work_date,
-                            time_in: item.time_in,
-                            time_out: item.time_out,
-                            verified: 0
-                        }));
-
-                        const { error: saveErr } = await sbClient.from(TAS_CONFIG.TABLE_TARGET)
-                            .upsert(payload, { onConflict: 'personnel_id, work_date' });
-
-                        if(saveErr) {
-                            log(`   ❌ Save Failed: ${saveErr.message}`, 'error');
-                        } else {
-                            log(`   ✅ Saved Successfully: ${payload.length} records`, 'success');
+                    if (payload.length > 0) {
+                        const { error } = await sbClient.from(TAS_CONFIG.TABLE_TARGET).upsert(payload, { onConflict: 'personnel_id, work_date' });
+                        if (error) log(`   ❌ Save Error: ${error.message}`, 'error');
+                        else {
+                            log(`   ✅ บันทึกแล้ว: ${payload.length} รายการ`, 'success');
                             grandTotal += payload.length;
-
-                            // Verbose Detail
-                            if(document.getElementById('chkVerbose').checked) {
-                                payload.forEach(p => {
-                                    const src = map[p.personnel_id].sources.join('+');
-                                    log(`      > ${p.full_name} (${p.personnel_id})`, 'normal', 
-                                        `Time: ${p.time_in||'-'} / ${p.time_out||'-'} [${src}]`);
-                                });
+                            if (document.getElementById('chkVerbose').checked) {
+                                payload.forEach(p => log(`      > ${p.full_name}`, 'normal', `${p.time_in || '-'} / ${p.time_out || '-'} [${map[p.personnel_id].src.join('+')}]`));
                             }
                         }
-                    }
-                    
+                    } else log("   (ไม่มีข้อมูล)", 'normal');
+
                     loop.setDate(loop.getDate() + 1);
-                    await new Promise(r => setTimeout(r, 200)); // Delay
+                    await new Promise(r => setTimeout(r, 1000));
                 }
 
                 log(`========================================`);
-                log(`SUMMARY: Total Processed ${grandTotal} records.`, 'highlight');
-                log(`Status: COMPLETE`, 'success');
-                
-                if(grandTotal > 0) Swal.fire('สำเร็จ', `ประมวลผลเสร็จสิ้น ${grandTotal} รายการ`, 'success');
-                else Swal.fire('เสร็จสิ้น', 'ไม่พบข้อมูลใหม่ในช่วงเวลาที่เลือก', 'info');
-
+                log(`เสร็จสิ้น: ประมวลผลรวม ${grandTotal} รายการ`, 'highlight');
+                Swal.fire('สำเร็จ', `ประมวลผลเสร็จสิ้น ${grandTotal} รายการ`, 'success');
             } catch (err) {
-                console.error(err);
-                log(`CRITICAL ERROR: ${err.message}`, 'error');
+                log(`CRITICAL: ${err.message}`, 'error');
                 Swal.fire('Error', err.message, 'error');
-            } finally {
-                btn.disabled = false;
-            }
+            } finally { btn.disabled = false; }
         }
     </script>
 </body>
+
 </html>

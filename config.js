@@ -4,16 +4,13 @@
 const TAS_CONFIG = {
     // ⚠️ ใส่ KEY ANON (Public) ของคุณที่นี่
     SUPABASE_URL: "https://tdcmbskmlrwhbjrjyjkk.supabase.co",
-    SUPABASE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkY21ic2ttbHJ3aGJqcmp5amtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2MTY4NTYsImV4cCI6MjA3ODE5Mjg1Nn0.FeYe75J8X_2LoQgG_JWyPNCKcuCL_otsmSW0s5bijAg", 
-    
+    SUPABASE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkY21ic2ttbHJ3aGJqcmp5amtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2MTY4NTYsImV4cCI6MjA3ODE5Mjg1Nn0.FeYe75J8X_2LoQgG_JWyPNCKcuCL_otsmSW0s5bijAg",
+
     // ชื่อตาราง (ต้องมีครบ 4 บรรทัดนี้)
     TABLE_USER: "Personnel",
     TABLE_SETTINGS: "Settings",
-    
-    // 👇 บรรทัดนี้คือตัวที่หายไปครับ ทำให้เกิด Error
-    TABLE_SOURCE: "TimeStampPlus",  
-    
-    TABLE_TARGET: "TimeStamp"
+    TABLE_TARGET: "TimeStamp",
+    REPORT_CREDIT: "TAS-SPB System v.2.2.0 © 2026 Developed by Mr.Phairat In-Kuanchum"
 };
 
 // ==========================================
@@ -46,7 +43,7 @@ function generateID() {
     const now = new Date();
     const pad = (n) => String(n).padStart(2, '0');
     const r = Math.floor(Math.random() * 9999).toString().padStart(4, '0');
-    return `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}${r}`;
+    return `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}${r}`;
 }
 
 initSystem();
